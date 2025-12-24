@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Optimizer - EAV Cutting Optimizer</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="optimization-algorithms.js" defer></script>
+    <script src="custom-algorithms.js" defer></script>
+    <script src="pdf-export.js" defer></script>
+    <script src="script.js" defer></script>
+    <style>
+        /* Additional styles for Custom Optimizer */
+        body {
+            background-color: #f9fafb;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        /* Hidden class */
+        .hidden { 
+            display: none !important; 
+        }
+        
+        /* Header */
+        .header {
+            background-color: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            height: 70px;
+            display: flex;
+            align-items: center;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                padding: 0.75rem 0;
+                height: 60px;
+            }
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+        }
+        
+        .page-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .page-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #2c3e50;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.125rem;
+            flex-shrink: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .page-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 1rem;
+            }
+        }
+        
+        .title-text {
+            display: flex;
+            flex-direction: column;
+            gap: 0.125rem;
+        }
+        
+        @media (max-width: 768px) {
+            .title-text {
+                gap: 0;
+            }
+        }
+        
+        .title-text h1 {
+            font-size: 1.375rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin: 0;
+            line-height: 1.2;
+        }
+        
+        .title-text p {
+            font-size: 0.8125rem;
+            color: #6b7280;
+            margin: 0;
+            line-height: 1.2;
+        }
+        
+        /* Back button */
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1rem;
+            background-color: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            color: #4b5563;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.15s ease;
+            min-width: auto;
+            height: 40px;
+        }
+        
+        .back-btn-text {
+            display: inline;
+            font-size: 0.875rem;
+        }
+        
+        @media (max-width: 768px) {
+            .back-btn {
+                padding: 0.5rem;
+                width: 44px;
+                height: 44px;
+                justify-content: center;
+            }
+            
+            .back-btn-text {
+                display: none;
+            }
+            
+            .back-btn i {
+                margin: 0;
+                font-size: 1.25rem;
+            }
+        }
+        
+        .back-btn:hover {
+            background-color: #2c3e50;
+            border-color: #2c3e50;
+            color: white;
+        }
+        
+        /* Main content */
+        .main-content {
+            padding: 1.5rem 0;
+            min-height: calc(100vh - 70px);
+            display: flex;
+            align-items: stretch;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem 0;
+                min-height: calc(100vh - 60px);
+            }
+        }
+        
+        /* Content Layout */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 1.5rem;
+            height: 100%;
+            align-items: start;
+        }
+        
+        @media (max-width: 1024px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+        
+        /* Panel Styles */
+        .panel {
+            background-color: #ffffff;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Panel header */
+        .panel-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            background-color: #f9fafb;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        @media (max-width: 768px) {
+            .panel-header {
+                padding: 1rem;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+        }
+        
+        .panel-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        /* Export PDF container */
+        .export-pdf-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .export-pdf-container {
+                align-self: flex-end;
+            }
+        }
+        
+        .panel-content {
+            padding: 1.5rem;
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .panel-content {
+                padding: 1.25rem;
+            }
+        }
+        
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            color: #4b5563;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Mode Selection */
+        .mode-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .mode-option {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        
+        .mode-option:hover {
+            border-color: #9ca3af;
+            background-color: #f3f4f6;
+        }
+        
+        .mode-option.active {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+            box-shadow: 0 0 0 1px #3b82f6;
+        }
+        
+        .mode-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #2c3e50;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.125rem;
+            flex-shrink: 0;
+        }
+        
+        .mode-info {
+            flex: 1;
+        }
+        
+        .mode-name {
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 0.25rem;
+        }
+        
+        .mode-description {
+            font-size: 0.8125rem;
+            color: #6b7280;
+        }
+        
+        /* FF-CA-01 Parameters */
+        .ff-ca01-params {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .ff-ca01-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Style untuk tabel */
+        .ff-ca01-table {
+            margin-top: 1.5rem;
+            overflow-x: auto;
+        }
+
+        .ff-ca01-table table {
+            min-width: 300px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .ff-ca01-table th {
+            font-weight: 600;
+            font-size: 0.875rem;
+            padding: 0.75rem;
+            border: 1px solid #e5e7eb;
+            text-align: center;
+        }
+
+        .ff-ca01-table td {
+            padding: 0.75rem;
+            border: 1px solid #e5e7eb;
+        }
+
+        .ff-ca01-table td input {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        
+        /* Gambar */
+        .image-preview {
+            text-align: center;
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background-color: #f9fafb;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .image-preview img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+        }
+        
+        .image-preview p {
+            font-size: 0.8125rem;
+            color: #6b7280;
+            margin-top: 0.5rem;
+        }
+        
+        /* Cut List Container (hidden) */
+        .cut-list-container {
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .cut-list-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .cut-list-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+        
+        .cut-list-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        
+        .cut-list-input-group {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr auto;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+            align-items: center;
+        }
+        
+        @media (max-width: 768px) {
+            .cut-list-input-group {
+                grid-template-columns: 1fr 1fr;
+                grid-template-areas: 
+                    "id length"
+                    "quantity actions";
+            }
+            
+            .cut-list-input-group > :nth-child(1) { grid-area: id; }
+            .cut-list-input-group > :nth-child(2) { grid-area: length; }
+            .cut-list-input-group > :nth-child(3) { grid-area: quantity; }
+            .cut-list-input-group > :nth-child(4) { grid-area: actions; }
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .btn-optimize {
+            flex: 1;
+            padding: 0.875rem;
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            height: 48px;
+        }
+        
+        .btn-optimize:hover {
+            background-color: #34495e;
+        }
+        
+        .btn-add {
+            padding: 0.625rem 1.25rem;
+            background-color: #059669;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            height: 40px;
+        }
+        
+        .btn-add:hover {
+            background-color: #047857;
+        }
+        
+        /* Results Panel */
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+        }
+        
+        .stat-card {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 1.25rem;
+            text-align: center;
+            border: 1px solid #e5e7eb;
+        }
+        
+        @media (max-width: 768px) {
+            .stat-card {
+                padding: 1rem;
+            }
+        }
+        
+        .stat-value {
+            font-size: 1.375rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 0.25rem;
+        }
+        
+        @media (max-width: 768px) {
+            .stat-value {
+                font-size: 1.125rem;
+            }
+        }
+        
+        .stat-label {
+            font-size: 0.8125rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 1.5rem;
+            text-align: center;
+            background-color: #f9fafb;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            height: 100%;
+            min-height: 400px;
+        }
+        
+        .empty-icon {
+            font-size: 3.5rem;
+            color: #d1d5db;
+            margin-bottom: 1.5rem;
+        }
+        
+        /* Bar visualization */
+        .bar-details {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            position: relative;
+        }
+        
+        .bar-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-size: 0.9375rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .bar-visualization-container {
+            width: 100%;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            margin-bottom: 1rem;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .bar-visualization {
+            height: 60px;
+            background-color: #f3f4f6;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            display: flex;
+            border: 1px solid #e5e7eb;
+            min-width: 500px;
+            position: relative;
+        }
+        
+        @media (max-width: 768px) {
+            .bar-visualization {
+                min-width: 600px;
+                height: 55px;
+            }
+        }
+        
+        .bar-items-list {
+            background-color: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            padding: 1.25rem;
+            margin-top: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .bar-item-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f3f4f6;
+            align-items: center;
+        }
+        
+        .bar-item-row:last-child {
+            border-bottom: none;
+        }
+        
+        .item-color-indicator {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+        
+        /* Navigation buttons */
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .nav-button {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            color: #4b5563;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            flex-shrink: 0;
+        }
+        
+        .nav-button:hover {
+            background-color: #f9fafb;
+            border-color: #9ca3af;
+        }
+        
+        .nav-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Mobile scroll indicator */
+        .scroll-indicator {
+            text-align: center;
+            font-size: 0.8125rem;
+            color: #6b7280;
+            margin-top: 0.75rem;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .scroll-indicator {
+                display: block;
+            }
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 1.5rem 0;
+            color: #6b7280;
+            font-size: 0.875rem;
+            border-top: 1px solid #e5e7eb;
+            margin-top: 1.5rem;
+            width: 100%;
+        }
+        
+        /* Spacing untuk input dan select */
+        input, select {
+            padding: 0.625rem 0.875rem;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            width: 100%;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 0.875rem;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+        
+        /* Error container */
+        #errorCustom {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #fee2e2;
+            border: 1px solid #fca5a5;
+            border-radius: 6px;
+            color: #dc2626;
+        }
+        
+        .alert-error {
+            background-color: #fee2e2;
+            border-color: #fca5a5;
+            color: #dc2626;
+        }
+        
+        /* Button styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 0.375rem;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-decoration: none;
+        }
+        
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+            border-color: #6b7280;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #4b5563;
+            border-color: #4b5563;
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: #2c3e50;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        .spinner-dark {
+            border-top-color: #ffffff;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        /* Material Length Notice */
+        .material-length-notice {
+            background-color: #eff6ff;
+            border: 1px solid #93c5fd;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+            color: #1e40af;
+        }
+        
+        .material-length-notice strong {
+            font-weight: 600;
+        }
+
+        /* Additional table styling */
+        .bg-blue-50 {
+            background-color: #eff6ff;
+        }
+        
+        .text-blue-700 {
+            color: #1d4ed8;
+        }
+        
+        .bg-green-50 {
+            background-color: #f0fdf4;
+        }
+        
+        .text-green-700 {
+            color: #15803d;
+        }
+        
+        .bg-gray-50 {
+            background-color: #f9fafb;
+        }
+        
+        .font-medium {
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="page-title">
+                    <div class="page-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <div class="title-text">
+                        <h1>Custom Optimizer</h1>
+                        <p>Specialized cutting optimization</p>
+                    </div>
+                </div>
+                <a href="index.html" class="back-btn">
+                    <i class="fas fa-home"></i>
+                    <span class="back-btn-text">Back to Home</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container main-content">
+        <div class="content-grid">
+            <!-- Left Panel - Parameters -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <i class="fas fa-sliders-h"></i>
+                        Parameters
+                    </h2>
+                </div>
+                <div class="panel-content">
+                    <!-- Material Length Notice -->
+                    <div class="material-length-notice">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Material Length:</strong> Fixed at 6000 mm for FF-CA-01 optimization
+                    </div>
+                    
+                    <form id="optimizerFormCustom">
+                        <!-- Mode Selection -->
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-tasks"></i>
+                                Mode
+                            </label>
+                            <div class="mode-selector">
+                                <div class="mode-option active" data-mode="ff-ca-01">
+                                    <div class="mode-icon">
+                                        <i class="fas fa-ring"></i>
+                                    </div>
+                                    <div class="mode-info">
+                                        <div class="mode-name">FF-CA-01</div>
+                                        <div class="mode-description">Ring cutting optimization with A/B pattern</div>
+                                    </div>
+                                    <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- FF-CA-01 Specific Parameters - Tabel sesuai gambar -->
+                        <div id="ff-ca01-params" class="ff-ca01-params">
+                            <div class="ff-ca01-title">
+                                <i class="fas fa-cube"></i>
+                                FF-CA-01 Parameters
+                            </div>
+                            
+                            <!-- Gambar -->
+                            <div class="image-preview">
+                                <img src="assets/images/ff-ca-01.png" alt="FF-CA-01 Pattern" id="ffCa01Image" onerror="this.style.display='none';">
+                                <p>Reference pattern for FF-CA-01 cutting</p>
+                            </div>
+                            
+                            <!-- Tabel sesuai gambar -->
+                            <div class="ff-ca01-table">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th class="bg-blue-50 text-blue-700">A</th>
+                                            <th class="bg-green-50 text-green-700">B</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="bg-gray-50 font-medium">SR (mm)</td>
+                                            <td>
+                                                <input type="number" id="smallRingA" placeholder="100" min="0" step="1" value="100"
+                                                       class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500">
+                                            </td>
+                                            <td>
+                                                <input type="number" id="smallRingB" placeholder="120" min="0" step="1" value="120"
+                                                       class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-green-500">
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="bg-gray-50 font-medium">BR (mm)</td>
+                                            <td>
+                                                <input type="number" id="bigRingA" placeholder="200" min="0" step="1" value="200"
+                                                       class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500">
+                                            </td>
+                                            <td>
+                                                <input type="number" id="bigRingB" placeholder="220" min="0" step="1" value="220"
+                                                       class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-green-500">
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Multiplier -->
+                            <div class="form-group mt-4">
+                                <label for="multiplier" class="form-label">
+                                    <i class="fas fa-copy"></i>
+                                    Multiplier (Jumlah Set)
+                                </label>
+                                <input type="number" id="multiplier" value="1" min="1" step="1" class="w-full">
+                            </div>
+                            
+                            <!-- Container cut list tersembunyi (untuk data) -->
+                            <div id="cutListContainerCustom" class="hidden">
+                                <!-- Items akan digenerate otomatis di sini -->
+                            </div>
+                        </div>
+                        
+                        <!-- Kerf -->
+                        <div class="form-group">
+                            <label for="kerfWidthCustom" class="form-label">
+                                <i class="fas fa-cut"></i>
+                                Kerf / Blade Width (mm)
+                            </label>
+                            <input type="number" id="kerfWidthCustom" value="2" min="0" step="0.1" class="w-full">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="algorithmCustom" class="form-label">
+                                <i class="fas fa-cogs"></i>
+                                Algorithm
+                            </label>
+                            <select id="algorithmCustom" class="w-full">
+                                <option value="first-fit">First-Fit (Fast)</option>
+                                <option value="best-fit">Best-Fit (Balanced)</option>
+                                <option value="worst-fit">Worst-Fit (Experimental)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="action-buttons">
+                            <button type="submit" id="optimizeBtnCustom" class="btn-optimize">
+                                <i class="fas fa-bolt"></i>
+                                <span id="optimizeTextCustom">Optimize</span>
+                                <span id="optimizeSpinnerCustom" class="hidden spinner"></span>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div id="errorCustom" class="alert alert-error hidden mt-4"></div>
+                </div>
+            </div>
+            
+            <!-- Right Panel - Results -->
+            <div class="panel">
+                <div id="resultsContainerCustom" class="hidden">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <i class="fas fa-chart-line"></i>
+                            Optimization Results
+                        </h2>
+                        <div class="export-pdf-container">
+                            <button id="exportPdfBtnCustom" class="btn btn-secondary">
+                                <i class="fas fa-file-pdf"></i>
+                                <span id="exportTextCustom">Export PDF</span>
+                                <span id="exportSpinnerCustom" class="hidden spinner spinner-dark"></span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="panel-content">
+                        <div id="summaryStatsCustom" class="stats-grid">
+                            <!-- Stats will be populated here -->
+                        </div>
+                        
+                        <div class="results-header">
+                            <h3 class="panel-title" style="font-size: 1rem;">
+                                <i class="fas fa-chart-bar"></i>
+                                Bar Layouts
+                            </h3>
+                            <div class="nav-controls">
+                                <span id="barCounterCustom" class="text-sm text-gray-600">Bar 1 of 0</span>
+                                <button id="prevBarBtnCustom" class="nav-button">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <button id="nextBarBtnCustom" class="nav-button">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="barDetailsCustom" class="bar-details">
+                            <!-- Bar details will be populated here -->
+                            <div class="scroll-indicator">
+                                <i class="fas fa-arrows-left-right"></i> Scroll horizontally to see full bar
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="emptyResultsCustom" class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Results will be displayed here</h3>
+                    <p class="text-gray-500 max-w-md">
+                        Configure the parameters and click "Optimize" to see optimization results.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer container">
+        <p>Engineered by Eghy Al Vandi</p>
+    </footer>
+
+    <script>
+        // Material Length Default (hidden from user)
+        const MATERIAL_LENGTH_DEFAULT = 6000; // mm
+        
+        // Global variables for results navigation
+        let currentBars = [];
+        let currentBarIndex = 0;
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("Custom Optimizer page loaded");
+            
+            // Generate cut list otomatis saat parameter berubah
+            function generateCutListAutomatically() {
+                const smallRingA = parseFloat(document.getElementById('smallRingA').value) || 0;
+                const bigRingA = parseFloat(document.getElementById('bigRingA').value) || 0;
+                const smallRingB = parseFloat(document.getElementById('smallRingB').value) || 0;
+                const bigRingB = parseFloat(document.getElementById('bigRingB').value) || 0;
+                const multiplier = parseInt(document.getElementById('multiplier').value) || 1;
+                const kerfWidth = parseFloat(document.getElementById('kerfWidthCustom').value) || 0;
+
+                const cutListContainer = document.getElementById('cutListContainerCustom');
+                if (!cutListContainer) return;
+
+                // Clear existing items
+                cutListContainer.innerHTML = '';
+
+                const items = [];
+                
+                // Add items for pattern A
+                if (smallRingA > 0) {
+                    items.push({
+                        id: 'A-Small',
+                        length: smallRingA + kerfWidth,
+                        quantity: 4 * multiplier,
+                        originalLength: smallRingA,
+                        type: 'small-ring',
+                        pattern: 'A'
+                    });
+                }
+                
+                if (bigRingA > 0) {
+                    items.push({
+                        id: 'A-Big',
+                        length: bigRingA + kerfWidth,
+                        quantity: 4 * multiplier,
+                        originalLength: bigRingA,
+                        type: 'big-ring',
+                        pattern: 'A'
+                    });
+                }
+                
+                // Add items for pattern B
+                if (smallRingB > 0) {
+                    items.push({
+                        id: 'B-Small',
+                        length: smallRingB + kerfWidth,
+                        quantity: 4 * multiplier,
+                        originalLength: smallRingB,
+                        type: 'small-ring',
+                        pattern: 'B'
+                    });
+                }
+                
+                if (bigRingB > 0) {
+                    items.push({
+                        id: 'B-Big',
+                        length: bigRingB + kerfWidth,
+                        quantity: 4 * multiplier,
+                        originalLength: bigRingB,
+                        type: 'big-ring',
+                        pattern: 'B'
+                    });
+                }
+
+                // Add items to container (hidden, hanya untuk data)
+                items.forEach((item, index) => {
+                    const itemRow = document.createElement('div');
+                    itemRow.className = 'cut-list-input-group';
+                    itemRow.innerHTML = `
+                        <input type="text" name="itemId[]" placeholder="ID" value="${item.id}" class="w-full" readonly>
+                        <input type="number" name="itemLength[]" placeholder="Length" value="${item.length}" min="1" step="1" class="w-full" readonly>
+                        <input type="number" name="itemQuantity[]" placeholder="Qty" value="${item.quantity}" min="1" step="1" class="w-full" readonly>
+                    `;
+                    cutListContainer.appendChild(itemRow);
+                });
+                
+                return items;
+            }
+            
+            // Add event listeners to parameters for automatic cut list generation
+            const params = ['smallRingA', 'bigRingA', 'smallRingB', 'bigRingB', 'multiplier', 'kerfWidthCustom'];
+            params.forEach(param => {
+                const input = document.getElementById(param);
+                if (input) {
+                    input.addEventListener('input', generateCutListAutomatically);
+                }
+            });
+            
+            // Initial generation
+            generateCutListAutomatically();
+            
+            // Setup form submission handler
+            const optimizerForm = document.getElementById('optimizerFormCustom');
+            if (optimizerForm) {
+                optimizerForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    try {
+                        // Get form values
+                        const smallRingA = parseFloat(document.getElementById('smallRingA').value) || 0;
+                        const bigRingA = parseFloat(document.getElementById('bigRingA').value) || 0;
+                        const smallRingB = parseFloat(document.getElementById('smallRingB').value) || 0;
+                        const bigRingB = parseFloat(document.getElementById('bigRingB').value) || 0;
+                        const multiplier = parseInt(document.getElementById('multiplier').value) || 1;
+                        const kerfWidth = parseFloat(document.getElementById('kerfWidthCustom').value) || 0;
+                        const algorithm = document.getElementById('algorithmCustom').value;
+                        
+                        // Validate inputs
+                        if (smallRingA === 0 && bigRingA === 0 && smallRingB === 0 && bigRingB === 0) {
+                            showErrorCustom("Please enter at least one ring dimension");
+                            return;
+                        }
+                        
+                        if (multiplier < 1) {
+                            showErrorCustom("Multiplier must be at least 1");
+                            return;
+                        }
+                        
+                        // Show loading state
+                        const optimizeBtn = document.getElementById('optimizeBtnCustom');
+                        const optimizeText = document.getElementById('optimizeTextCustom');
+                        const optimizeSpinner = document.getElementById('optimizeSpinnerCustom');
+                        
+                        optimizeText.textContent = 'Optimizing...';
+                        optimizeSpinner.classList.remove('hidden');
+                        optimizeBtn.disabled = true;
+                        
+                        // Clear any previous errors
+                        hideErrorCustom();
+                        
+                        // Prepare parameters
+                        const params = {
+                            smallRingA,
+                            bigRingA,
+                            smallRingB,
+                            bigRingB,
+                            multiplier,
+                            kerfWidth
+                        };
+                        
+                        // Use default material length (6000 mm)
+                        const materialLength = MATERIAL_LENGTH_DEFAULT;
+                        
+                        // Run optimization (simulate async operation)
+                        setTimeout(() => {
+                            try {
+                                // Check if CustomOptimizer is available
+                                if (typeof CustomOptimizer === 'undefined') {
+                                    throw new Error("Optimization library not loaded. Please refresh the page.");
+                                }
+                                
+                                // Create optimizer and run optimization
+                                const optimizer = new CustomOptimizer('ff-ca-01', algorithm);
+                                const result = optimizer.optimizeFFCA01(params, materialLength);
+                                
+                                // Display results
+                                displayResultsCustom(result);
+                                
+                                // Hide loading state
+                                optimizeText.textContent = 'Optimize';
+                                optimizeSpinner.classList.add('hidden');
+                                optimizeBtn.disabled = false;
+                                
+                                console.log("Optimization completed successfully", result);
+                                
+                            } catch (error) {
+                                // Hide loading state
+                                optimizeText.textContent = 'Optimize';
+                                optimizeSpinner.classList.add('hidden');
+                                optimizeBtn.disabled = false;
+                                
+                                // Show error
+                                showErrorCustom("Optimization failed: " + error.message);
+                                console.error("Optimization error:", error);
+                            }
+                        }, 500);
+                        
+                    } catch (error) {
+                        showErrorCustom(error.message);
+                    }
+                });
+            }
+            
+            // Setup navigation buttons
+            const prevBarBtn = document.getElementById('prevBarBtnCustom');
+            const nextBarBtn = document.getElementById('nextBarBtnCustom');
+            
+            if (prevBarBtn) {
+                prevBarBtn.addEventListener('click', showPreviousBar);
+            }
+            
+            if (nextBarBtn) {
+                nextBarBtn.addEventListener('click', showNextBar);
+            }
+            
+            // Setup PDF export button
+            const exportPdfBtn = document.getElementById('exportPdfBtnCustom');
+            if (exportPdfBtn) {
+                exportPdfBtn.addEventListener('click', exportResultsToPDF);
+            }
+            
+            // Initialize custom optimizer module
+            if (typeof initCustomOptimizerModule === 'function') {
+                initCustomOptimizerModule();
+            }
+        });
+        
+        // Display optimization results
+        function displayResultsCustom(result) {
+            console.log("Displaying results:", result);
+            
+            // Store bars for navigation
+            currentBars = result.bars || [];
+            currentBarIndex = 0;
+            
+            // Hide empty state, show results
+            document.getElementById('emptyResultsCustom').classList.add('hidden');
+            document.getElementById('resultsContainerCustom').classList.remove('hidden');
+            
+            // Update summary statistics
+            updateSummaryStats(result);
+            
+            // Show first bar
+            if (currentBars.length > 0) {
+                showBarDetails(currentBarIndex);
+            } else {
+                document.getElementById('barDetailsCustom').innerHTML = 
+                    '<div class="text-center py-8 text-gray-500">No bars generated from optimization</div>';
+            }
+            
+            // Update navigation buttons state
+            updateNavigationButtons();
+        }
+        
+        // Update summary statistics
+        function updateSummaryStats(result) {
+            const summaryStats = document.getElementById('summaryStatsCustom');
+            
+            if (!summaryStats) return;
+            
+            const totalMaterialLength = result.totalBars * MATERIAL_LENGTH_DEFAULT;
+            const wastePercentage = totalMaterialLength > 0 ? 
+                (result.totalWaste / totalMaterialLength) * 100 : 0;
+            
+            summaryStats.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${result.totalBars || 0}</div>
+                    <div class="stat-label">Bars Used</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${result.totalItems || 0}</div>
+                    <div class="stat-label">Total Cuts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${(result.overallEfficiency || 0).toFixed(1)}%</div>
+                    <div class="stat-label">Efficiency</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${(wastePercentage || 0).toFixed(1)}%</div>
+                    <div class="stat-label">Waste %</div>
+                </div>
+            `;
+        }
+        
+        // Show bar details
+        function showBarDetails(index) {
+            if (index < 0 || index >= currentBars.length) return;
+            
+            const bar = currentBars[index];
+            const barDetails = document.getElementById('barDetailsCustom');
+            
+            // Update counter
+            document.getElementById('barCounterCustom').textContent = 
+                `Bar ${index + 1} of ${currentBars.length}`;
+            
+            // Generate visualization
+            const visualization = createBarVisualization(bar);
+            const itemsList = createBarItemsList(bar);
+            
+            barDetails.innerHTML = `
+                <div class="bar-info">
+                    <span><strong>Bar ID:</strong> ${bar.id}</span>
+                    <span><strong>Used:</strong> ${bar.usedLength.toFixed(1)} mm</span>
+                    <span><strong>Remaining:</strong> ${bar.remainingLength.toFixed(1)} mm</span>
+                    <span><strong>Efficiency:</strong> ${bar.efficiency.toFixed(1)}%</span>
+                </div>
+                <div class="bar-visualization-container">
+                    ${visualization}
+                </div>
+                <div class="bar-items-list">
+                    <h4 class="font-medium mb-2">Items on this bar:</h4>
+                    ${itemsList}
+                </div>
+            `;
+        }
+        
+        // Create bar visualization
+        function createBarVisualization(bar) {
+            const totalLength = MATERIAL_LENGTH_DEFAULT;
+            const scale = 100; // Percentage scale
+            
+            let visualizationHTML = `<div class="bar-visualization">`;
+            
+            // Add items
+            let currentPosition = 0;
+            bar.items.forEach((item, i) => {
+                const width = (item.length / totalLength) * 100;
+                
+                // Determine color based on pattern
+                let color = '#3b82f6'; // Blue default
+                if (item.id && item.id.includes('A-Small')) color = '#60a5fa'; // Light blue
+                if (item.id && item.id.includes('A-Big')) color = '#2563eb'; // Dark blue
+                if (item.id && item.id.includes('B-Small')) color = '#34d399'; // Light green
+                if (item.id && item.id.includes('B-Big')) color = '#059669'; // Dark green
+                
+                visualizationHTML += `
+                    <div class="bar-segment" 
+                         style="width: ${width}%; background-color: ${color}; border: 1px solid #ffffff;"
+                         title="${item.id}: ${item.length.toFixed(0)}mm">
+                        <div class="segment-content">
+                            ${width > 8 ? `<span class="segment-length">${item.length.toFixed(0)}mm</span>` : ''}
+                            ${width > 15 ? `<span class="segment-id">${item.id}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+                currentPosition += width;
+            });
+            
+            // Add waste section if any
+            if (bar.remainingLength > 0) {
+                const wasteWidth = (bar.remainingLength / totalLength) * 100;
+                
+                visualizationHTML += `
+                    <div class="bar-segment" style="width: ${wasteWidth}%; background-color: #e5e7eb; border: 1px solid #d1d5db;">
+                        <div class="segment-content">
+                            ${wasteWidth > 8 ? `<span class="segment-waste">Waste: ${bar.remainingLength.toFixed(0)}mm</span>` : ''}
+                        </div>
+                    </div>`;
+            }
+            
+            visualizationHTML += `</div>`;
+            return visualizationHTML;
+        }
+        
+        // Create bar items list
+        function createBarItemsList(bar) {
+            if (!bar.items || bar.items.length === 0) {
+                return '<div class="text-center py-4 text-gray-500">No items on this bar</div>';
+            }
+            
+            let itemsHTML = '';
+            
+            bar.items.forEach((item, i) => {
+                // Determine color based on pattern
+                let color = '#3b82f6';
+                if (item.id && item.id.includes('A-Small')) color = '#60a5fa';
+                if (item.id && item.id.includes('A-Big')) color = '#2563eb';
+                if (item.id && item.id.includes('B-Small')) color = '#34d399';
+                if (item.id && item.id.includes('B-Big')) color = '#059669';
+                
+                itemsHTML += `
+                    <div class="bar-item-row">
+                        <div style="display: flex; align-items: center;">
+                            <span class="item-color-indicator" style="background-color: ${color};"></span>
+                            <span>${item.id}</span>
+                        </div>
+                        <div>${item.length.toFixed(1)} mm</div>
+                        <div>Pos: ${item.position.toFixed(1)} mm</div>
+                    </div>
+                `;
+            });
+            
+            return itemsHTML;
+        }
+        
+        // Navigation functions
+        function showPreviousBar() {
+            if (currentBarIndex > 0) {
+                currentBarIndex--;
+                showBarDetails(currentBarIndex);
+                updateNavigationButtons();
+            }
+        }
+        
+        function showNextBar() {
+            if (currentBarIndex < currentBars.length - 1) {
+                currentBarIndex++;
+                showBarDetails(currentBarIndex);
+                updateNavigationButtons();
+            }
+        }
+        
+        function updateNavigationButtons() {
+            const prevBtn = document.getElementById('prevBarBtnCustom');
+            const nextBtn = document.getElementById('nextBarBtnCustom');
+            
+            if (prevBtn) {
+                prevBtn.disabled = currentBarIndex === 0;
+            }
+            
+            if (nextBtn) {
+                nextBtn.disabled = currentBarIndex >= currentBars.length - 1;
+            }
+        }
+        
+        // Export to PDF
+        function exportResultsToPDF() {
+            const exportBtn = document.getElementById('exportPdfBtnCustom');
+            const exportText = document.getElementById('exportTextCustom');
+            const exportSpinner = document.getElementById('exportSpinnerCustom');
+            
+            // Show loading
+            exportText.textContent = 'Generating...';
+            exportSpinner.classList.remove('hidden');
+            exportBtn.disabled = true;
+            
+            setTimeout(() => {
+                // Simple PDF generation simulation
+                alert("PDF export would be generated here. This feature requires additional setup.");
+                
+                // Reset button
+                exportText.textContent = 'Export PDF';
+                exportSpinner.classList.add('hidden');
+                exportBtn.disabled = false;
+            }, 1000);
+        }
+        
+        // Error handling
+        function showErrorCustom(message) {
+            const errorContainer = document.getElementById('errorCustom');
+            if (errorContainer) {
+                errorContainer.textContent = message;
+                errorContainer.classList.remove('hidden');
+                
+                // Auto-hide error after 5 seconds
+                setTimeout(() => {
+                    errorContainer.classList.add('hidden');
+                }, 5000);
+            }
+        }
+        
+        function hideErrorCustom() {
+            const errorContainer = document.getElementById('errorCustom');
+            if (errorContainer) {
+                errorContainer.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>

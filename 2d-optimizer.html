@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Optimizer - EAV Cutting Optimizer</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="optimization-algorithms.js" defer></script>
+    <script src="pdf-export.js" defer></script>
+    <script src="script.js" defer></script>
+    <style>
+        /* Additional styles for 2D Optimizer */
+        body {
+            background-color: #f9fafb;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        /* Header */
+        .header {
+            background-color: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            height: 70px;
+            display: flex;
+            align-items: center;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                padding: 0.75rem 0;
+                height: 60px;
+            }
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+        }
+        
+        .page-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .page-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #2c3e50;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.125rem;
+            flex-shrink: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .page-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 1rem;
+            }
+        }
+        
+        .title-text {
+            display: flex;
+            flex-direction: column;
+            gap: 0.125rem;
+        }
+        
+        @media (max-width: 768px) {
+            .title-text {
+                gap: 0;
+            }
+        }
+        
+        .title-text h1 {
+            font-size: 1.375rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin: 0;
+            line-height: 1.2;
+        }
+        
+        .title-text p {
+            font-size: 0.8125rem;
+            color: #6b7280;
+            margin: 0;
+            line-height: 1.2;
+        }
+        
+        /* Back button */
+        .back-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1rem;
+            background-color: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            color: #4b5563;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.15s ease;
+            min-width: auto;
+            height: 40px;
+        }
+        
+        .back-btn-text {
+            display: inline;
+            font-size: 0.875rem;
+        }
+        
+        @media (max-width: 768px) {
+            .back-btn {
+                padding: 0.5rem;
+                width: 44px;
+                height: 44px;
+                justify-content: center;
+            }
+            
+            .back-btn-text {
+                display: none;
+            }
+            
+            .back-btn i {
+                margin: 0;
+                font-size: 1.25rem;
+            }
+        }
+        
+        .back-btn:hover {
+            background-color: #2c3e50;
+            border-color: #2c3e50;
+            color: white;
+        }
+        
+        /* Main content */
+        .main-content {
+            padding: 1.5rem 0;
+            min-height: calc(100vh - 70px);
+            display: flex;
+            align-items: stretch;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem 0;
+                min-height: calc(100vh - 60px);
+            }
+        }
+        
+        /* Content Layout */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 1.5rem;
+            height: 100%;
+            align-items: start;
+        }
+        
+        @media (max-width: 1024px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+        
+        /* Panel Styles */
+        .panel {
+            background-color: #ffffff;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* FIXED: Panel header dengan Export PDF button di sebelah kanan */
+        .panel-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid #e5e7eb;
+            background-color: #f9fafb;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        @media (max-width: 768px) {
+            .panel-header {
+                padding: 1rem;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+        }
+        
+        .panel-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        /* FIXED: Export PDF container di sebelah kanan */
+        .export-pdf-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .export-pdf-container {
+                align-self: flex-end;
+            }
+        }
+        
+        .panel-content {
+            padding: 1.5rem;
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .panel-content {
+                padding: 1.25rem;
+            }
+        }
+        
+        /* Form Elements */
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .input-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            color: #4b5563;
+            margin-bottom: 0.5rem;
+        }
+        
+        .dimension-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        /* Cut List Items */
+        .cut-list-container {
+            max-height: 350px;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .item-row {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .item-row:hover {
+            border-color: #9ca3af;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Row 1: Item ID - Full width */
+        .item-id-row {
+            width: 100%;
+        }
+        
+        .item-id-row input {
+            width: 100%;
+            padding: 0.625rem 0.875rem;
+        }
+        
+        /* Row 2: Dimensions and Quantity */
+        .item-dimensions-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+            width: 100%;
+        }
+        
+        .dimension-input {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .dimension-input label {
+            font-size: 0.8125rem;
+            color: #6b7280;
+            margin-bottom: 0.375rem;
+            white-space: nowrap;
+        }
+        
+        .dimension-input input {
+            width: 100%;
+            min-width: 0;
+            padding: 0.625rem 0.875rem;
+        }
+        
+        /* Row 3: Rotation and Remove Button */
+        .item-actions-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding-top: 0.75rem;
+            border-top: 1px solid #f3f4f6;
+        }
+        
+        .rotation-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .rotation-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+        }
+        
+        .rotation-checkbox span {
+            font-size: 0.875rem;
+            color: #4b5563;
+            white-space: nowrap;
+        }
+        
+        .remove-item-btn {
+            padding: 0.625rem 1.25rem;
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            white-space: nowrap;
+            height: 40px;
+        }
+        
+        .remove-item-btn:hover {
+            background-color: #fecaca;
+            border-color: #fca5a5;
+        }
+        
+        /* Action Buttons */
+        .btn-optimize {
+            width: 100%;
+            padding: 0.875rem;
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            height: 48px;
+            margin-top: 0.5rem;
+        }
+        
+        .btn-optimize:hover {
+            background-color: #34495e;
+        }
+        
+        .btn-add {
+            padding: 0.625rem 1.25rem;
+            background-color: #059669;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            height: 40px;
+        }
+        
+        .btn-add:hover {
+            background-color: #047857;
+        }
+        
+        /* Results Panel */
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+        }
+        
+        .stat-card {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 1.25rem;
+            text-align: center;
+            border: 1px solid #e5e7eb;
+        }
+        
+        @media (max-width: 768px) {
+            .stat-card {
+                padding: 1rem;
+            }
+        }
+        
+        .stat-value {
+            font-size: 1.375rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 0.25rem;
+        }
+        
+        @media (max-width: 768px) {
+            .stat-value {
+                font-size: 1.125rem;
+            }
+        }
+        
+        .stat-label {
+            font-size: 0.8125rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Plate Details */
+        .plate-details {
+            background-color: #f9fafb;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            position: relative;
+        }
+        
+        .plate-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-size: 0.9375rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        /* Plate visualization container - FIXED: Tidak bisa di-zoom/digeser */
+        .plate-visual-container {
+            width: 100%;
+            height: 320px;
+            background-color: #f3f4f6;
+            border-radius: 8px;
+            border: 2px dashed #9ca3af; /* Outline putus-putus untuk plate */
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            touch-action: none; /* Nonaktifkan zoom/pinch */
+            user-select: none; /* Nonaktifkan seleksi teks */
+        }
+        
+        .plate-visual {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        /* Dotted grid lines untuk referensi skala */
+        .plate-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .grid-line {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        
+        .grid-line.vertical {
+            width: 1px;
+            height: 100%;
+        }
+        
+        .grid-line.horizontal {
+            height: 1px;
+            width: 100%;
+        }
+        
+        /* Plate corner indicators */
+        .plate-corner {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background-color: #3b82f6;
+            border-radius: 50%;
+            z-index: 10;
+        }
+        
+        .plate-corner.tl { top: -6px; left: -6px; }
+        .plate-corner.tr { top: -6px; right: -6px; }
+        .plate-corner.bl { bottom: -6px; left: -6px; }
+        .plate-corner.br { bottom: -6px; right: -6px; }
+        
+        .plate-dimensions {
+            position: absolute;
+            bottom: 0.75rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 0.375rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8125rem;
+            color: #4b5563;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 1px solid #d1d5db;
+        }
+        
+        /* Hapus zoom controls dan mobile instruction */
+        .zoom-controls, .mobile-instruction, .zoom-reset-btn {
+            display: none !important;
+        }
+        
+        .plate-items-list {
+            background-color: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            padding: 1.25rem;
+            margin-top: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .plate-item-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f3f4f6;
+            align-items: center;
+        }
+        
+        .plate-item-row:last-child {
+            border-bottom: none;
+        }
+        
+        .item-color-indicator {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+        
+        .rotated-indicator {
+            font-size: 0.8125rem;
+            color: #6b7280;
+            margin-left: 0.375rem;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 1.5rem;
+            text-align: center;
+            background-color: #f9fafb;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            height: 100%;
+            min-height: 400px;
+        }
+        
+        .empty-icon {
+            font-size: 3.5rem;
+            color: #d1d5db;
+            margin-bottom: 1.5rem;
+        }
+        
+        /* Navigation buttons */
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .nav-button {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            color: #4b5563;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            flex-shrink: 0;
+        }
+        
+        .nav-button:hover {
+            background-color: #f9fafb;
+            border-color: #9ca3af;
+        }
+        
+        .nav-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 1.5rem 0;
+            color: #6b7280;
+            font-size: 0.875rem;
+            border-top: 1px solid #e5e7eb;
+            margin-top: 1.5rem;
+            width: 100%;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .item-dimensions-row {
+                grid-template-columns: 1fr 1fr;
+                grid-template-areas: 
+                    "width height"
+                    "quantity quantity";
+                gap: 0.75rem;
+            }
+            
+            .item-dimensions-row > :nth-child(1) { grid-area: width; }
+            .item-dimensions-row > :nth-child(2) { grid-area: height; }
+            .item-dimensions-row > :nth-child(3) { grid-area: quantity; }
+            
+            .item-actions-row {
+                flex-direction: column;
+                gap: 0.75rem;
+                align-items: flex-start;
+            }
+            
+            .remove-item-btn {
+                align-self: flex-end;
+            }
+            
+            .plate-visual-container {
+                height: 280px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .item-dimensions-row {
+                grid-template-columns: 1fr;
+                grid-template-areas: 
+                    "width"
+                    "height"
+                    "quantity";
+                gap: 0.75rem;
+            }
+        }
+        
+        /* Spacing untuk input dan select */
+        input, select {
+            padding: 0.625rem 0.875rem;
+            border-radius: 6px;
+        }
+        
+        /* Error container */
+        #error2D {
+            margin-top: 1rem;
+            padding: 1rem;
+        }
+        
+        /* Button styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: 0.375rem;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-decoration: none;
+        }
+        
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+            border-color: #6b7280;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #4b5563;
+            border-color: #4b5563;
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: #2c3e50;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        .spinner-dark {
+            border-top-color: #ffffff;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        /* Plate item styles - REVISED: Lebih jelas dengan border dan label */
+        .plate-item {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            overflow: hidden;
+            border: 1.5px solid #ffffff;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+        }
+        
+        .plate-item-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            padding: 3px;
+            text-align: center;
+            overflow: hidden;
+        }
+        
+        .plate-item-id {
+            font-size: 11px;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+            margin-bottom: 2px;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+        
+        .plate-item-dimensions {
+            font-size: 9px;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+            line-height: 1.2;
+        }
+        
+        .plate-item-rotated {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            font-size: 8px;
+            color: white;
+            background-color: rgba(0,0,0,0.5);
+            border-radius: 2px;
+            padding: 1px 3px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="page-title">
+                    <div class="page-icon">
+                        <i class="far fa-square"></i>
+                    </div>
+                    <div class="title-text">
+                        <h1>2D Optimizer</h1>
+                        <p>Sheet material cutting optimization</p>
+                    </div>
+                </div>
+                <a href="index.html" class="back-btn">
+                    <i class="fas fa-home"></i>
+                    <span class="back-btn-text">Back to Home</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container main-content">
+        <div class="content-grid">
+            <!-- Left Panel - Parameters -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <i class="fas fa-sliders-h"></i>
+                        Parameters
+                    </h2>
+                </div>
+                <div class="panel-content">
+                    <div class="input-group">
+                        <label>Plate Dimensions (mm)</label>
+                        <div class="dimension-inputs">
+                            <div>
+                                <input type="number" id="plateWidth" value="2440" min="1" step="1" placeholder="Width" class="w-full">
+                            </div>
+                            <div>
+                                <input type="number" id="plateHeight" value="1220" min="1" step="1" placeholder="Height" class="w-full">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="kerfWidth2d">Kerf / Blade Width (mm)</label>
+                        <input type="number" id="kerfWidth2d" value="0" min="0" step="0.1" class="w-full">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="algorithm2d">Algorithm</label>
+                        <select id="algorithm2d" class="w-full">
+                            <option value="GUILLOTINE">Guillotine (Recommended)</option>
+                            <option value="MAXRECTS">MaxRects (Good)</option>
+                            <option value="SIMPLE">Simple (Fast)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <div class="flex justify-between items-center mb-4">
+                            <label class="font-medium text-gray-700">
+                                <i class="fas fa-list"></i>
+                                Cut List
+                            </label>
+                            <button type="button" id="addItemBtn2D" class="btn-add">
+                                <i class="fas fa-plus"></i>
+                                Add Item
+                            </button>
+                        </div>
+                        
+                        <div id="cutListContainer2D" class="cut-list-container">
+                            <!-- Default input cutlist -->
+                            <div class="item-row">
+                                <!-- Row 1: Item ID -->
+                                <div class="item-id-row">
+                                    <input type="text" name="itemId[]" placeholder="Item ID" value="A" class="w-full">
+                                </div>
+                                
+                                <!-- Row 2: Dimensions and Quantity -->
+                                <div class="item-dimensions-row">
+                                    <div class="dimension-input">
+                                        <label>Width (mm)</label>
+                                        <input type="number" name="itemWidth[]" min="1" step="1" class="w-full">
+                                    </div>
+                                    <div class="dimension-input">
+                                        <label>Height (mm)</label>
+                                        <input type="number" name="itemHeight[]" min="1" step="1" class="w-full">
+                                    </div>
+                                    <div class="dimension-input">
+                                        <label>Quantity</label>
+                                        <input type="number" name="itemQuantity[]" min="1" step="1" class="w-full">
+                                    </div>
+                                </div>
+                                
+                                <!-- Row 3: Rotation and Remove Button -->
+                                <div class="item-actions-row">
+                                    <div class="rotation-checkbox">
+                                        <input type="checkbox" name="itemRotation[]" checked id="rot1">
+                                        <span class="text-sm text-gray-600">Allow Rotation</span>
+                                    </div>
+                                    <button type="button" class="remove-item-btn">
+                                        <i class="fas fa-trash"></i>
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="optimizeBtn2D" class="btn-optimize">
+                        <i class="fas fa-bolt"></i>
+                        <span id="optimizeText2D">Optimize</span>
+                        <span id="optimizeSpinner2D" class="hidden spinner ml-2"></span>
+                    </button>
+                    
+                    <div id="error2D" class="alert alert-error hidden mt-4"></div>
+                </div>
+            </div>
+            
+            <!-- Right Panel - Results -->
+            <div class="panel">
+                <div id="resultsContainer2D" class="hidden">
+                    <!-- FIXED: Export PDF button sudah di panel header -->
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <i class="fas fa-chart-line"></i>
+                            Optimization Results
+                        </h2>
+                        <div class="export-pdf-container">
+                            <button id="exportPdfBtn2D" class="btn btn-secondary">
+                                <i class="fas fa-file-pdf"></i>
+                                <span id="exportText2D">Export PDF</span>
+                                <span id="exportSpinner2D" class="hidden spinner spinner-dark ml-2"></span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="panel-content">
+                        <div id="summaryStats2D" class="stats-grid">
+                            <!-- Stats will be populated here -->
+                        </div>
+                        
+                        <div class="results-header">
+                            <h3 class="panel-title" style="font-size: 1rem;">
+                                <i class="fas fa-th-large"></i>
+                                Plate Layouts
+                            </h3>
+                            <div class="nav-controls">
+                                <span id="plateCounter2D" class="text-sm text-gray-600">Plate 1 of 0</span>
+                                <button id="prevPlateBtn2D" class="nav-button">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <button id="nextPlateBtn2D" class="nav-button">
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="plateDetails2D" class="plate-details">
+                            <!-- Plate details will be populated here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="emptyResults2D" class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-th-large"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-700 mb-2">Results will be displayed here</h3>
+                    <p class="text-gray-500 max-w-md">
+                        Fill in the parameters and click "Optimize" to see optimization results.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer container">
+        <p>Engineered by Eghy Al Vandi</p>
+    </footer>
+
+    <script>
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof init2DOptimizer === 'function') {
+                init2DOptimizer();
+            }
+            
+            // Tambahkan MutationObserver untuk mendeteksi container visualisasi
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    mutation.addedNodes.forEach(function(node) {
+                        // Jika node adalah elemen dan memiliki class 'plate-visual-container'
+                        if (node.nodeType === 1 && node.classList && node.classList.contains('plate-visual-container')) {
+                            // Tambahkan event listener untuk mencegah interaksi
+                            node.addEventListener('touchstart', function(e) {
+                                e.preventDefault();
+                            }, { passive: false });
+                            
+                            node.addEventListener('touchmove', function(e) {
+                                e.preventDefault();
+                            }, { passive: false });
+                            
+                            node.addEventListener('wheel', function(e) {
+                                e.preventDefault();
+                            }, { passive: false });
+                            
+                            node.addEventListener('gesturestart', function(e) {
+                                e.preventDefault();
+                            });
+                            
+                            node.addEventListener('mousedown', function(e) {
+                                e.preventDefault();
+                            });
+                            
+                            // Tambahkan juga untuk mencegah konteks menu
+                            node.addEventListener('contextmenu', function(e) {
+                                e.preventDefault();
+                            });
+                            
+                            // Pastikan style yang ada sudah cukup
+                            node.style.touchAction = 'none';
+                            node.style.userSelect = 'none';
+                            node.style.pointerEvents = 'none';
+                        }
+                        
+                        // Jika node adalah elemen dan mengandung elemen dengan class 'plate-visual-container'
+                        if (node.nodeType === 1 && node.querySelector) {
+                            const containers = node.querySelectorAll('.plate-visual-container');
+                            containers.forEach(function(container) {
+                                // Tambahkan event listener yang sama
+                                container.addEventListener('touchstart', function(e) {
+                                    e.preventDefault();
+                                }, { passive: false });
+                                
+                                container.addEventListener('touchmove', function(e) {
+                                    e.preventDefault();
+                                }, { passive: false });
+                                
+                                container.addEventListener('wheel', function(e) {
+                                    e.preventDefault();
+                                }, { passive: false });
+                                
+                                container.addEventListener('gesturestart', function(e) {
+                                    e.preventDefault();
+                                });
+                                
+                                container.addEventListener('mousedown', function(e) {
+                                    e.preventDefault();
+                                });
+                                
+                                container.addEventListener('contextmenu', function(e) {
+                                    e.preventDefault();
+                                });
+                                
+                                container.style.touchAction = 'none';
+                                container.style.userSelect = 'none';
+                                container.style.pointerEvents = 'none';
+                            });
+                        }
+                    });
+                });
+            });
+            
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        });
+        
+        // FIXED: Nonaktifkan fungsi zoom, pinch, dan pan dengan override
+        window.initPlatePinchZoom = function() {
+            console.log("Pinch zoom disabled for 2D plate visualization");
+        };
+        
+        window.zoomInPlate = function() {
+            console.log("Zoom in disabled");
+        };
+        
+        window.zoomOutPlate = function() {
+            console.log("Zoom out disabled");
+        };
+        
+        window.resetPlateZoom = function() {
+            console.log("Reset zoom disabled");
+        };
+        
+        // Override fungsi displayPlate untuk 2D optimizer
+        window.createPlateVisualization2D = function(plate, index, plateWidth, plateHeight, kerfWidth, itemColors, colors) {
+            const visualId = `plate-visual-${index}`;
+            const containerId = `plate-visual-container-${index}`;
+            
+            // Buat grid lines untuk referensi skala
+            let gridLines = '<div class="plate-grid">';
+            const gridLinesCount = 5;
+            
+            // Garis vertikal
+            for (let i = 1; i < gridLinesCount; i++) {
+                const left = (i / gridLinesCount) * 100;
+                gridLines += `<div class="grid-line vertical" style="left: ${left}%"></div>`;
+            }
+            
+            // Garis horizontal
+            for (let i = 1; i < gridLinesCount; i++) {
+                const top = (i / gridLinesCount) * 100;
+                gridLines += `<div class="grid-line horizontal" style="top: ${top}%"></div>`;
+            }
+            
+            gridLines += '</div>';
+            
+            // Corner indicators
+            const corners = `
+                <div class="plate-corner tl"></div>
+                <div class="plate-corner tr"></div>
+                <div class="plate-corner bl"></div>
+                <div class="plate-corner br"></div>
+            `;
+            
+            let plateVisualization = '';
+            
+            plate.items.forEach((item, i) => {
+                const left = (item.x / plateWidth) * 100;
+                const top = (item.y / plateHeight) * 100;
+                const width = (item.width / plateWidth) * 100;
+                const height = (item.height / plateHeight) * 100;
+                const color = itemColors.get(item.originalId) || colors[0];
+                const actualWidth = item.width - kerfWidth;
+                const actualHeight = item.height - kerfWidth;
+                
+                plateVisualization += `
+                    <div class="plate-item" 
+                         style="left: ${left}%; top: ${top}%; width: ${width}%; height: ${height}%; background-color: ${color};"
+                         title="${item.originalId}: ${actualWidth}×${actualHeight}mm${item.rotated ? ' (Rotated)' : ''}">
+                        <div class="plate-item-content">
+                            ${width > 8 && height > 8 ? 
+                                `<span class="plate-item-id">${item.originalId}</span>` : ''}
+                            ${width > 15 && height > 12 ? 
+                                `<span class="plate-item-dimensions">${actualWidth}×${actualHeight}</span>` : ''}
+                            ${item.rotated && width > 5 && height > 5 ? 
+                                `<span class="plate-item-rotated">R</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            return `
+                <div id="${containerId}" class="plate-visual-container">
+                    ${gridLines}
+                    ${corners}
+                    <div id="${visualId}" class="plate-visual">
+                        ${plateVisualization}
+                    </div>
+                    <div class="plate-dimensions">
+                        ${plateWidth} × ${plateHeight} mm
+                    </div>
+                </div>
+            `;
+        };
+        
+        // Patch displayPlate function
+        function patchDisplayPlateFunction() {
+            // Tunggu sebentar untuk memastikan fungsi sudah didefinisikan
+            setTimeout(function() {
+                // Override global function yang digunakan oleh script.js
+                if (typeof window.createPlateVisualization === 'undefined') {
+                    window.createPlateVisualization = window.createPlateVisualization2D;
+                    console.log("Plate visualization patched - fixed view with outline");
+                }
+            }, 100);
+        }
+        
+        // Tambahkan CSS untuk grid lines jika belum ada
+        if (!document.getElementById('plate-grid-style')) {
+            const gridStyle = document.createElement('style');
+            gridStyle.id = 'plate-grid-style';
+            gridStyle.textContent = `
+                .plate-grid {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    pointer-events: none;
+                }
+                
+                .grid-line {
+                    position: absolute;
+                    background-color: rgba(0, 0, 0, 0.08);
+                }
+                
+                .grid-line.vertical {
+                    width: 1px;
+                    height: 100%;
+                }
+                
+                .grid-line.horizontal {
+                    height: 1px;
+                    width: 100%;
+                }
+                
+                .plate-corner {
+                    position: absolute;
+                    width: 12px;
+                    height: 12px;
+                    background-color: #3b82f6;
+                    border-radius: 50%;
+                    z-index: 10;
+                    pointer-events: none;
+                }
+                
+                .plate-corner.tl { top: -6px; left: -6px; }
+                .plate-corner.tr { top: -6px; right: -6px; }
+                .plate-corner.bl { bottom: -6px; left: -6px; }
+                .plate-corner.br { bottom: -6px; right: -6px; }
+            `;
+            document.head.appendChild(gridStyle);
+        }
+        
+        // Panggil patch function
+        patchDisplayPlateFunction();
+    </script>
+</body>
+</html>
