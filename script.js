@@ -940,7 +940,7 @@ class TwoDOptimizer {
 }
 
 // ============================================
-// CUSTOM OPTIMIZER MODULE - MODERNIZED
+// CUSTOM OPTIMIZER MODULE - REVISED (FF-CA-01)
 // ============================================
 
 class CustomOptimizerModule {
@@ -981,7 +981,7 @@ class CustomOptimizerModule {
         // Initialize if elements exist
         if (this.elements.optimizeBtn) {
             this.setupEventListeners();
-            this.initializeSampleData();
+            this.initializeWithDefaultValues();
         }
     }
 
@@ -1014,15 +1014,15 @@ class CustomOptimizerModule {
         }
     }
 
-    initializeSampleData() {
-        // Set default values for FF-CA-01
+    initializeWithDefaultValues() {
+        // Set all values to 0 by default (as required)
         setTimeout(() => {
-            if (this.inputs.smallRingA) this.inputs.smallRingA.value = 100;
-            if (this.inputs.bigRingA) this.inputs.bigRingA.value = 200;
-            if (this.inputs.smallRingB) this.inputs.smallRingB.value = 120;
-            if (this.inputs.bigRingB) this.inputs.bigRingB.value = 220;
+            if (this.inputs.smallRingA) this.inputs.smallRingA.value = 0;
+            if (this.inputs.bigRingA) this.inputs.bigRingA.value = 0;
+            if (this.inputs.smallRingB) this.inputs.smallRingB.value = 0;
+            if (this.inputs.bigRingB) this.inputs.bigRingB.value = 0;
             if (this.inputs.multiplier) this.inputs.multiplier.value = 1;
-            if (this.inputs.kerfWidth) this.inputs.kerfWidth.value = 2;
+            if (this.inputs.kerfWidth) this.inputs.kerfWidth.value = 0;
         }, 100);
     }
 
@@ -1039,80 +1039,117 @@ class CustomOptimizerModule {
         };
     }
 
-    validateInputs(data) {
-        const { smallRingA, bigRingA, smallRingB, bigRingB, multiplier } = data;
+    // Validasi konfigurasi FF-CA-01 sesuai revisi
+    validateFFCA01Configuration(params) {
+        const { smallRingA, bigRingA, smallRingB, bigRingB, multiplier } = params;
         
+        // Cek multiplier
         if (multiplier <= 0) {
-            throw new Error("Multiplier must be greater than 0.");
+            return { isValid: false, message: "Multiplier must be greater than 0." };
         }
         
-        // Check if at least one pattern is fully defined
-        const patternAValid = smallRingA > 0 && bigRingA > 0;
-        const patternBValid = smallRingB > 0 && bigRingB > 0;
-        
-        if (!patternAValid && !patternBValid) {
-            throw new Error("Please enter dimensions for at least one pattern.");
+        // Cek nilai negatif
+        if (smallRingA < 0 || bigRingA < 0 || smallRingB < 0 || bigRingB < 0) {
+            return { isValid: false, message: "Error: Nilai tidak boleh negatif. Harap masukkan nilai 0 atau lebih besar." };
         }
         
-        // Validate individual patterns if provided
-        if (smallRingA > 0 !== bigRingA > 0) {
-            throw new Error("Pattern A requires both Small Ring and Big Ring dimensions.");
+        const isSRAFilled = smallRingA > 0;
+        const isSRBFilled = smallRingB > 0;
+        const isBRAFilled = bigRingA > 0;
+        const isBRBFilled = bigRingB > 0;
+        
+        // Cek pasangan Small Ring
+        if (isSRAFilled !== isSRBFilled) {
+            return { isValid: false, message: "Error: Jika mengisi Small Ring (SR), maka SR-A dan SR-B harus diisi keduanya." };
         }
         
-        if (smallRingB > 0 !== bigRingB > 0) {
-            throw new Error("Pattern B requires both Small Ring and Big Ring dimensions.");
+        // Cek pasangan Big Ring
+        if (isBRAFilled !== isBRBFilled) {
+            return { isValid: false, message: "Error: Jika mengisi Big Ring (BR), maka BR-A dan BR-B harus diisi keduanya." };
         }
         
+        // Cek kombinasi yang valid sesuai revisi
+        const isSREmpty = !isSRAFilled && !isSRBFilled;
+        const isBREmpty = !isBRAFilled && !isBRBFilled;
+        const isSRComplete = isSRAFilled && isSRBFilled;
+        const isBRComplete = isBRAFilled && isBRBFilled;
+        
+        // 1. SR kosong & BR terisi
+        const isValid1 = isSREmpty && isBRComplete;
+        // 2. SR terisi & BR kosong
+        const isValid2 = isSRComplete && isBREmpty;
+        // 3. SR terisi & BR terisi
+        const isValid3 = isSRComplete && isBRComplete;
+        
+        if (!isValid1 && !isValid2 && !isValid3) {
+            return { 
+                isValid: false, 
+                message: "Error: Konfigurasi tidak valid. Pilihan yang valid: 1) SR-A dan SR-B tidak terisi, BR-A dan BR-B terisi, 2) SR-A dan SR-B terisi, BR-A dan BR-B tidak terisi, 3) Semua terisi (SR-A, SR-B, BR-A, BR-B)." 
+            };
+        }
+        
+        return { isValid: true, message: "" };
+    }
+
+    validateInputs(data) {
+        const validation = this.validateFFCA01Configuration(data);
+        if (!validation.isValid) {
+            throw new Error(validation.message);
+        }
         return true;
     }
 
     generateCutList(params) {
-        const items = [];
         const { smallRingA, bigRingA, smallRingB, bigRingB, multiplier, kerfWidth } = params;
+        const items = [];
         
-        // Pattern A items
-        if (smallRingA > 0 && bigRingA > 0) {
+        // Pattern A: 4 small rings + 4 big rings per set
+        if (smallRingA > 0) {
             items.push({
                 id: 'A-Small',
                 originalLength: smallRingA,
                 length: smallRingA + kerfWidth,
-                quantity: 4 * multiplier,
+                quantity: 4 * multiplier, // 4 per set
                 pattern: 'A',
                 type: 'small-ring'
             });
-            
+        }
+        
+        if (bigRingA > 0) {
             items.push({
                 id: 'A-Big',
                 originalLength: bigRingA,
                 length: bigRingA + kerfWidth,
-                quantity: 4 * multiplier,
+                quantity: 4 * multiplier, // 4 per set
                 pattern: 'A',
                 type: 'big-ring'
             });
         }
         
-        // Pattern B items
-        if (smallRingB > 0 && bigRingB > 0) {
+        // Pattern B: 4 small rings + 4 big rings per set
+        if (smallRingB > 0) {
             items.push({
                 id: 'B-Small',
                 originalLength: smallRingB,
                 length: smallRingB + kerfWidth,
-                quantity: 4 * multiplier,
+                quantity: 4 * multiplier, // 4 per set
                 pattern: 'B',
                 type: 'small-ring'
             });
-            
+        }
+        
+        if (bigRingB > 0) {
             items.push({
                 id: 'B-Big',
                 originalLength: bigRingB,
                 length: bigRingB + kerfWidth,
-                quantity: 4 * multiplier,
+                quantity: 4 * multiplier, // 4 per set
                 pattern: 'B',
                 type: 'big-ring'
             });
         }
         
-        return items;
+        return items.filter(item => item.originalLength > 0 && item.quantity > 0);
     }
 
     async handleOptimize(event) {
@@ -1129,6 +1166,7 @@ class CustomOptimizerModule {
             // Run optimization
             setTimeout(() => {
                 try {
+                    // Use CustomOptimizer from optimization-algorithms.js
                     const optimizer = new CustomOptimizer('ff-ca-01', data.algorithm);
                     const result = optimizer.optimizeFFCA01(data, data.materialLength);
                     
@@ -1296,11 +1334,11 @@ class CustomOptimizerModule {
                     <div class="grid grid-cols-2 gap-2 text-sm">
                         <div>
                             <span class="text-gray-600">Pattern A:</span>
-                            <span class="ml-2 font-semibold">${A.efficiency}%</span>
+                            <span class="ml-2 font-semibold">${A.efficiency || 0}%</span>
                         </div>
                         <div>
                             <span class="text-gray-600">Pattern B:</span>
-                            <span class="ml-2 font-semibold">${B.efficiency}%</span>
+                            <span class="ml-2 font-semibold">${B.efficiency || 0}%</span>
                         </div>
                     </div>
                 </div>
@@ -1442,6 +1480,18 @@ function initializeApp() {
     window.showLoading = AppUtils.showLoading;
     window.hideLoading = AppUtils.hideLoading;
     window.formatNumber = AppUtils.formatNumber;
+    
+    // Tambahkan fungsi untuk dipanggil dari custom-optimizer.html
+    window.runFFCA01Optimization = (params) => {
+        if (window.customOptimizer) {
+            const data = {
+                ...params,
+                algorithm: document.getElementById('algorithmCustom')?.value || 'first-fit',
+                materialLength: 6000
+            };
+            window.customOptimizer.handleOptimize({ preventDefault: () => {} });
+        }
+    };
     
     console.log('Cutting Optimizer App initialized successfully');
 }
