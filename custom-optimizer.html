@@ -19,6 +19,7 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            color: #1a1a1a; /* Ensure base text color */
         }
         
         .container {
@@ -98,14 +99,14 @@
         .title-text h1 {
             font-size: 1.375rem;
             font-weight: 600;
-            color: #1a1a1a;
+            color: #1a1a1a; /* Ensure dark color for mobile */
             margin: 0;
             line-height: 1.2;
         }
         
         .title-text p {
             font-size: 0.8125rem;
-            color: #6b7280;
+            color: #6b7280; /* Keep consistent color */
             margin: 0;
             line-height: 1.2;
         }
@@ -119,7 +120,7 @@
             background-color: #ffffff;
             border: 1px solid #d1d5db;
             border-radius: 6px;
-            color: #4b5563;
+            color: #4b5563; /* Ensure readable color */
             font-weight: 500;
             text-decoration: none;
             transition: all 0.15s ease;
@@ -221,11 +222,17 @@
         .panel-title {
             font-size: 1.25rem;
             font-weight: 600;
-            color: #1a1a1a;
+            color: #1a1a1a; /* Ensure dark color */
             margin: 0;
             display: flex;
             align-items: center;
             gap: 0.75rem;
+        }
+        
+        @media (max-width: 768px) {
+            .panel-title {
+                font-size: 1.125rem;
+            }
         }
         
         /* Export PDF container */
@@ -264,8 +271,15 @@
             gap: 0.5rem;
             font-size: 0.9375rem;
             font-weight: 500;
-            color: #4b5563;
+            color: #374151; /* Darker color for better readability on mobile */
             margin-bottom: 0.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .form-label {
+                font-size: 0.875rem;
+                color: #374151; /* Ensure dark color */
+            }
         }
         
         /* Mode Selection */
@@ -338,7 +352,7 @@
         .ff-ca01-title {
             font-size: 1rem;
             font-weight: 600;
-            color: #1a1a1a;
+            color: #1a1a1a; /* Ensure dark color */
             margin-bottom: 1rem;
             display: flex;
             align-items: center;
@@ -391,6 +405,7 @@
             padding: 0.75rem;
             border: 1px solid #e5e7eb;
             text-align: center;
+            color: #1a1a1a; /* Ensure dark color */
         }
 
         .ff-ca01-table td {
@@ -405,6 +420,7 @@
             border: 1px solid #d1d5db;
             border-radius: 6px;
             box-sizing: border-box;
+            color: #374151; /* Dark color for text in inputs */
         }
         
         /* Material Length Notice */
@@ -415,7 +431,7 @@
             padding: 1rem;
             margin-bottom: 1.5rem;
             font-size: 0.875rem;
-            color: #1e40af;
+            color: #1e40af; /* Keep blue color for notice */
         }
         
         .material-length-notice strong {
@@ -490,21 +506,29 @@
         .stat-value {
             font-size: 1.375rem;
             font-weight: 600;
-            color: #1a1a1a;
+            color: #1a1a1a; /* Ensure dark color */
             margin-bottom: 0.25rem;
         }
         
         @media (max-width: 768px) {
             .stat-value {
                 font-size: 1.125rem;
+                color: #1a1a1a; /* Keep dark color on mobile */
             }
         }
         
         .stat-label {
             font-size: 0.8125rem;
-            color: #6b7280;
+            color: #4b5563; /* Darker color for better readability on mobile */
             text-transform: uppercase;
             letter-spacing: 0.5px;
+        }
+        
+        @media (max-width: 768px) {
+            .stat-label {
+                color: #4b5563; /* Ensure readable color */
+                font-size: 0.75rem;
+            }
         }
         
         /* Empty State */
@@ -544,6 +568,14 @@
             font-size: 0.9375rem;
             flex-wrap: wrap;
             gap: 0.5rem;
+            color: #374151; /* Darker color for better readability */
+        }
+        
+        @media (max-width: 768px) {
+            .bar-info {
+                font-size: 0.875rem;
+                color: #374151; /* Ensure readable color */
+            }
         }
         
         .bar-visualization-container {
@@ -634,6 +666,7 @@
             padding: 0.75rem 0;
             border-bottom: 1px solid #f3f4f6;
             align-items: center;
+            color: #374151; /* Darker color for better readability */
         }
         
         .bar-item-row:last-child {
@@ -666,7 +699,7 @@
             background-color: #ffffff;
             border: 1px solid #d1d5db;
             border-radius: 6px;
-            color: #4b5563;
+            color: #4b5563; /* Ensure readable color */
             cursor: pointer;
             transition: all 0.15s ease;
             flex-shrink: 0;
@@ -718,6 +751,8 @@
             box-sizing: border-box;
             font-family: inherit;
             font-size: 0.875rem;
+            color: #374151; /* Dark color for text in inputs */
+            background-color: #ffffff;
         }
         
         input:focus, select:focus {
@@ -812,9 +847,124 @@
             margin-top: 1rem;
         }
         
+        /* Mobile-specific text color fixes */
+        @media (max-width: 768px) {
+            /* Ensure all text is readable on mobile */
+            body {
+                color: #1a1a1a;
+            }
+            
+            .panel-title,
+            .form-label,
+            .ff-ca01-title,
+            .bar-info,
+            .stat-value,
+            .stat-label,
+            .bar-item-row,
+            .mode-name,
+            .ff-ca01-table th {
+                color: #1a1a1a !important;
+            }
+            
+            /* Ensure buttons are clearly visible */
+            .btn-optimize,
+            .btn-secondary {
+                font-weight: 600;
+            }
+            
+            /* Improve contrast for form elements */
+            input::placeholder,
+            select::placeholder {
+                color: #6b7280;
+            }
+            
+            /* Ensure error messages are readable */
+            #errorCustom {
+                color: #dc2626;
+                font-weight: 500;
+            }
+            
+            /* Improve mode option readability */
+            .mode-description {
+                color: #6b7280;
+            }
+            
+            /* Adjust table for mobile */
+            .ff-ca01-table table {
+                min-width: 250px;
+            }
+            
+            .ff-ca01-table th,
+            .ff-ca01-table td {
+                padding: 0.5rem;
+                font-size: 0.8125rem;
+            }
+        }
+        
+        /* Additional mobile optimization for very small screens */
+        @media (max-width: 480px) {
+            .panel-content {
+                padding: 1rem;
+            }
+            
+            .ff-ca01-params {
+                padding: 1rem;
+            }
+            
+            .stat-card {
+                padding: 0.875rem;
+            }
+            
+            .stat-value {
+                font-size: 1rem;
+            }
+            
+            .stat-label {
+                font-size: 0.7rem;
+            }
+            
+            .bar-details {
+                padding: 1rem;
+            }
+            
+            .bar-visualization {
+                height: 50px;
+            }
+            
+            .btn-optimize {
+                font-size: 0.875rem;
+                padding: 0.75rem;
+            }
+            
+            .mode-option {
+                padding: 0.75rem;
+            }
+            
+            .mode-icon {
+                width: 36px;
+                height: 36px;
+                font-size: 1rem;
+            }
+        }
+        
         /* Hidden utility class */
         .hidden { 
             display: none !important; 
+        }
+        
+        /* Touch-friendly improvements */
+        @media (hover: none) and (pointer: coarse) {
+            .nav-button,
+            .btn-optimize,
+            .btn-secondary {
+                min-height: 44px;
+                min-width: 44px;
+            }
+            
+            input[type="number"],
+            input[type="text"] {
+                font-size: 16px; /* Prevents iOS zoom on focus */
+            }
         }
     </style>
 </head>
@@ -943,13 +1093,13 @@
                             </div>
                         </div>
                         
-                        <!-- Kerf -->
+                        <!-- Kerf - DIUBAH: nilai default dari 2 menjadi 0 -->
                         <div class="form-group">
                             <label for="kerfWidthCustom" class="form-label">
                                 <i class="fas fa-cut"></i>
                                 Kerf / Blade Width (mm)
                             </label>
-                            <input type="number" id="kerfWidthCustom" value="2" min="0" step="1" class="w-full">
+                            <input type="number" id="kerfWidthCustom" value="0" min="0" step="1" class="w-full"> <!-- Changed from 2 to 0 -->
                         </div>
                         
                         <div class="form-group">
@@ -1073,6 +1223,12 @@
                     }
                 }, 5000);
             }
+            
+            // Add mobile-specific optimizations
+            setupMobileOptimizations();
+            
+            // Ensure text colors are properly set for mobile
+            setupMobileTextColors();
         });
 
         // Function to get FF-CA-01 parameters
@@ -1102,12 +1258,14 @@
                 const smallRingBInput = document.getElementById('smallRingB');
                 const bigRingBInput = document.getElementById('bigRingB');
                 const multiplierInput = document.getElementById('multiplier');
+                const kerfWidthInput = document.getElementById('kerfWidthCustom');
                 
                 if (smallRingAInput) smallRingAInput.value = 100;
                 if (bigRingAInput) bigRingAInput.value = 200;
                 if (smallRingBInput) smallRingBInput.value = 120;
                 if (bigRingBInput) bigRingBInput.value = 220;
                 if (multiplierInput) multiplierInput.value = 1;
+                if (kerfWidthInput) kerfWidthInput.value = 0; // Changed from 2 to 0
             }, 100);
         }
 
@@ -1125,6 +1283,67 @@
                 console.warn('FF-CA-01 image not found, using fallback');
             };
         });
+        
+        // Setup mobile-specific optimizations
+        function setupMobileOptimizations() {
+            // Improve touch target sizes for mobile
+            if ('ontouchstart' in window) {
+                const touchElements = document.querySelectorAll('.nav-button, .btn-optimize, .btn-secondary, .mode-option');
+                touchElements.forEach(el => {
+                    el.style.minHeight = '44px';
+                    el.style.minWidth = '44px';
+                });
+                
+                // Ensure inputs are easily tappable
+                const inputs = document.querySelectorAll('input[type="number"], input[type="text"], select');
+                inputs.forEach(input => {
+                    input.style.fontSize = '16px'; // Prevents iOS zoom on focus
+                });
+                
+                // Add touch scrolling for bar visualization
+                const barContainers = document.querySelectorAll('.bar-visualization-container');
+                barContainers.forEach(container => {
+                    let isDragging = false;
+                    let startX, scrollLeft;
+                    
+                    container.addEventListener('touchstart', (e) => {
+                        isDragging = true;
+                        startX = e.touches[0].pageX - container.offsetLeft;
+                        scrollLeft = container.scrollLeft;
+                    });
+                    
+                    container.addEventListener('touchmove', (e) => {
+                        if (!isDragging) return;
+                        e.preventDefault();
+                        const x = e.touches[0].pageX - container.offsetLeft;
+                        const walk = (x - startX) * 1.5;
+                        container.scrollLeft = scrollLeft - walk;
+                    });
+                    
+                    container.addEventListener('touchend', () => {
+                        isDragging = false;
+                    });
+                });
+            }
+        }
+        
+        // Function to ensure text colors are properly set for mobile
+        function setupMobileTextColors() {
+            if (window.innerWidth <= 768) {
+                // Add dark color to all text elements that might have light color issues
+                const textElements = document.querySelectorAll('.panel-title, .form-label, .ff-ca01-title, .bar-info, .stat-value, .stat-label, .bar-item-row, .mode-name, .ff-ca01-table th');
+                textElements.forEach(el => {
+                    if (getComputedStyle(el).color === 'rgb(107, 114, 128)' || 
+                        getComputedStyle(el).color === 'rgb(156, 163, 175)' ||
+                        getComputedStyle(el).color === 'rgb(75, 85, 99)') {
+                        el.style.color = '#1a1a1a';
+                    }
+                });
+            }
+        }
+        
+        // Re-check on resize
+        window.addEventListener('resize', setupMobileTextColors);
     </script>
 </body>
 </html>
