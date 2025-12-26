@@ -51,10 +51,10 @@
             max-height: 100vh;
             overflow: hidden;
             position: relative;
-            gap: clamp(0.5rem, 2vmin, 1.5rem);
+            gap: clamp(0.5rem, 1vmin, 1rem); /* REDUCED GAP */
         }
         
-        /* Center wrapper */
+        /* Center wrapper - IMPROVED LAYOUT */
         .center-wrapper {
             display: flex;
             flex-direction: column;
@@ -62,15 +62,16 @@
             justify-content: center;
             width: 100%;
             height: 100%;
-            max-height: calc(100vh - 80px);
+            max-height: calc(100vh - 70px);
             flex: 1;
             overflow: hidden;
+            gap: clamp(0.25rem, 1vmin, 0.75rem); /* ADDED GAP BETWEEN TITLE AND CARDS */
         }
         
-        /* Header section */
+        /* Header section - ADJUSTED MARGINS */
         .header-section {
             text-align: center;
-            margin-bottom: clamp(0.5rem, 2vmin, 1.5rem);
+            margin-bottom: 0; /* REMOVED BOTTOM MARGIN */
             width: 100%;
             max-width: min(90vw, 800px);
             padding: 0 clamp(0.5rem, 2vmin, 1rem);
@@ -81,7 +82,7 @@
             font-size: clamp(1.75rem, 5vw, 2.5rem);
             font-weight: 700;
             color: #1a1a1a;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.15rem; /* REDUCED MARGIN */
             line-height: 1.2;
             word-wrap: break-word;
             hyphens: auto;
@@ -92,6 +93,7 @@
             color: #666;
             font-weight: 400;
             line-height: 1.4;
+            margin-bottom: 0.25rem; /* ADDED SMALL BOTTOM MARGIN */
         }
         
         /* Options grid - ALWAYS 3 COLUMNS */
@@ -102,8 +104,8 @@
             width: 100%;
             max-width: min(95vw, 900px);
             height: auto;
-            min-height: min(30vh, 300px);
-            padding: clamp(0.5rem, 2vmin, 1rem);
+            min-height: min(25vh, 250px); /* REDUCED MIN-HEIGHT */
+            padding: clamp(0.25rem, 1vmin, 0.75rem); /* REDUCED PADDING */
             align-items: center;
             justify-content: center;
             margin: 0 auto;
@@ -212,9 +214,18 @@
         
         /* SPECIAL ADJUSTMENTS FOR VERY SMALL SCREENS */
         @media (max-width: 480px) {
+            .home-container {
+                gap: 0.25rem; /* FURTHER REDUCED GAP ON MOBILE */
+            }
+            
+            .center-wrapper {
+                gap: 0.25rem; /* FURTHER REDUCED GAP ON MOBILE */
+            }
+            
             .options-grid {
                 gap: clamp(0.5rem, 1.5vmin, 1rem);
-                padding: 0.25rem;
+                padding: 0.15rem; /* FURTHER REDUCED PADDING */
+                min-height: min(22vh, 220px); /* FURTHER REDUCED ON MOBILE */
             }
             
             .option-circle {
@@ -233,16 +244,29 @@
         
         /* For extremely narrow screens (like iPhone SE) */
         @media (max-width: 360px) {
+            .home-container {
+                padding: 0.25rem;
+                gap: 0.15rem;
+            }
+            
+            .center-wrapper {
+                gap: 0.15rem;
+            }
+            
             .options-grid {
-                gap: 0.5rem;
+                gap: 0.4rem;
+                padding: 0.1rem;
+                min-height: min(20vh, 200px);
             }
             
             .main-title {
                 font-size: 1.5rem;
+                margin-bottom: 0.1rem;
             }
             
             .tagline {
                 font-size: 0.875rem;
+                margin-bottom: 0.15rem;
             }
             
             .option-circle {
@@ -262,8 +286,8 @@
         /* Landscape mode adjustments */
         @media (orientation: landscape) and (max-height: 500px) {
             .home-container {
-                padding: 0.25rem;
-                gap: 0.25rem;
+                padding: 0.15rem;
+                gap: 0.15rem;
             }
             
             .center-wrapper {
@@ -282,7 +306,8 @@
                 grid-template-columns: repeat(3, 1fr);
                 max-width: 60%;
                 gap: clamp(0.5rem, 1.5vw, 1rem);
-                padding: 0.25rem;
+                padding: 0.15rem;
+                min-height: min(25vh, 200px);
             }
             
             .option-circle-wrapper {
@@ -300,6 +325,14 @@
         
         /* Large screens */
         @media (min-width: 1200px) and (min-height: 700px) {
+            .center-wrapper {
+                gap: 0.5rem;
+            }
+            
+            .options-grid {
+                min-height: min(28vh, 280px);
+            }
+            
             .option-circle-wrapper {
                 max-width: 250px;
                 margin: 0 auto;
@@ -352,7 +385,7 @@
             background-color: #1a252f;
         }
         
-        /* Loading state */
+        /* Loading state - FIXED: Reset on page load */
         .loading {
             opacity: 0.7;
             pointer-events: none;
@@ -435,22 +468,53 @@
     </div>
     
     <script>
-        // Navigation function with loading indicator
+        // Reset state function to fix issue #2
+        function resetPageState() {
+            // Remove loading class from all circles
+            const circles = document.querySelectorAll('.option-circle');
+            circles.forEach(circle => {
+                circle.classList.remove('loading');
+                circle.style.transform = '';
+                circle.style.pointerEvents = 'auto';
+            });
+            
+            // Reset any inline styles
+            document.body.style.overflow = 'hidden';
+            document.documentElement.style.overflow = 'hidden';
+            
+            // Reset scroll position
+            window.scrollTo(0, 0);
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
+            
+            console.log('Page state reset - ready for interaction');
+        }
+        
+        // Navigation function with loading indicator and state reset
         function navigateTo(url) {
+            // Remove any existing loading states first
+            resetPageState();
+            
             // Add loading effect
             const circles = document.querySelectorAll('.option-circle');
             circles.forEach(circle => {
                 circle.classList.add('loading');
+                circle.style.pointerEvents = 'none';
             });
             
             // Navigate after short delay for feedback
             setTimeout(() => {
+                // Save navigation state to localStorage to detect back button
+                localStorage.setItem('returningFromOptimizer', 'true');
                 window.location.href = url;
             }, 150);
         }
         
         // Prevent all scrolling and zooming
         document.addEventListener('touchmove', function(e) {
+            if (e.target.closest('.option-circle')) {
+                return; // Allow touch on circles
+            }
             e.preventDefault();
         }, { passive: false });
         
@@ -467,12 +531,20 @@
             }
         }, false);
         
-        // Add click animation
+        // Add click animation with reset
         document.querySelectorAll('.option-circle').forEach(circle => {
-            circle.addEventListener('click', function() {
+            circle.addEventListener('click', function(e) {
+                // Prevent multiple clicks
+                if (this.classList.contains('loading')) {
+                    e.preventDefault();
+                    return;
+                }
+                
                 this.style.transform = 'scale(0.95)';
                 setTimeout(() => {
-                    this.style.transform = '';
+                    if (!this.classList.contains('loading')) {
+                        this.style.transform = '';
+                    }
                 }, 200);
             });
         });
@@ -502,43 +574,6 @@
             });
         }
         
-        // Call on load and resize
-        window.addEventListener('load', forceFitLayout);
-        window.addEventListener('resize', forceFitLayout);
-        window.addEventListener('orientationchange', function() {
-            setTimeout(forceFitLayout, 100);
-        });
-        
-        // Prevent any form of zooming
-        document.addEventListener('gesturestart', function(e) {
-            e.preventDefault();
-        });
-        
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Home page initialized - Responsive layout active');
-            forceFitLayout();
-            
-            // Additional safety: disable double-tap zoom on iOS
-            let lastTouchEnd = 0;
-            document.addEventListener('touchend', function(event) {
-                const now = (new Date()).getTime();
-                if (now - lastTouchEnd <= 300) {
-                    event.preventDefault();
-                }
-                lastTouchEnd = now;
-            }, false);
-        });
-        
-        // Extra protection against unwanted scrolling
-        window.scrollTo(0, 0);
-        document.body.scrollTop = 0;
-        document.documentElement.scrollTop = 0;
-        
-        // Lock body scroll
-        document.body.style.overflow = 'hidden';
-        document.documentElement.style.overflow = 'hidden';
-        
         // Additional fix for circle shapes
         function fixCircleShapes() {
             const circles = document.querySelectorAll('.option-circle');
@@ -558,9 +593,60 @@
             });
         }
         
-        // Run circle fix after initial render
-        setTimeout(fixCircleShapes, 100);
-        window.addEventListener('resize', fixCircleShapes);
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Home page initialized - Responsive layout active');
+            
+            // Check if returning from optimizer page
+            if (localStorage.getItem('returningFromOptimizer') === 'true') {
+                console.log('Returning from optimizer - resetting state');
+                setTimeout(resetPageState, 100);
+                localStorage.removeItem('returningFromOptimizer');
+            }
+            
+            forceFitLayout();
+            
+            // Additional safety: disable double-tap zoom on iOS
+            let lastTouchEnd = 0;
+            document.addEventListener('touchend', function(event) {
+                const now = (new Date()).getTime();
+                if (now - lastTouchEnd <= 300) {
+                    event.preventDefault();
+                }
+                lastTouchEnd = now;
+            }, false);
+            
+            // Run circle fix after initial render
+            setTimeout(fixCircleShapes, 100);
+        });
+        
+        // Call on resize
+        window.addEventListener('resize', function() {
+            forceFitLayout();
+            fixCircleShapes();
+        });
+        
+        window.addEventListener('orientationchange', function() {
+            setTimeout(function() {
+                forceFitLayout();
+                fixCircleShapes();
+                resetPageState();
+            }, 100);
+        });
+        
+        // Prevent any form of zooming
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
+        });
+        
+        // Extra protection against unwanted scrolling
+        window.scrollTo(0, 0);
+        document.body.scrollTop = 0;
+        document.documentElement.scrollTop = 0;
+        
+        // Lock body scroll
+        document.body.style.overflow = 'hidden';
+        document.documentElement.style.overflow = 'hidden';
     </script>
 </body>
 </html>
