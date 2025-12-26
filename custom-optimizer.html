@@ -1232,6 +1232,9 @@
             
             // Reset all values to 0 on page load/refresh
             resetAllValuesToZero();
+            
+            // Tambahkan event listener untuk validasi input
+            setupInputValidation();
         });
 
         // Function to get FF-CA-01 parameters
@@ -1242,6 +1245,18 @@
             const bigRingB = parseFloat(document.getElementById('bigRingB').value) || 0;
             const multiplier = parseInt(document.getElementById('multiplier').value) || 1;
             const kerfWidth = parseFloat(document.getElementById('kerfWidthCustom').value) || 0;
+            
+            // Validasi: minimal salah satu dari Small Ring atau Big Ring harus terisi
+            // Boleh isi bagian Small Ring saja, atau Big Ring saja, atau keduanya
+            const hasSmallRing = (smallRingA > 0 || smallRingB > 0);
+            const hasBigRing = (bigRingA > 0 || bigRingB > 0);
+            
+            if (!hasSmallRing && !hasBigRing) {
+                // Tampilkan error jika keduanya kosong
+                document.getElementById('errorCustom').textContent = 'Error: Minimal salah satu dari Small Ring atau Big Ring harus diisi. Anda bisa mengisi Small Ring saja, Big Ring saja, atau keduanya.';
+                document.getElementById('errorCustom').classList.remove('hidden');
+                return null;
+            }
             
             return {
                 smallRingA: Math.round(smallRingA),
@@ -1309,6 +1324,12 @@
                 form.reset();
                 console.log("Form reset completed");
             }
+            
+            // Sembunyikan error jika ada
+            const errorElement = document.getElementById('errorCustom');
+            if (errorElement) {
+                errorElement.classList.add('hidden');
+            }
         }
 
         // Initialize with zero values - OVERRIDE any sample data
@@ -1319,6 +1340,41 @@
 
         // Call initialization - this will override any other initialization
         setTimeout(initializeWithZeroValues, 100);
+        
+        // Setup input validation
+        function setupInputValidation() {
+            // Tambahkan event listener untuk menyembunyikan error saat input berubah
+            const inputs = [
+                'smallRingA', 'bigRingA', 'smallRingB', 'bigRingB',
+                'multiplier', 'kerfWidthCustom'
+            ];
+            
+            inputs.forEach(inputId => {
+                const input = document.getElementById(inputId);
+                if (input) {
+                    input.addEventListener('input', function() {
+                        // Sembunyikan error saat pengguna mulai mengisi
+                        const errorElement = document.getElementById('errorCustom');
+                        if (errorElement) {
+                            errorElement.classList.add('hidden');
+                        }
+                    });
+                }
+            });
+            
+            // Tambahkan event listener untuk form submit
+            const form = document.getElementById('optimizerFormCustom');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    // Validasi sebelum submit
+                    const params = getFFCA01Params();
+                    if (params === null) {
+                        e.preventDefault();
+                        return false;
+                    }
+                });
+            }
+        }
         
         // Preload gambar untuk memastikan tersedia
         window.addEventListener('load', function() {
