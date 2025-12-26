@@ -1,21 +1,17 @@
 /**
- * Mobile Slider for Isometric Slideshow
- * Windows 7 Task Switcher / Android Photos Widget Style
- * Only activates on mobile devices
+ * Windows Flip 3D Mobile Slider
+ * Windows 7 Win+Tab Style Flip 3D Effect
+ * Single page with all cards visible
  */
 
-class MobileSlider {
+class WindowsFlip3DSlider {
     constructor() {
         this.isMobile = window.innerWidth <= 768;
-        this.currentSlide = 0;
-        this.totalSlides = 3;
-        this.isDragging = false;
-        this.startX = 0;
-        this.currentX = 0;
-        this.velocity = 0;
-        this.lastTimestamp = 0;
-        this.swipeThreshold = 50;
-        this.autoRotateInterval = null;
+        this.currentCard = 0;
+        this.totalCards = 3;
+        this.isAnimating = false;
+        this.animationDuration = 600;
+        this.cards = [];
         
         this.init();
     }
@@ -26,278 +22,178 @@ class MobileSlider {
             return;
         }
         
-        this.createSliderStructure();
+        this.createFlip3DStructure();
         this.setupEventListeners();
-        this.updateSlider();
-        this.startAutoRotate();
+        this.updateFlip3DDisplay();
     }
     
-    createSliderStructure() {
+    createFlip3DStructure() {
         const optionsGrid = document.getElementById('optionsGrid');
         if (!optionsGrid) return;
         
-        // Create slider container
+        // Create Windows Flip 3D container
         const sliderContainer = document.createElement('div');
         sliderContainer.className = 'slider-container';
         sliderContainer.innerHTML = `
-            <div class="slider-track"></div>
-            <div class="touch-feedback"></div>
+            <div class="flip3d-container">
+                <div class="flip3d-scene"></div>
+            </div>
+            <div class="flip3d-controls">
+                <button class="flip3d-btn prev" aria-label="Previous card"></button>
+                <button class="flip3d-btn next" aria-label="Next card"></button>
+            </div>
+            <div class="selection-indicator">Selected: 1D Optimizer</div>
         `;
         
-        const track = sliderContainer.querySelector('.slider-track');
+        const scene = sliderContainer.querySelector('.flip3d-scene');
         
         // Get the original circles
         const circleWrappers = Array.from(optionsGrid.querySelectorAll('.option-circle-wrapper'));
         
-        // Create slides from circles
+        // Create Windows Flip 3D cards
         circleWrappers.forEach((wrapper, index) => {
-            const slide = document.createElement('div');
-            slide.className = `slider-slide ${index === 0 ? 'active' : ''}`;
-            slide.dataset.index = index;
+            const card = document.createElement('div');
+            card.className = `flip3d-card ${index === 0 ? 'active' : ''}`;
+            card.dataset.index = index;
             
             // Clone the circle content
             const circleClone = wrapper.cloneNode(true);
-            
-            // Update onclick to include slide index
             const circle = circleClone.querySelector('.option-circle');
+            
+            // Remove original onclick and add our own
             if (circle) {
-                const originalOnClick = circle.getAttribute('onclick');
-                if (originalOnClick) {
-                    circle.setAttribute('onclick', `${originalOnClick.replace('navigateTo', 'sliderNavigateTo')}`);
-                }
+                circle.removeAttribute('onclick');
+                circle.addEventListener('click', () => {
+                    this.selectCard(index);
+                });
+                
+                // Add keyboard navigation
+                circle.setAttribute('tabindex', '0');
+                circle.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        this.selectCard(index);
+                    }
+                });
             }
             
-            slide.appendChild(circleClone);
-            track.appendChild(slide);
+            card.appendChild(circleClone);
+            scene.appendChild(card);
+            this.cards.push(card);
         });
         
-        // Insert slider after update section
-        const updateSection = document.querySelector('.update-section');
-        if (updateSection && updateSection.parentNode) {
-            updateSection.parentNode.insertBefore(sliderContainer, updateSection.nextSibling);
+        // Insert slider after title section
+        const titleSection = document.querySelector('.title-section');
+        if (titleSection && titleSection.parentNode) {
+            titleSection.parentNode.insertBefore(sliderContainer, titleSection.nextSibling);
         }
         
-        // Create navigation dots if they don't exist
-        if (!document.querySelector('.slider-dots')) {
-            const dotsContainer = document.createElement('div');
+        // Create or update navigation dots
+        let dotsContainer = document.querySelector('.slider-dots');
+        if (!dotsContainer) {
+            dotsContainer = document.createElement('div');
             dotsContainer.className = 'slider-dots';
             
-            for (let i = 0; i < this.totalSlides; i++) {
+            for (let i = 0; i < this.totalCards; i++) {
                 const dot = document.createElement('span');
                 dot.className = `dot ${i === 0 ? 'active' : ''}`;
                 dot.dataset.index = i;
-                dot.innerHTML = '●';
+                dot.setAttribute('aria-label', `Select card ${i + 1}`);
                 dotsContainer.appendChild(dot);
             }
             
-            // Add swipe instruction
+            // Add instruction
             const instruction = document.createElement('div');
-            instruction.className = 'swipe-instruction';
-            instruction.textContent = 'Swipe left or right to navigate';
+            instruction.className = 'flip-instruction';
+            instruction.textContent = 'Tap any card to select';
             dotsContainer.appendChild(instruction);
             
             sliderContainer.parentNode.insertBefore(dotsContainer, sliderContainer.nextSibling);
         }
         
-        // Create navigation arrows for tablets
+        // Add keyboard hint for tablets
         if (window.innerWidth >= 481 && window.innerWidth <= 768) {
-            const prevArrow = document.createElement('button');
-            prevArrow.className = 'slider-nav prev';
-            prevArrow.innerHTML = '‹';
-            prevArrow.setAttribute('aria-label', 'Previous slide');
-            
-            const nextArrow = document.createElement('button');
-            nextArrow.className = 'slider-nav next';
-            nextArrow.innerHTML = '›';
-            nextArrow.setAttribute('aria-label', 'Next slide');
-            
-            sliderContainer.appendChild(prevArrow);
-            sliderContainer.appendChild(nextArrow);
+            const keyboardHint = document.createElement('div');
+            keyboardHint.className = 'keyboard-hint';
+            keyboardHint.innerHTML = 'Press ← → keys to navigate';
+            sliderContainer.appendChild(keyboardHint);
         }
     }
     
     setupEventListeners() {
-        // Touch events
-        document.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: true });
-        document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
-        document.addEventListener('touchend', this.handleTouchEnd.bind(this));
-        
-        // Mouse events for testing
-        document.addEventListener('mousedown', this.handleMouseDown.bind(this));
-        document.addEventListener('mousemove', this.handleMouseMove.bind(this));
-        document.addEventListener('mouseup', this.handleMouseUp.bind(this));
-        
         // Dot click events
         document.addEventListener('click', (e) => {
             if (e.target.classList.contains('dot')) {
                 const index = parseInt(e.target.dataset.index);
-                this.goToSlide(index);
+                this.selectCard(index);
             }
             
-            // Navigation arrows
-            if (e.target.classList.contains('slider-nav')) {
+            // Navigation buttons
+            if (e.target.classList.contains('flip3d-btn')) {
                 if (e.target.classList.contains('prev')) {
-                    this.prevSlide();
+                    this.prevCard();
                 } else if (e.target.classList.contains('next')) {
-                    this.nextSlide();
+                    this.nextCard();
                 }
             }
         });
         
         // Keyboard navigation
         document.addEventListener('keydown', (e) => {
-            if (!this.isMobile) return;
+            if (!this.isMobile || this.isAnimating) return;
             
-            if (e.key === 'ArrowLeft') {
-                this.prevSlide();
+            switch(e.key) {
+                case 'ArrowLeft':
+                    e.preventDefault();
+                    this.prevCard();
+                    break;
+                case 'ArrowRight':
+                    e.preventDefault();
+                    this.nextCard();
+                    break;
+                case 'Enter':
+                case ' ':
+                    // Handle card activation
+                    const activeCard = document.querySelector('.flip3d-card.active');
+                    if (activeCard) {
+                        const index = parseInt(activeCard.dataset.index);
+                        this.activateCard(index);
+                    }
+                    break;
+            }
+        });
+        
+        // Card click events (delegated)
+        document.addEventListener('click', (e) => {
+            const card = e.target.closest('.flip3d-card');
+            if (card && !this.isAnimating) {
+                const index = parseInt(card.dataset.index);
+                this.selectCard(index);
+            }
+        });
+        
+        // Card keyboard events
+        document.addEventListener('keydown', (e) => {
+            const card = e.target.closest('.flip3d-card');
+            if (card && (e.key === 'Enter' || e.key === ' ')) {
                 e.preventDefault();
-            } else if (e.key === 'ArrowRight') {
-                this.nextSlide();
-                e.preventDefault();
+                const index = parseInt(card.dataset.index);
+                this.selectCard(index);
             }
         });
         
         // Resize handling
         window.addEventListener('resize', this.handleResize.bind(this));
         
-        // Prevent default touch actions
-        document.addEventListener('touchmove', (e) => {
-            if (this.isDragging) {
+        // Prevent zoom on double tap
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - lastTouchEnd < 300) {
                 e.preventDefault();
             }
+            lastTouchEnd = now;
         }, { passive: false });
-        
-        // Pause auto-rotate on hover (for tablets)
-        const sliderContainer = document.querySelector('.slider-container');
-        if (sliderContainer) {
-            sliderContainer.addEventListener('mouseenter', () => {
-                this.stopAutoRotate();
-            });
-            
-            sliderContainer.addEventListener('mouseleave', () => {
-                this.startAutoRotate();
-            });
-        }
-    }
-    
-    handleTouchStart(e) {
-        if (!this.isMobile || !e.touches[0]) return;
-        
-        this.isDragging = true;
-        this.startX = e.touches[0].clientX;
-        this.currentX = this.startX;
-        this.lastTimestamp = e.timeStamp;
-        this.velocity = 0;
-        
-        const sliderContainer = document.querySelector('.slider-container');
-        if (sliderContainer) {
-            sliderContainer.classList.add('touching');
-        }
-        
-        this.stopAutoRotate();
-    }
-    
-    handleTouchMove(e) {
-        if (!this.isMobile || !this.isDragging || !e.touches[0]) return;
-        
-        e.preventDefault();
-        
-        const touchX = e.touches[0].clientX;
-        const deltaX = touchX - this.currentX;
-        const deltaTime = e.timeStamp - this.lastTimestamp;
-        
-        this.currentX = touchX;
-        this.velocity = deltaTime > 0 ? deltaX / deltaTime : 0;
-        this.lastTimestamp = e.timeStamp;
-        
-        this.updateSlidePosition(deltaX);
-    }
-    
-    handleTouchEnd(e) {
-        if (!this.isMobile || !this.isDragging) return;
-        
-        this.isDragging = false;
-        
-        const sliderContainer = document.querySelector('.slider-container');
-        if (sliderContainer) {
-            sliderContainer.classList.remove('touching');
-        }
-        
-        const deltaX = this.currentX - this.startX;
-        const isSwipe = Math.abs(deltaX) > this.swipeThreshold;
-        const isFastSwipe = Math.abs(this.velocity) > 0.5;
-        
-        if (isSwipe || isFastSwipe) {
-            if (deltaX > 0) {
-                // Swipe right - previous slide
-                this.prevSlide();
-            } else {
-                // Swipe left - next slide
-                this.nextSlide();
-            }
-        } else {
-            // Return to current slide
-            this.goToSlide(this.currentSlide);
-        }
-        
-        this.startAutoRotate();
-    }
-    
-    handleMouseDown(e) {
-        if (!this.isMobile || e.button !== 0) return;
-        
-        this.isDragging = true;
-        this.startX = e.clientX;
-        this.currentX = this.startX;
-        this.lastTimestamp = e.timeStamp;
-        this.velocity = 0;
-        
-        const sliderContainer = document.querySelector('.slider-container');
-        if (sliderContainer) {
-            sliderContainer.classList.add('touching');
-        }
-        
-        this.stopAutoRotate();
-    }
-    
-    handleMouseMove(e) {
-        if (!this.isMobile || !this.isDragging) return;
-        
-        const mouseX = e.clientX;
-        const deltaX = mouseX - this.currentX;
-        const deltaTime = e.timeStamp - this.lastTimestamp;
-        
-        this.currentX = mouseX;
-        this.velocity = deltaTime > 0 ? deltaX / deltaTime : 0;
-        this.lastTimestamp = e.timeStamp;
-        
-        this.updateSlidePosition(deltaX);
-    }
-    
-    handleMouseUp(e) {
-        if (!this.isMobile || !this.isDragging) return;
-        
-        this.isDragging = false;
-        
-        const sliderContainer = document.querySelector('.slider-container');
-        if (sliderContainer) {
-            sliderContainer.classList.remove('touching');
-        }
-        
-        const deltaX = this.currentX - this.startX;
-        const isSwipe = Math.abs(deltaX) > this.swipeThreshold;
-        
-        if (isSwipe) {
-            if (deltaX > 0) {
-                this.prevSlide();
-            } else {
-                this.nextSlide();
-            }
-        } else {
-            this.goToSlide(this.currentSlide);
-        }
-        
-        this.startAutoRotate();
     }
     
     handleResize() {
@@ -306,115 +202,101 @@ class MobileSlider {
         
         if (wasMobile !== this.isMobile) {
             if (this.isMobile) {
-                this.createSliderStructure();
+                this.createFlip3DStructure();
                 this.setupEventListeners();
             } else {
                 this.cleanup();
             }
         }
-        
-        this.updateSlider();
     }
     
-    updateSlidePosition(deltaX) {
-        const slides = document.querySelectorAll('.slider-slide');
-        const track = document.querySelector('.slider-track');
+    selectCard(index) {
+        if (this.isAnimating || index === this.currentCard) return;
         
-        if (!slides.length || !track) return;
+        this.isAnimating = true;
+        this.currentCard = index;
         
-        // Calculate drag percentage
-        const slideWidth = 100 / this.totalSlides;
-        const dragPercentage = (deltaX / window.innerWidth) * 100;
+        // Add flip animation to the selected card
+        const selectedCard = this.cards[index];
+        selectedCard.classList.add('flip-animation');
         
-        // Update track position with rubber band effect
-        let trackPosition = -(this.currentSlide * slideWidth) + (dragPercentage / 3);
+        // Update display
+        this.updateFlip3DDisplay();
         
-        // Apply rubber band limits
-        const minPosition = -(this.totalSlides - 1) * slideWidth;
-        if (trackPosition > 0) {
-            trackPosition = 0;
-        } else if (trackPosition < minPosition) {
-            trackPosition = minPosition;
+        // Show selection indicator
+        this.showSelectionIndicator(index);
+        
+        // Remove animation class after animation completes
+        setTimeout(() => {
+            selectedCard.classList.remove('flip-animation');
+            this.isAnimating = false;
+        }, this.animationDuration);
+    }
+    
+    activateCard(index) {
+        const card = this.cards[index];
+        const circle = card.querySelector('.option-circle');
+        
+        if (circle) {
+            // Simulate click on the circle to navigate
+            circle.click();
         }
-        
-        track.style.transform = `translateX(${trackPosition}%)`;
     }
     
-    goToSlide(index) {
-        // Ensure index is within bounds
-        this.currentSlide = (index + this.totalSlides) % this.totalSlides;
-        this.updateSlider();
+    nextCard() {
+        const nextIndex = (this.currentCard + 1) % this.totalCards;
+        this.selectCard(nextIndex);
     }
     
-    nextSlide() {
-        this.currentSlide = (this.currentSlide + 1) % this.totalSlides;
-        this.updateSlider();
+    prevCard() {
+        const prevIndex = (this.currentCard - 1 + this.totalCards) % this.totalCards;
+        this.selectCard(prevIndex);
     }
     
-    prevSlide() {
-        this.currentSlide = (this.currentSlide - 1 + this.totalSlides) % this.totalSlides;
-        this.updateSlider();
-    }
-    
-    updateSlider() {
-        const slides = document.querySelectorAll('.slider-slide');
-        const dots = document.querySelectorAll('.dot');
-        const track = document.querySelector('.slider-track');
-        
-        if (!slides.length || !track) return;
-        
-        // Update track position
-        const slideWidth = 100 / this.totalSlides;
-        track.style.transform = `translateX(-${this.currentSlide * slideWidth}%)`;
-        
-        // Update slide classes
-        slides.forEach((slide, index) => {
-            slide.classList.remove('active', 'prev', 'next');
+    updateFlip3DDisplay() {
+        // Update card classes
+        this.cards.forEach((card, index) => {
+            card.classList.remove('active');
             
-            if (index === this.currentSlide) {
-                slide.classList.add('active');
-            } else if (index === (this.currentSlide - 1 + this.totalSlides) % this.totalSlides) {
-                slide.classList.add('prev');
-            } else if (index === (this.currentSlide + 1) % this.totalSlides) {
-                slide.classList.add('next');
+            if (index === this.currentCard) {
+                card.classList.add('active');
             }
         });
         
         // Update dots
-        if (dots.length) {
-            dots.forEach((dot, index) => {
-                dot.classList.toggle('active', index === this.currentSlide);
-            });
-        }
+        const dots = document.querySelectorAll('.dot');
+        dots.forEach((dot, index) => {
+            dot.classList.toggle('active', index === this.currentCard);
+        });
         
-        // Dispatch custom event
-        window.dispatchEvent(new CustomEvent('slideChanged', {
-            detail: { currentSlide: this.currentSlide }
-        }));
+        // Update selection indicator text
+        this.updateSelectionIndicator();
     }
     
-    startAutoRotate() {
-        // Auto-rotate only if not dragging and on mobile
-        if (!this.isMobile || this.isDragging) return;
+    showSelectionIndicator(index) {
+        const indicator = document.querySelector('.selection-indicator');
+        if (!indicator) return;
         
-        this.stopAutoRotate();
+        const cardNames = ['1D Optimizer', '2D Optimizer', 'Custom Optimizer'];
+        indicator.textContent = `Selected: ${cardNames[index]}`;
+        indicator.classList.add('show');
         
-        this.autoRotateInterval = setInterval(() => {
-            this.nextSlide();
-        }, 5000); // Rotate every 5 seconds
+        // Hide after delay
+        setTimeout(() => {
+            indicator.classList.remove('show');
+        }, 1500);
     }
     
-    stopAutoRotate() {
-        if (this.autoRotateInterval) {
-            clearInterval(this.autoRotateInterval);
-            this.autoRotateInterval = null;
-        }
+    updateSelectionIndicator() {
+        const indicator = document.querySelector('.selection-indicator');
+        if (!indicator) return;
+        
+        const cardNames = ['1D Optimizer', '2D Optimizer', 'Custom Optimizer'];
+        indicator.textContent = `Selected: ${cardNames[this.currentCard]}`;
     }
     
     cleanup() {
-        this.stopAutoRotate();
-        
-        // Remove slider elements if they exist
+        // Remove Flip 3D elements
         const sliderContainer = document.querySelector('.slider-container');
         const sliderDots = document.querySelector('.slider-dots');
         
@@ -431,30 +313,55 @@ class MobileSlider {
         if (optionsGrid) {
             optionsGrid.style.display = 'grid';
         }
+        
+        this.cards = [];
     }
     
     destroy() {
         this.cleanup();
         
         // Remove event listeners
-        document.removeEventListener('touchstart', this.handleTouchStart);
-        document.removeEventListener('touchmove', this.handleTouchMove);
-        document.removeEventListener('touchend', this.handleTouchEnd);
-        document.removeEventListener('mousedown', this.handleMouseDown);
-        document.removeEventListener('mousemove', this.handleMouseMove);
-        document.removeEventListener('mouseup', this.handleMouseUp);
+        document.removeEventListener('keydown', this.handleKeyDown);
         window.removeEventListener('resize', this.handleResize);
     }
 }
 
-// Global function for navigation from slider
-function sliderNavigateTo(url) {
-    const slider = window.mobileSlider;
-    if (slider) {
-        slider.stopAutoRotate();
+// Initialize Windows Flip 3D slider
+document.addEventListener('DOMContentLoaded', () => {
+    // Check if we're on mobile
+    if (window.innerWidth <= 768) {
+        window.flip3dSlider = new WindowsFlip3DSlider();
     }
     
-    // Add loading effect
+    // Handle resize
+    window.addEventListener('resize', () => {
+        if (window.innerWidth <= 768 && !window.flip3dSlider) {
+            window.flip3dSlider = new WindowsFlip3DSlider();
+        } else if (window.innerWidth > 768 && window.flip3dSlider) {
+            window.flip3dSlider.destroy();
+            window.flip3dSlider = null;
+        }
+    });
+});
+
+// Handle page visibility
+document.addEventListener('visibilitychange', () => {
+    if (window.flip3dSlider && !document.hidden) {
+        // Refresh display when page becomes visible
+        setTimeout(() => {
+            window.flip3dSlider.updateFlip3DDisplay();
+        }, 100);
+    }
+});
+
+// Update navigation function to work with Flip 3D
+function navigateTo(url) {
+    // Stop any animations
+    if (window.flip3dSlider) {
+        window.flip3dSlider.isAnimating = false;
+    }
+    
+    // Add loading effect to all circles
     const circles = document.querySelectorAll('.option-circle');
     circles.forEach(circle => {
         circle.classList.add('loading');
@@ -465,36 +372,7 @@ function sliderNavigateTo(url) {
     }, 150);
 }
 
-// Initialize slider when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    // Check if we're on mobile
-    if (window.innerWidth <= 768) {
-        window.mobileSlider = new MobileSlider();
-    }
-    
-    // Also check on resize
-    window.addEventListener('resize', () => {
-        if (window.innerWidth <= 768 && !window.mobileSlider) {
-            window.mobileSlider = new MobileSlider();
-        } else if (window.innerWidth > 768 && window.mobileSlider) {
-            window.mobileSlider.destroy();
-            window.mobileSlider = null;
-        }
-    });
-});
-
-// Handle page visibility for auto-rotate
-document.addEventListener('visibilitychange', () => {
-    if (window.mobileSlider) {
-        if (document.hidden) {
-            window.mobileSlider.stopAutoRotate();
-        } else {
-            window.mobileSlider.startAutoRotate();
-        }
-    }
-});
-
 // Export for module systems
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = MobileSlider;
+    module.exports = WindowsFlip3DSlider;
 }
