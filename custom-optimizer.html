@@ -1060,22 +1060,26 @@
                                         <tr>
                                             <td class="bg-gray-50 font-medium">SR (mm)</td>
                                             <td>
-                                                <input type="number" id="smallRingA" placeholder="100" min="0" step="1" value="100"
+                                                <!-- PERUBAHAN: value dari 100 menjadi 0 -->
+                                                <input type="number" id="smallRingA" placeholder="0" min="0" step="1" value="0"
                                                        class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500">
                                             </td>
                                             <td>
-                                                <input type="number" id="smallRingB" placeholder="120" min="0" step="1" value="120"
+                                                <!-- PERUBAHAN: value dari 120 menjadi 0 -->
+                                                <input type="number" id="smallRingB" placeholder="0" min="0" step="1" value="0"
                                                        class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-green-500">
                                             </td>
                                         </tr>
                                         <tr>
                                             <td class="bg-gray-50 font-medium">BR (mm)</td>
                                             <td>
-                                                <input type="number" id="bigRingA" placeholder="200" min="0" step="1" value="200"
+                                                <!-- PERUBAHAN: value dari 200 menjadi 0 -->
+                                                <input type="number" id="bigRingA" placeholder="0" min="0" step="1" value="0"
                                                        class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500">
                                             </td>
                                             <td>
-                                                <input type="number" id="bigRingB" placeholder="220" min="0" step="1" value="220"
+                                                <!-- PERUBAHAN: value dari 220 menjadi 0 -->
+                                                <input type="number" id="bigRingB" placeholder="0" min="0" step="1" value="0"
                                                        class="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-green-500">
                                             </td>
                                         </tr>
@@ -1093,7 +1097,7 @@
                             </div>
                         </div>
                         
-                        <!-- Kerf - DIUBAH: nilai default dari 2 menjadi 0 -->
+                        <!-- Kerf - PERUBAHAN: nilai default dari 2 menjadi 0 di HTML -->
                         <div class="form-group">
                             <label for="kerfWidthCustom" class="form-label">
                                 <i class="fas fa-cut"></i>
@@ -1229,6 +1233,9 @@
             
             // Ensure text colors are properly set for mobile
             setupMobileTextColors();
+            
+            // Reset all values to 0 on page load/refresh
+            resetAllValuesToZero();
         });
 
         // Function to get FF-CA-01 parameters
@@ -1250,27 +1257,72 @@
             };
         }
 
-        // Initialize sample data
-        function initializeWithSampleData() {
-            setTimeout(() => {
-                const smallRingAInput = document.getElementById('smallRingA');
-                const bigRingAInput = document.getElementById('bigRingA');
-                const smallRingBInput = document.getElementById('smallRingB');
-                const bigRingBInput = document.getElementById('bigRingB');
-                const multiplierInput = document.getElementById('multiplier');
-                const kerfWidthInput = document.getElementById('kerfWidthCustom');
-                
-                if (smallRingAInput) smallRingAInput.value = 100;
-                if (bigRingAInput) bigRingAInput.value = 200;
-                if (smallRingBInput) smallRingBInput.value = 120;
-                if (bigRingBInput) bigRingBInput.value = 220;
-                if (multiplierInput) multiplierInput.value = 1;
-                if (kerfWidthInput) kerfWidthInput.value = 0; // Changed from 2 to 0
-            }, 100);
+        // Reset all input values to 0 on page load/refresh
+        function resetAllValuesToZero() {
+            console.log("Resetting all values to 0...");
+            
+            // Get all input elements
+            const smallRingAInput = document.getElementById('smallRingA');
+            const bigRingAInput = document.getElementById('bigRingA');
+            const smallRingBInput = document.getElementById('smallRingB');
+            const bigRingBInput = document.getElementById('bigRingB');
+            const kerfWidthInput = document.getElementById('kerfWidthCustom');
+            const multiplierInput = document.getElementById('multiplier');
+            
+            // Reset values to 0
+            if (smallRingAInput) {
+                smallRingAInput.value = 0;
+                console.log("Set smallRingA to 0");
+            }
+            
+            if (bigRingAInput) {
+                bigRingAInput.value = 0;
+                console.log("Set bigRingA to 0");
+            }
+            
+            if (smallRingBInput) {
+                smallRingBInput.value = 0;
+                console.log("Set smallRingB to 0");
+            }
+            
+            if (bigRingBInput) {
+                bigRingBInput.value = 0;
+                console.log("Set bigRingB to 0");
+            }
+            
+            if (kerfWidthInput) {
+                kerfWidthInput.value = 0;
+                console.log("Set kerfWidth to 0");
+            }
+            
+            if (multiplierInput) {
+                multiplierInput.value = 1;
+                console.log("Set multiplier to 1");
+            }
+            
+            // Also reset any form data that might be stored
+            if (typeof localStorage !== 'undefined') {
+                // Clear any stored form data
+                localStorage.removeItem('customOptimizerFormData');
+                console.log("Cleared localStorage form data");
+            }
+            
+            // Force the form to reset
+            const form = document.getElementById('optimizerFormCustom');
+            if (form) {
+                form.reset();
+                console.log("Form reset completed");
+            }
         }
 
-        // Call initialization
-        initializeWithSampleData();
+        // Initialize with zero values - OVERRIDE any sample data
+        function initializeWithZeroValues() {
+            console.log("Initializing with zero values...");
+            resetAllValuesToZero();
+        }
+
+        // Call initialization - this will override any other initialization
+        setTimeout(initializeWithZeroValues, 100);
         
         // Preload gambar untuk memastikan tersedia
         window.addEventListener('load', function() {
@@ -1282,6 +1334,9 @@
             img.onerror = function() {
                 console.warn('FF-CA-01 image not found, using fallback');
             };
+            
+            // Double-check values after page fully loads
+            setTimeout(resetAllValuesToZero, 500);
         });
         
         // Setup mobile-specific optimizations
@@ -1344,6 +1399,22 @@
         
         // Re-check on resize
         window.addEventListener('resize', setupMobileTextColors);
+        
+        // Add event listener for page visibility change (for when user comes back via back button)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                // Page is visible again, reset values to ensure they're 0
+                setTimeout(resetAllValuesToZero, 100);
+            }
+        });
+        
+        // Also reset on pageshow event (for Safari back/forward cache)
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                // Page was restored from bfcache
+                setTimeout(resetAllValuesToZero, 100);
+            }
+        });
     </script>
 </body>
 </html>
