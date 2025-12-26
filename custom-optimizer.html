@@ -168,7 +168,7 @@
         @media (max-width: 768px) {
             .main-content {
                 padding: 1rem 0;
-                min-height: calc(100vh - 60px);
+                min-height = calc(100vh - 60px);
             }
         }
         
@@ -1237,7 +1237,7 @@
             setupInputValidation();
         });
 
-        // Function to get FF-CA-01 parameters
+        // Function to get FF-CA-01 parameters dengan validasi VERTIKAL (kolom SR atau BR)
         function getFFCA01Params() {
             const smallRingA = parseFloat(document.getElementById('smallRingA').value) || 0;
             const bigRingA = parseFloat(document.getElementById('bigRingA').value) || 0;
@@ -1246,17 +1246,27 @@
             const multiplier = parseInt(document.getElementById('multiplier').value) || 1;
             const kerfWidth = parseFloat(document.getElementById('kerfWidthCustom').value) || 0;
             
-            // Validasi: minimal salah satu dari Small Ring atau Big Ring harus terisi
-            // Boleh isi bagian Small Ring saja, atau Big Ring saja, atau keduanya
-            const hasSmallRing = (smallRingA > 0 || smallRingB > 0);
-            const hasBigRing = (bigRingA > 0 || bigRingB > 0);
+            // VALIDASI VERTIKAL: Minimal salah satu KOLOM (SR atau BR) harus terisi
+            // Boleh isi hanya kolom SR, atau hanya kolom BR, atau kedua kolom
+            const hasSR = (smallRingA > 0 || smallRingB > 0); // Kolom SR terisi
+            const hasBR = (bigRingA > 0 || bigRingB > 0);     // Kolom BR terisi
             
-            if (!hasSmallRing && !hasBigRing) {
-                // Tampilkan error jika keduanya kosong
-                document.getElementById('errorCustom').textContent = 'Error: Minimal salah satu dari Small Ring atau Big Ring harus diisi. Anda bisa mengisi Small Ring saja, Big Ring saja, atau keduanya.';
+            if (!hasSR && !hasBR) {
+                // Tampilkan error jika kedua kolom kosong
+                document.getElementById('errorCustom').textContent = 'Error: Minimal salah satu kolom harus diisi (SR atau BR). Anda bisa mengisi: (1) Hanya kolom SR, (2) Hanya kolom BR, atau (3) Kedua kolom SR dan BR.';
                 document.getElementById('errorCustom').classList.remove('hidden');
                 return null;
             }
+            
+            // Validasi tambahan: jika ada nilai yang diisi, harus > 0
+            if ((smallRingA < 0) || (bigRingA < 0) || (smallRingB < 0) || (bigRingB < 0)) {
+                document.getElementById('errorCustom').textContent = 'Error: Nilai tidak boleh negatif. Harap masukkan nilai 0 atau lebih besar.';
+                document.getElementById('errorCustom').classList.remove('hidden');
+                return null;
+            }
+            
+            // Jika sudah valid, sembunyikan error
+            document.getElementById('errorCustom').classList.add('hidden');
             
             return {
                 smallRingA: Math.round(smallRingA),
@@ -1358,6 +1368,20 @@
                         if (errorElement) {
                             errorElement.classList.add('hidden');
                         }
+                        
+                        // Validasi real-time untuk nilai negatif
+                        const value = parseFloat(this.value) || 0;
+                        if (value < 0) {
+                            this.value = 0;
+                        }
+                    });
+                    
+                    // Validasi saat kehilangan fokus
+                    input.addEventListener('blur', function() {
+                        const value = parseFloat(this.value) || 0;
+                        if (value < 0) {
+                            this.value = 0;
+                        }
                     });
                 }
             });
@@ -1366,12 +1390,23 @@
             const form = document.getElementById('optimizerFormCustom');
             if (form) {
                 form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
                     // Validasi sebelum submit
                     const params = getFFCA01Params();
                     if (params === null) {
-                        e.preventDefault();
                         return false;
                     }
+                    
+                    // Jika valid, lanjutkan dengan optimasi
+                    if (typeof runCustomOptimization === 'function') {
+                        runCustomOptimization(params);
+                    } else {
+                        console.error('runCustomOptimization function not found');
+                        alert('Error: Optimization function not loaded. Please refresh the page.');
+                    }
+                    
+                    return false;
                 });
             }
         }
@@ -1467,6 +1502,18 @@
                 setTimeout(resetAllValuesToZero, 100);
             }
         });
+        
+        // Function to run optimization (akan dipanggil dari script.js)
+        function runCustomOptimization(params) {
+            console.log("Running optimization with params:", params);
+            // Fungsi ini akan diimplementasikan di script.js
+            if (typeof window.runFFCA01Optimization === 'function') {
+                window.runFFCA01Optimization(params);
+            } else {
+                console.error('runFFCA01Optimization function not found');
+                alert('Optimization function not available. Please check script.js');
+            }
+        }
     </script>
 </body>
 </html>
