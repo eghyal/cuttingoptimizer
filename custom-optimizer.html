@@ -957,8 +957,8 @@
             .nav-button,
             .btn-optimize,
             .btn-secondary {
-                min-height: 44px;
-                min-width: 44px;
+                min-height = 44px;
+                min-width = 44px;
             }
             
             input[type="number"],
@@ -1237,7 +1237,7 @@
             setupInputValidation();
         });
 
-        // Function to get FF-CA-01 parameters dengan validasi HORIZONTAL (baris A atau B)
+        // Function to get FF-CA-01 parameters dengan validasi yang benar
         function getFFCA01Params() {
             const smallRingA = parseFloat(document.getElementById('smallRingA').value) || 0;
             const bigRingA = parseFloat(document.getElementById('bigRingA').value) || 0;
@@ -1246,19 +1246,51 @@
             const multiplier = parseInt(document.getElementById('multiplier').value) || 1;
             const kerfWidth = parseFloat(document.getElementById('kerfWidthCustom').value) || 0;
             
-            // VALIDASI HORIZONTAL: Minimal salah satu BARIS (A atau B) harus terisi
-            // Sesuai dengan error dari algoritma: "Please enter dimensions for at least one pattern."
-            const hasPatternA = (smallRingA > 0 || bigRingA > 0);
-            const hasPatternB = (smallRingB > 0 || bigRingB > 0);
+            // Validasi ketat sesuai permintaan:
+            // 1. SR-A dan SR-B terisi, BR-A dan BR-B tidak terisi -> Valid
+            // 2. SR-A dan SR-B tidak terisi, BR-A dan BR-B terisi -> Valid  
+            // 3. SR-A, SR-B, BR-A, BR-B semua terisi -> Valid
+            // Selain itu tidak valid
             
-            if (!hasPatternA && !hasPatternB) {
-                // Tampilkan error jika kedua baris kosong
-                document.getElementById('errorCustom').textContent = 'Error: Minimal salah satu baris (A atau B) harus diisi. Anda bisa mengisi baris A, baris B, atau keduanya.';
+            const isSRAFilled = smallRingA > 0;
+            const isSRBFilled = smallRingB > 0;
+            const isBRAFilled = bigRingA > 0;
+            const isBRBFilled = bigRingB > 0;
+            
+            const isSRComplete = isSRAFilled && isSRBFilled;
+            const isBRComplete = isBRAFilled && isBRBFilled;
+            const isSREmpty = !isSRAFilled && !isSRBFilled;
+            const isBREmpty = !isBRAFilled && !isBRBFilled;
+            
+            // Validasi: SR harus lengkap jika diisi (keduanya harus > 0)
+            if ((isSRAFilled && !isSRBFilled) || (!isSRAFilled && isSRBFilled)) {
+                document.getElementById('errorCustom').textContent = 'Error: Jika mengisi Small Ring (SR), maka SR-A dan SR-B harus diisi keduanya.';
                 document.getElementById('errorCustom').classList.remove('hidden');
                 return null;
             }
             
-            // Validasi tambahan: jika ada nilai yang diisi, harus > 0
+            // Validasi: BR harus lengkap jika diisi (keduanya harus > 0)
+            if ((isBRAFilled && !isBRBFilled) || (!isBRAFilled && isBRBFilled)) {
+                document.getElementById('errorCustom').textContent = 'Error: Jika mengisi Big Ring (BR), maka BR-A dan BR-B harus diisi keduanya.';
+                document.getElementById('errorCustom').classList.remove('hidden');
+                return null;
+            }
+            
+            // Validasi kombinasi yang diperbolehkan
+            // 1. SR lengkap & BR kosong
+            const isValid1 = isSRComplete && isBREmpty;
+            // 2. SR kosong & BR lengkap
+            const isValid2 = isSREmpty && isBRComplete;
+            // 3. SR lengkap & BR lengkap
+            const isValid3 = isSRComplete && isBRComplete;
+            
+            if (!isValid1 && !isValid2 && !isValid3) {
+                document.getElementById('errorCustom').textContent = 'Error: Konfigurasi tidak valid. Pilihan yang valid: 1) SR-A dan SR-B terisi, BR-A dan BR-B tidak terisi, 2) SR-A dan SR-B tidak terisi, BR-A dan BR-B terisi, 3) Semua terisi (SR-A, SR-B, BR-A, BR-B).';
+                document.getElementById('errorCustom').classList.remove('hidden');
+                return null;
+            }
+            
+            // Validasi tambahan: nilai tidak boleh negatif
             if ((smallRingA < 0) || (bigRingA < 0) || (smallRingB < 0) || (bigRingB < 0)) {
                 document.getElementById('errorCustom').textContent = 'Error: Nilai tidak boleh negatif. Harap masukkan nilai 0 atau lebih besar.';
                 document.getElementById('errorCustom').classList.remove('hidden');
@@ -1374,6 +1406,9 @@
                         if (value < 0) {
                             this.value = 0;
                         }
+                        
+                        // Auto-fill untuk pasangan input
+                        autoFillPairs(this.id, value);
                     });
                     
                     // Validasi saat kehilangan fokus
@@ -1408,6 +1443,42 @@
                     
                     return false;
                 });
+            }
+        }
+        
+        // Fungsi untuk auto-fill pasangan input
+        function autoFillPairs(inputId, value) {
+            // Jika mengisi SR-A, sarankan untuk mengisi SR-B juga
+            if (inputId === 'smallRingA' && value > 0) {
+                const smallRingB = parseFloat(document.getElementById('smallRingB').value) || 0;
+                if (smallRingB === 0) {
+                    // Bisa menampilkan saran, tapi tidak otomatis mengisi
+                    console.log("Saran: Isi juga SR-B untuk konfigurasi yang valid");
+                }
+            }
+            
+            // Jika mengisi SR-B, sarankan untuk mengisi SR-A juga
+            if (inputId === 'smallRingB' && value > 0) {
+                const smallRingA = parseFloat(document.getElementById('smallRingA').value) || 0;
+                if (smallRingA === 0) {
+                    console.log("Saran: Isi juga SR-A untuk konfigurasi yang valid");
+                }
+            }
+            
+            // Jika mengisi BR-A, sarankan untuk mengisi BR-B juga
+            if (inputId === 'bigRingA' && value > 0) {
+                const bigRingB = parseFloat(document.getElementById('bigRingB').value) || 0;
+                if (bigRingB === 0) {
+                    console.log("Saran: Isi juga BR-B untuk konfigurasi yang valid");
+                }
+            }
+            
+            // Jika mengisi BR-B, sarankan untuk mengisi BR-A juga
+            if (inputId === 'bigRingB' && value > 0) {
+                const bigRingA = parseFloat(document.getElementById('bigRingA').value) || 0;
+                if (bigRingA === 0) {
+                    console.log("Saran: Isi juga BR-A untuk konfigurasi yang valid");
+                }
             }
         }
         
