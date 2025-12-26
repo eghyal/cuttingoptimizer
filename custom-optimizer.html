@@ -1237,7 +1237,7 @@
             setupInputValidation();
         });
 
-        // Function to get FF-CA-01 parameters dengan validasi VERTIKAL (kolom SR atau BR)
+        // Function to get FF-CA-01 parameters dengan validasi HORIZONTAL (baris A atau B)
         function getFFCA01Params() {
             const smallRingA = parseFloat(document.getElementById('smallRingA').value) || 0;
             const bigRingA = parseFloat(document.getElementById('bigRingA').value) || 0;
@@ -1246,14 +1246,14 @@
             const multiplier = parseInt(document.getElementById('multiplier').value) || 1;
             const kerfWidth = parseFloat(document.getElementById('kerfWidthCustom').value) || 0;
             
-            // VALIDASI VERTIKAL: Minimal salah satu KOLOM (SR atau BR) harus terisi
-            // Boleh isi hanya kolom SR, atau hanya kolom BR, atau kedua kolom
-            const hasSR = (smallRingA > 0 || smallRingB > 0); // Kolom SR terisi
-            const hasBR = (bigRingA > 0 || bigRingB > 0);     // Kolom BR terisi
+            // VALIDASI HORIZONTAL: Minimal salah satu BARIS (A atau B) harus terisi
+            // Sesuai dengan error dari algoritma: "Please enter dimensions for at least one pattern."
+            const hasPatternA = (smallRingA > 0 || bigRingA > 0);
+            const hasPatternB = (smallRingB > 0 || bigRingB > 0);
             
-            if (!hasSR && !hasBR) {
-                // Tampilkan error jika kedua kolom kosong
-                document.getElementById('errorCustom').textContent = 'Error: Minimal salah satu kolom harus diisi (SR atau BR). Anda bisa mengisi: (1) Hanya kolom SR, (2) Hanya kolom BR, atau (3) Kedua kolom SR dan BR.';
+            if (!hasPatternA && !hasPatternB) {
+                // Tampilkan error jika kedua baris kosong
+                document.getElementById('errorCustom').textContent = 'Error: Minimal salah satu baris (A atau B) harus diisi. Anda bisa mengisi baris A, baris B, atau keduanya.';
                 document.getElementById('errorCustom').classList.remove('hidden');
                 return null;
             }
