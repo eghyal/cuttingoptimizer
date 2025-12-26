@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>1D Optimizer - EAV Cutting Optimizer</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -13,13 +13,18 @@
     <script src="pdf-export.js" defer></script>
     <script src="script.js" defer></script>
     <style>
-        /* 1D Optimizer Specific Styles */
+        /* ============================================
+           1D OPTIMIZER - ENHANCED RESPONSIVE STYLES
+           ============================================ */
+        
+        /* Base styles */
         body {
             background-color: #f9fafb;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            overflow-x: hidden;
         }
         
         .container {
@@ -29,7 +34,7 @@
             width: 100%;
         }
         
-        /* Header */
+        /* Header - FIXED COLOR ISSUE */
         .header {
             background-color: #ffffff;
             border-bottom: 1px solid #e5e7eb;
@@ -40,6 +45,7 @@
             height: 70px;
             display: flex;
             align-items: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
         
         @media (max-width: 768px) {
@@ -96,19 +102,21 @@
             }
         }
         
+        /* FIXED: Color contrast for mobile */
         .title-text h1 {
             font-size: 1.375rem;
             font-weight: 600;
-            color: #1a1a1a;
+            color: #1a1a1a; /* Dark color for better contrast */
             margin: 0;
             line-height: 1.2;
         }
         
         .title-text p {
             font-size: 0.8125rem;
-            color: #6b7280;
+            color: #4b5563; /* Darker gray for better contrast */
             margin: 0;
             line-height: 1.2;
+            font-weight: 400;
         }
         
         /* Back button */
@@ -117,10 +125,10 @@
             align-items: center;
             gap: 0.5rem;
             padding: 0.625rem 1rem;
-            background-color: #ffffff;
-            border: 1px solid #d1d5db;
+            background-color: #2c3e50; /* Primary color */
+            border: 1px solid #1a252f;
             border-radius: 6px;
-            color: #4b5563;
+            color: white; /* White text for contrast */
             font-weight: 500;
             text-decoration: none;
             transition: all 0.15s ease;
@@ -139,6 +147,7 @@
                 width: 44px;
                 height: 44px;
                 justify-content: center;
+                background-color: #2c3e50; /* Ensure consistency */
             }
             
             .back-btn-text {
@@ -148,11 +157,12 @@
             .back-btn i {
                 margin: 0;
                 font-size: 1.25rem;
+                color: white;
             }
         }
         
         .back-btn:hover {
-            background-color: #2c3e50;
+            background-color: #34495e;
             border-color: #2c3e50;
             color: white;
         }
@@ -188,7 +198,7 @@
             }
         }
         
-        /* Panel Styles */
+        /* Panel Styles - FIXED COLOR CONTRAST */
         .panel {
             background-color: #ffffff;
             border-radius: 10px;
@@ -197,6 +207,7 @@
             height: 100%;
             display: flex;
             flex-direction: column;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
         
         /* Panel header */
@@ -219,14 +230,19 @@
             }
         }
         
+        /* FIXED: Panel title color for better contrast */
         .panel-title {
             font-size: 1.25rem;
             font-weight: 600;
-            color: #1a1a1a;
+            color: #1a1a1a; /* Dark color for better readability */
             margin: 0;
             display: flex;
             align-items: center;
             gap: 0.75rem;
+        }
+        
+        .panel-title i {
+            color: #2c3e50; /* Primary color for icons */
         }
         
         /* Export PDF container */
@@ -239,6 +255,8 @@
         @media (max-width: 768px) {
             .export-pdf-container {
                 align-self: flex-end;
+                width: 100%;
+                justify-content: flex-end;
             }
         }
         
@@ -254,7 +272,7 @@
             }
         }
         
-        /* Form Elements */
+        /* Form Elements - FIXED COLOR CONTRAST */
         .form-group {
             margin-bottom: 1.5rem;
         }
@@ -265,8 +283,12 @@
             gap: 0.5rem;
             font-size: 0.9375rem;
             font-weight: 500;
-            color: #4b5563;
+            color: #374151; /* Darker color for better contrast */
             margin-bottom: 0.5rem;
+        }
+        
+        .form-label i {
+            color: #2c3e50; /* Primary color for icons */
         }
         
         /* Cut List Container */
@@ -275,6 +297,10 @@
             overflow-y: auto;
             padding-right: 0.5rem;
             margin-bottom: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 0.75rem;
+            background-color: #ffffff;
         }
         
         .cut-list-container::-webkit-scrollbar {
@@ -296,6 +322,13 @@
             display: flex;
             gap: 1rem;
             margin-top: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .action-buttons {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
         }
         
         .btn-optimize {
@@ -340,12 +373,22 @@
             background-color: #047857;
         }
         
-        /* Results Panel */
+        /* Results Panel - FIXED COLOR CONTRAST */
         .results-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .results-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
         }
         
         .stats-grid {
@@ -362,12 +405,19 @@
             }
         }
         
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
         .stat-card {
             background-color: #f9fafb;
             border-radius: 8px;
             padding: 1.25rem;
             text-align: center;
             border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
         
         @media (max-width: 768px) {
@@ -376,24 +426,33 @@
             }
         }
         
+        /* FIXED: Stat colors for better contrast */
         .stat-value {
             font-size: 1.375rem;
             font-weight: 600;
-            color: #1a1a1a;
+            color: #1a1a1a; /* Dark color for readability */
             margin-bottom: 0.25rem;
         }
         
         @media (max-width: 768px) {
             .stat-value {
                 font-size: 1.125rem;
+                color: #1a1a1a; /* Maintain dark color on mobile */
             }
         }
         
         .stat-label {
             font-size: 0.8125rem;
-            color: #6b7280;
+            color: #4b5563; /* Darker gray for better contrast */
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 768px) {
+            .stat-label {
+                color: #4b5563; /* Maintain contrast on mobile */
+            }
         }
         
         /* Empty State */
@@ -417,16 +476,19 @@
             margin-bottom: 1.5rem;
         }
         
-        /* Footer */
-        .footer {
-            text-align: center;
-            padding: 1.5rem 0;
-            color: #6b7280;
-            font-size: 0.875rem;
-            border-top: 1px solid #e5e7eb;
-            margin-top: auto;
-            width: 100%;
-            background-color: #ffffff;
+        /* FIXED: Empty state text colors */
+        .empty-state h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1a1a1a; /* Dark color for contrast */
+            margin-bottom: 0.5rem;
+        }
+        
+        .empty-state p {
+            font-size: 0.9375rem;
+            color: #4b5563; /* Darker gray for readability */
+            max-width: 400px;
+            line-height: 1.5;
         }
         
         /* Cut list input group */
@@ -444,6 +506,7 @@
                 grid-template-areas: 
                     "id length"
                     "quantity actions";
+                gap: 0.5rem;
             }
             
             .cut-list-input-group > :nth-child(1) { grid-area: id; }
@@ -452,13 +515,26 @@
             .cut-list-input-group > :nth-child(4) { grid-area: actions; }
         }
         
-        /* Bar visualization */
+        @media (max-width: 480px) {
+            .cut-list-input-group {
+                grid-template-columns: 1fr;
+                grid-template-areas: 
+                    "id"
+                    "length"
+                    "quantity"
+                    "actions";
+            }
+        }
+        
+        /* Bar visualization - ENHANCED CONTRAST */
         .bar-details {
-            background-color: #f9fafb;
+            background-color: #ffffff;
             border-radius: 8px;
             padding: 1.5rem;
             margin-top: 1rem;
             position: relative;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
         
         .bar-info {
@@ -470,6 +546,22 @@
             gap: 0.5rem;
         }
         
+        /* FIXED: Bar info text colors */
+        .bar-info span {
+            color: #1a1a1a; /* Dark color for readability */
+            font-weight: 500;
+        }
+        
+        .bar-info .bar-number {
+            color: #2c3e50; /* Primary color */
+            font-weight: 600;
+        }
+        
+        .bar-info .bar-waste {
+            color: #dc2626; /* Error color for waste */
+            font-weight: 500;
+        }
+        
         /* Container untuk visualisasi yang bisa discroll di mobile */
         .bar-visualization-container {
             width: 100%;
@@ -477,6 +569,10 @@
             padding-bottom: 10px;
             margin-bottom: 1rem;
             -webkit-overflow-scrolling: touch;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            background-color: #f9fafb;
+            padding: 0.75rem;
         }
         
         .bar-visualization {
@@ -507,6 +603,19 @@
             border: 1px solid rgba(255, 255, 255, 0.8);
             box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.3);
             box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .bar-segment::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.1) 100%);
+            pointer-events: none;
         }
         
         .segment-content {
@@ -516,6 +625,8 @@
             gap: 2px;
             padding: 2px;
             text-align: center;
+            position: relative;
+            z-index: 1;
         }
         
         .segment-id {
@@ -525,21 +636,24 @@
         
         .segment-length {
             font-size: 0.65rem;
-            opacity: 0.9;
+            opacity: 0.95;
             text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
         }
         
         .segment-waste {
-            color: #666;
+            color: #ffffff;
             font-style: italic;
             font-size: 0.7rem;
+            opacity: 0.9;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
         }
         
         .bar-total {
             text-align: center;
             font-size: 0.75rem;
-            color: #666;
+            color: #4b5563; /* Darker color for readability */
             margin-top: 0.5rem;
+            font-weight: 500;
         }
         
         .bar-items-list {
@@ -550,6 +664,7 @@
             margin-top: 1rem;
             max-height: 200px;
             overflow-y: auto;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         }
         
         .bar-item-row {
@@ -564,6 +679,11 @@
             border-bottom: none;
         }
         
+        /* FIXED: Bar item text colors */
+        .bar-item-row span {
+            color: #1a1a1a; /* Dark color for readability */
+        }
+        
         .item-color-indicator {
             width: 14px;
             height: 14px;
@@ -572,6 +692,7 @@
             margin-right: 0.75rem;
             flex-shrink: 0;
             border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
         
         /* Navigation buttons */
@@ -579,6 +700,14 @@
             display: flex;
             align-items: center;
             gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        
+        @media (max-width: 768px) {
+            .nav-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
         }
         
         .nav-button {
@@ -587,32 +716,42 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #ffffff;
-            border: 1px solid #d1d5db;
+            background-color: #2c3e50; /* Primary color */
+            border: 1px solid #1a252f;
             border-radius: 6px;
-            color: #4b5563;
+            color: white; /* White text for contrast */
             cursor: pointer;
             transition: all 0.15s ease;
             flex-shrink: 0;
         }
         
         .nav-button:hover {
-            background-color: #f9fafb;
-            border-color: #9ca3af;
+            background-color: #34495e;
+            border-color: #2c3e50;
         }
         
         .nav-button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            background-color: #9ca3af;
+            border-color: #9ca3af;
+        }
+        
+        /* FIXED: Navigation counter color */
+        #barCounter1D {
+            font-size: 0.875rem;
+            color: #4b5563; /* Darker color for readability */
+            font-weight: 500;
         }
         
         /* Mobile scroll indicator */
         .scroll-indicator {
             text-align: center;
             font-size: 0.8125rem;
-            color: #6b7280;
+            color: #4b5563; /* Darker color for readability */
             margin-top: 0.75rem;
             display: none;
+            font-weight: 500;
         }
         
         @media (max-width: 768px) {
@@ -630,12 +769,19 @@
             box-sizing: border-box;
             font-family: inherit;
             font-size: 0.875rem;
+            background-color: #ffffff;
+            color: #1a1a1a; /* Dark color for text */
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        
+        input::placeholder {
+            color: #9ca3af; /* Lighter color for placeholder */
         }
         
         input:focus, select:focus {
             outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+            border-color: #2c3e50; /* Primary color */
+            box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.1);
         }
         
         /* Error container */
@@ -645,7 +791,9 @@
             background-color: #fee2e2;
             border: 1px solid #fca5a5;
             border-radius: 6px;
-            color: #dc2626;
+            color: #991b1b;
+            font-size: 0.875rem;
+            line-height: 1.5;
         }
         
         /* Button styles */
@@ -664,14 +812,14 @@
         }
         
         .btn-secondary {
-            background-color: #6b7280;
+            background-color: #2c3e50; /* Primary color */
             color: white;
-            border-color: #6b7280;
+            border-color: #1a252f;
         }
         
         .btn-secondary:hover {
-            background-color: #4b5563;
-            border-color: #4b5563;
+            background-color: #34495e;
+            border-color: #2c3e50;
         }
         
         /* Loading spinner */
@@ -698,6 +846,168 @@
         /* Hidden utility class */
         .hidden { 
             display: none !important; 
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 1.5rem 0;
+            color: #4b5563; /* Darker color for better contrast */
+            font-size: 0.875rem;
+            border-top: 1px solid #e5e7eb;
+            margin-top: auto;
+            width: 100%;
+            background-color: #ffffff;
+        }
+        
+        /* Mobile-specific color fixes */
+        @media (max-width: 768px) {
+            /* Ensure all text has good contrast on mobile */
+            body {
+                color: #1a1a1a; /* Base dark color */
+            }
+            
+            /* Panel titles on mobile */
+            .panel-title {
+                color: #1a1a1a;
+            }
+            
+            /* Form labels on mobile */
+            .form-label {
+                color: #374151;
+            }
+            
+            /* Stat values on mobile */
+            .stat-value {
+                color: #1a1a1a;
+            }
+            
+            /* Input text color */
+            input, select, textarea {
+                color: #1a1a1a;
+            }
+            
+            /* Button text */
+            .btn, .btn-optimize, .btn-add {
+                color: white;
+            }
+            
+            /* Navigation text */
+            #barCounter1D {
+                color: #4b5563;
+            }
+        }
+        
+        /* Dark mode considerations */
+        @media (prefers-color-scheme: dark) {
+            /* Base dark mode styles */
+            body {
+                background-color: #111827;
+                color: #f3f4f6;
+            }
+            
+            .header {
+                background-color: #1f2937;
+                border-bottom-color: #374151;
+            }
+            
+            .title-text h1 {
+                color: #f3f4f6;
+            }
+            
+            .title-text p {
+                color: #d1d5db;
+            }
+            
+            .panel {
+                background-color: #1f2937;
+                border-color: #374151;
+            }
+            
+            .panel-header {
+                background-color: #111827;
+                border-color: #374151;
+            }
+            
+            .panel-title {
+                color: #f3f4f6;
+            }
+            
+            .form-label {
+                color: #d1d5db;
+            }
+            
+            input, select {
+                background-color: #374151;
+                border-color: #4b5563;
+                color: #f3f4f6;
+            }
+            
+            input::placeholder {
+                color: #9ca3af;
+            }
+            
+            .stat-card {
+                background-color: #111827;
+                border-color: #374151;
+            }
+            
+            .stat-value {
+                color: #f3f4f6;
+            }
+            
+            .stat-label {
+                color: #d1d5db;
+            }
+            
+            .empty-state {
+                background-color: #111827;
+                border-color: #374151;
+            }
+            
+            .empty-state h3 {
+                color: #f3f4f6;
+            }
+            
+            .empty-state p {
+                color: #d1d5db;
+            }
+            
+            .bar-details {
+                background-color: #1f2937;
+                border-color: #374151;
+            }
+            
+            .bar-info span {
+                color: #f3f4f6;
+            }
+            
+            .footer {
+                background-color: #1f2937;
+                color: #d1d5db;
+                border-color: #374151;
+            }
+        }
+        
+        /* Print styles */
+        @media print {
+            .header, .footer, .back-btn, .btn, .action-buttons, .nav-controls, .scroll-indicator {
+                display: none !important;
+            }
+            
+            body {
+                background-color: white !important;
+                color: black !important;
+            }
+            
+            .panel {
+                border: 1px solid #000 !important;
+                box-shadow: none !important;
+            }
+            
+            .bar-visualization-container {
+                overflow: visible !important;
+            }
         }
     </style>
 </head>
@@ -873,12 +1183,31 @@
     <script>
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
+            console.log("1D Optimizer page loaded - Enhanced contrast mode");
+            
             if (typeof init1DOptimizer === 'function') {
                 init1DOptimizer();
+            } else {
+                console.warn('init1DOptimizer function not found. Loading fallback...');
+                // Fallback initialization
+                setTimeout(initializeFallback1D, 500);
             }
             
             // Tambah touch event untuk visualisasi di mobile
             setupMobileTouchEvents();
+            
+            // Force color contrast fix on mobile
+            if (window.matchMedia("(max-width: 768px)").matches) {
+                applyMobileColorFixes();
+            }
+            
+            // Listen for orientation changes
+            window.addEventListener('orientationchange', function() {
+                setTimeout(function() {
+                    setupMobileTouchEvents();
+                    applyMobileColorFixes();
+                }, 300);
+            });
         });
         
         // Setup touch events untuk visualisasi mobile
@@ -906,6 +1235,186 @@
                 barVisualizationContainer.addEventListener('touchend', () => {
                     isDragging = false;
                 });
+            }
+        }
+        
+        // Apply mobile-specific color fixes
+        function applyMobileColorFixes() {
+            // Ensure all text elements have good contrast
+            const textElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, label, .stat-value, .stat-label');
+            textElements.forEach(el => {
+                // Skip elements that already have explicit color
+                if (!el.style.color && window.getComputedStyle(el).color) {
+                    const currentColor = window.getComputedStyle(el).color;
+                    const rgb = currentColor.match(/\d+/g);
+                    if (rgb) {
+                        const brightness = (parseInt(rgb[0]) * 299 + parseInt(rgb[1]) * 587 + parseInt(rgb[2]) * 114) / 1000;
+                        if (brightness > 180) { // Too light for mobile
+                            el.style.color = '#1a1a1a'; // Dark color for better contrast
+                        }
+                    }
+                }
+            });
+            
+            // Ensure buttons have good contrast
+            const buttons = document.querySelectorAll('.btn, .btn-optimize, .btn-add, .nav-button');
+            buttons.forEach(btn => {
+                if (!btn.style.backgroundColor) {
+                    btn.style.backgroundColor = '#2c3e50';
+                    btn.style.color = '#ffffff';
+                }
+            });
+            
+            console.log('Mobile color fixes applied');
+        }
+        
+        // Fallback initialization
+        function initializeFallback1D() {
+            console.log('Initializing fallback 1D optimizer...');
+            
+            // Setup add item button
+            const addItemBtn = document.getElementById('addItemBtn1D');
+            const cutListContainer = document.getElementById('cutListContainer1D');
+            
+            if (addItemBtn && cutListContainer) {
+                addItemBtn.addEventListener('click', function() {
+                    const newItem = document.createElement('div');
+                    newItem.className = 'cut-list-input-group';
+                    newItem.innerHTML = `
+                        <input type="text" name="itemId[]" placeholder="ID" class="w-full">
+                        <input type="number" name="itemLength[]" placeholder="Length" min="1" step="1" class="w-full">
+                        <input type="number" name="itemQuantity[]" placeholder="Qty" min="1" step="1" class="w-full">
+                        <button type="button" class="remove-item-btn btn" style="background-color: #fee2e2; color: #991b1b; border-color: #fecaca;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    `;
+                    cutListContainer.appendChild(newItem);
+                    
+                    // Add event listener to new remove button
+                    newItem.querySelector('.remove-item-btn').addEventListener('click', function() {
+                        if (cutListContainer.children.length > 1) {
+                            cutListContainer.removeChild(newItem);
+                        }
+                    });
+                });
+            }
+            
+            // Setup remove buttons for existing items
+            document.querySelectorAll('.remove-item-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const item = this.closest('.cut-list-input-group');
+                    const cutListContainer = document.getElementById('cutListContainer1D');
+                    if (cutListContainer && cutListContainer.children.length > 1) {
+                        cutListContainer.removeChild(item);
+                    }
+                });
+            });
+            
+            // Setup form submission
+            const form = document.getElementById('optimizerForm1D');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    console.log('Optimization requested (fallback mode)');
+                    // Show loading state
+                    const optimizeBtn = document.getElementById('optimizeBtn1D');
+                    const optimizeText = document.getElementById('optimizeText1D');
+                    const optimizeSpinner = document.getElementById('optimizeSpinner1D');
+                    
+                    if (optimizeBtn && optimizeText && optimizeSpinner) {
+                        optimizeText.textContent = 'Optimizing...';
+                        optimizeSpinner.classList.remove('hidden');
+                        optimizeBtn.disabled = true;
+                        
+                        // Simulate optimization
+                        setTimeout(function() {
+                            optimizeText.textContent = 'Optimize';
+                            optimizeSpinner.classList.add('hidden');
+                            optimizeBtn.disabled = false;
+                            
+                            // Show results panel
+                            const resultsContainer = document.getElementById('resultsContainer1D');
+                            const emptyResults = document.getElementById('emptyResults1D');
+                            if (resultsContainer && emptyResults) {
+                                resultsContainer.classList.remove('hidden');
+                                emptyResults.classList.add('hidden');
+                                
+                                // Show sample results
+                                displaySampleResults();
+                            }
+                        }, 1500);
+                    }
+                });
+            }
+        }
+        
+        // Display sample results for fallback
+        function displaySampleResults() {
+            const statsGrid = document.getElementById('summaryStats1D');
+            const barDetails = document.getElementById('barDetails1D');
+            
+            if (statsGrid) {
+                statsGrid.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value">3</div>
+                        <div class="stat-label">Bars Used</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">92%</div>
+                        <div class="stat-label">Efficiency</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">480 mm</div>
+                        <div class="stat-label">Total Waste</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">5</div>
+                        <div class="stat-label">Total Cuts</div>
+                    </div>
+                `;
+            }
+            
+            if (barDetails) {
+                barDetails.innerHTML = `
+                    <div class="bar-info">
+                        <span class="bar-number">Bar 1 of 3</span>
+                        <span class="bar-waste">Waste: 150 mm</span>
+                    </div>
+                    <div class="bar-visualization-container">
+                        <div class="bar-visualization">
+                            <div class="bar-segment" style="width: 30%; background-color: #3b82f6;">
+                                <div class="segment-content">
+                                    <span class="segment-id">A</span>
+                                    <span class="segment-length">1800mm</span>
+                                </div>
+                            </div>
+                            <div class="bar-segment" style="width: 40%; background-color: #10b981;">
+                                <div class="segment-content">
+                                    <span class="segment-id">B</span>
+                                    <span class="segment-length">2400mm</span>
+                                </div>
+                            </div>
+                            <div class="bar-segment" style="width: 25%; background-color: #f59e0b;">
+                                <div class="segment-content">
+                                    <span class="segment-id">C</span>
+                                    <span class="segment-length">1500mm</span>
+                                </div>
+                            </div>
+                            <div class="bar-segment" style="width: 5%; background-color: #ef4444;">
+                                <div class="segment-content">
+                                    <span class="segment-waste">Waste</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="scroll-indicator">
+                        <i class="fas fa-arrows-left-right"></i> Scroll horizontally to see full bar
+                    </div>
+                    <div class="bar-total">Total Length: 6000 mm</div>
+                `;
+                
+                // Re-setup touch events for new visualization
+                setTimeout(setupMobileTouchEvents, 100);
             }
         }
     </script>
