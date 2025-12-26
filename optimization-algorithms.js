@@ -523,7 +523,7 @@ class PlateOptimizer2D {
 }
 
 // ============================================
-// CUSTOM OPTIMIZATION - FF-CA-01
+// CUSTOM OPTIMIZATION - FF-CA-01 (REVISED)
 // ============================================
 
 class CustomOptimizer {
@@ -539,6 +539,63 @@ class CustomOptimizer {
         };
     }
     
+    // Validasi konfigurasi FF-CA-01 sesuai revisi
+    validateFFCA01Configuration(params) {
+        const { smallRingA, bigRingA, smallRingB, bigRingB } = params;
+        
+        // Cek nilai negatif
+        if (smallRingA < 0 || bigRingA < 0 || smallRingB < 0 || bigRingB < 0) {
+            return { 
+                isValid: false, 
+                message: 'Error: Nilai tidak boleh negatif. Harap masukkan nilai 0 atau lebih besar.' 
+            };
+        }
+        
+        const isSRAFilled = smallRingA > 0;
+        const isSRBFilled = smallRingB > 0;
+        const isBRAFilled = bigRingA > 0;
+        const isBRBFilled = bigRingB > 0;
+        
+        // Cek pasangan Small Ring
+        if (isSRAFilled !== isSRBFilled) {
+            return { 
+                isValid: false, 
+                message: 'Error: Jika mengisi Small Ring (SR), maka SR-A dan SR-B harus diisi keduanya.' 
+            };
+        }
+        
+        // Cek pasangan Big Ring
+        if (isBRAFilled !== isBRBFilled) {
+            return { 
+                isValid: false, 
+                message: 'Error: Jika mengisi Big Ring (BR), maka BR-A dan BR-B harus diisi keduanya.' 
+            };
+        }
+        
+        // Cek kombinasi yang valid sesuai revisi
+        const isSREmpty = !isSRAFilled && !isSRBFilled;
+        const isBREmpty = !isBRAFilled && !isBRBFilled;
+        const isSRComplete = isSRAFilled && isSRBFilled;
+        const isBRComplete = isBRAFilled && isBRBFilled;
+        
+        // 1. SR kosong & BR terisi
+        const isValid1 = isSREmpty && isBRComplete;
+        // 2. SR terisi & BR kosong
+        const isValid2 = isSRComplete && isBREmpty;
+        // 3. SR terisi & BR terisi
+        const isValid3 = isSRComplete && isBRComplete;
+        
+        if (!isValid1 && !isValid2 && !isValid3) {
+            return { 
+                isValid: false, 
+                message: 'Error: Konfigurasi tidak valid. Pilihan yang valid: 1) SR-A dan SR-B tidak terisi, BR-A dan BR-B terisi, 2) SR-A dan SR-B terisi, BR-A dan BR-B tidak terisi, 3) Semua terisi (SR-A, SR-B, BR-A, BR-B).' 
+            };
+        }
+        
+        return { isValid: true, message: '' };
+    }
+    
+    // Generate items untuk FF-CA-01 pattern dengan kuantitas yang benar
     generateFFCA01Items(params) {
         const {
             smallRingA,
@@ -551,11 +608,12 @@ class CustomOptimizer {
         
         const items = [];
         
+        // Pattern A: 4 small rings + 4 big rings per set
         if (smallRingA > 0) {
             items.push({
                 id: 'A-Small',
                 length: parseInt(smallRingA) + parseInt(kerfWidth),
-                quantity: 4 * parseInt(multiplier),
+                quantity: 4 * parseInt(multiplier), // 4 per set
                 originalLength: parseInt(smallRingA),
                 type: 'small-ring',
                 pattern: 'A'
@@ -566,18 +624,19 @@ class CustomOptimizer {
             items.push({
                 id: 'A-Big',
                 length: parseInt(bigRingA) + parseInt(kerfWidth),
-                quantity: 4 * parseInt(multiplier),
+                quantity: 4 * parseInt(multiplier), // 4 per set
                 originalLength: parseInt(bigRingA),
                 type: 'big-ring',
                 pattern: 'A'
             });
         }
         
+        // Pattern B: 4 small rings + 4 big rings per set
         if (smallRingB > 0) {
             items.push({
                 id: 'B-Small',
                 length: parseInt(smallRingB) + parseInt(kerfWidth),
-                quantity: 4 * parseInt(multiplier),
+                quantity: 4 * parseInt(multiplier), // 4 per set
                 originalLength: parseInt(smallRingB),
                 type: 'small-ring',
                 pattern: 'B'
@@ -588,22 +647,25 @@ class CustomOptimizer {
             items.push({
                 id: 'B-Big',
                 length: parseInt(bigRingB) + parseInt(kerfWidth),
-                quantity: 4 * parseInt(multiplier),
+                quantity: 4 * parseInt(multiplier), // 4 per set
                 originalLength: parseInt(bigRingB),
                 type: 'big-ring',
                 pattern: 'B'
             });
         }
         
+        // Filter hanya items dengan panjang > 0 dan quantity > 0
         return items.filter(item => item.length > 0 && item.quantity > 0);
     }
     
+    // Hitung efisiensi per pattern
     calculatePatternEfficiency(bars, items) {
         const patternTotals = {
             A: { totalLength: 0, usedLength: 0 },
             B: { totalLength: 0, usedLength: 0 }
         };
         
+        // Hitung total panjang yang dibutuhkan per pattern
         items.forEach(item => {
             if (item.pattern === 'A') {
                 patternTotals.A.totalLength += parseInt(item.originalLength) * parseInt(item.quantity);
@@ -612,6 +674,7 @@ class CustomOptimizer {
             }
         });
         
+        // Hitung total panjang yang digunakan per pattern
         bars.forEach(bar => {
             bar.items.forEach(item => {
                 const pattern = item.originalId.charAt(0);
@@ -623,6 +686,7 @@ class CustomOptimizer {
             });
         });
         
+        // Hitung efisiensi per pattern
         const efficiencyA = patternTotals.A.totalLength > 0 ? 
             Math.round((patternTotals.A.usedLength / patternTotals.A.totalLength) * 100) : 0;
         const efficiencyB = patternTotals.B.totalLength > 0 ? 
@@ -642,15 +706,24 @@ class CustomOptimizer {
         };
     }
     
+    // Optimasi utama untuk FF-CA-01
     optimizeFFCA01(params, materialLength = 6000) {
         const startTime = Date.now();
         
+        // Validasi konfigurasi terlebih dahulu
+        const validation = this.validateFFCA01Configuration(params);
+        if (!validation.isValid) {
+            throw new Error(validation.message);
+        }
+        
+        // Generate items dari parameter
         const customItems = this.generateFFCA01Items(params);
         
         if (customItems.length === 0) {
             throw new Error("No valid items generated from FF-CA-01 parameters");
         }
         
+        // Konversi ke integer untuk konsistensi
         const integerItems = customItems.map(item => ({
             ...item,
             length: parseInt(item.length),
@@ -660,9 +733,11 @@ class CustomOptimizer {
         
         const integerMaterialLength = parseInt(materialLength);
         
+        // Gunakan CuttingOptimizer1D untuk optimasi
         const optimizer = new CuttingOptimizer1D(this.algorithm);
         const result = optimizer.optimize(integerItems, integerMaterialLength);
         
+        // Pastikan semua nilai dalam integer
         result.totalBars = parseInt(result.totalBars || 0);
         result.totalItems = parseInt(result.totalItems || 0);
         result.totalUsedLength = parseInt(result.totalUsedLength || 0);
@@ -670,6 +745,7 @@ class CustomOptimizer {
         result.overallEfficiency = Math.round(result.overallEfficiency || 0);
         result.executionTime = parseInt(result.executionTime || 0);
         
+        // Pastikan semua nilai dalam bar adalah integer
         if (result.bars && Array.isArray(result.bars)) {
             result.bars.forEach(bar => {
                 bar.usedLength = parseInt(bar.usedLength || 0);
@@ -686,6 +762,7 @@ class CustomOptimizer {
             });
         }
         
+        // Tambahkan metadata untuk custom optimizer
         result.mode = this.mode;
         result.customParams = {
             smallRingA: parseInt(params.smallRingA || 0),
@@ -698,6 +775,7 @@ class CustomOptimizer {
         result.generatedItems = integerItems;
         result.materialLength = integerMaterialLength;
         
+        // Hitung statistik tambahan
         const totalCuts = integerItems.reduce((sum, item) => sum + parseInt(item.quantity), 0);
         const totalPatterns = {
             A: integerItems.filter(item => item.pattern === 'A').reduce((sum, item) => sum + parseInt(item.quantity), 0),
@@ -714,6 +792,7 @@ class CustomOptimizer {
             efficiencyByPattern: this.calculatePatternEfficiency(result.bars, integerItems)
         };
         
+        // Hitung waktu eksekusi
         result.executionTime = parseInt(Date.now() - startTime);
         this.stats.executionTime = result.executionTime;
         
@@ -721,7 +800,7 @@ class CustomOptimizer {
     }
 }
 
-// Export for browser
+// Export untuk browser
 window.CuttingOptimizer1D = CuttingOptimizer1D;
 window.PlateOptimizer2D = PlateOptimizer2D;
 window.Bar1D = Bar1D;
