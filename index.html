@@ -97,7 +97,7 @@
         }
         
         .detail-text {
-            font-size: clamp(0.8rem, 3vw, 1rem);
+            font-size: clamp(0.75rem, 2.8vw, 0.9rem);
             color: #666;
             opacity: 0.7;
             line-height: 1.4;
@@ -269,6 +269,17 @@
         
         .go-button-circle i {
             font-size: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+        
+        /* Loading animation */
+        .go-button-circle.loading i {
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
         
         /* Footer - CLEANED UP */
@@ -307,6 +318,7 @@
                 text-align: left;
                 max-width: 100%;
                 margin-left: 0;
+                font-size: clamp(0.75rem, 2.8vw, 0.9rem);
             }
             
             .cards-section {
@@ -353,7 +365,7 @@
             }
             
             .detail-text {
-                font-size: clamp(0.8rem, 3.5vw, 0.95rem);
+                font-size: clamp(0.75rem, 3.2vw, 0.85rem);
             }
             
             .mobile-dropdown-section {
@@ -394,6 +406,10 @@
             
             .tagline {
                 font-size: 1.2rem;
+            }
+            
+            .detail-text {
+                font-size: 0.75rem;
             }
             
             .mobile-dropdown-section {
@@ -451,7 +467,7 @@
             }
             
             .detail-text {
-                font-size: 0.8rem;
+                font-size: 0.7rem;
             }
             
             .home-footer {
@@ -580,27 +596,122 @@
     </div>
     
     <script>
-        // Initialize mobile dropdown
-        document.addEventListener('DOMContentLoaded', function() {
+        // Variabel untuk melacak status navigasi
+        let isNavigating = false;
+        let navigationTimeout = null;
+        
+        // Fungsi untuk mereset semua state
+        function resetAllStates() {
+            console.log('Resetting all states...');
+            
+            // Reset status navigasi
+            isNavigating = false;
+            
+            // Hapus timeout jika ada
+            if (navigationTimeout) {
+                clearTimeout(navigationTimeout);
+                navigationTimeout = null;
+            }
+            
+            // Reset tombol Go
+            const goButton = document.getElementById('goButton');
+            if (goButton) {
+                goButton.disabled = false;
+                goButton.classList.remove('loading');
+                goButton.innerHTML = '<i class="fas fa-arrow-right"></i>';
+            }
+            
+            // Reset dropdown (opsional - bisa tetap pilihan terakhir)
+            // const optimizerSelect = document.getElementById('optimizerSelect');
+            // if (optimizerSelect) {
+            //     optimizerSelect.selectedIndex = 0;
+            //     goButton.disabled = true;
+            // }
+            
+            // Reset kartu
+            const cards = document.querySelectorAll('.modern-card');
+            cards.forEach(card => {
+                card.style.pointerEvents = 'auto';
+                card.style.opacity = '1';
+            });
+            
+            console.log('All states reset complete');
+        }
+        
+        // Fungsi navigasi untuk kartu desktop
+        function navigateTo(url) {
+            if (isNavigating) {
+                console.log('Navigation already in progress, skipping...');
+                return;
+            }
+            
+            console.log('Navigating to:', url);
+            isNavigating = true;
+            
+            // Tambah loading state ke kartu
+            const cards = document.querySelectorAll('.modern-card');
+            cards.forEach(card => {
+                card.style.pointerEvents = 'none';
+                card.style.opacity = '0.7';
+            });
+            
+            // Navigasi setelah delay pendek
+            navigationTimeout = setTimeout(() => {
+                window.location.href = url;
+            }, 300);
+        }
+        
+        // Fungsi navigasi untuk dropdown mobile
+        function navigateToSelected() {
             const optimizerSelect = document.getElementById('optimizerSelect');
             const goButton = document.getElementById('goButton');
             
-            // Auto-select first option on mobile for better UX
-            if (window.innerWidth <= 768 && optimizerSelect) {
-                setTimeout(() => {
-                    optimizerSelect.selectedIndex = 1;
-                    goButton.disabled = false;
-                }, 100);
+            if (!optimizerSelect || !goButton || !optimizerSelect.value || isNavigating) {
+                return;
             }
             
-            // Enable/disable Go button based on selection
+            console.log('Navigating to selected:', optimizerSelect.value);
+            isNavigating = true;
+            
+            // Tambah loading state ke tombol
+            goButton.disabled = true;
+            goButton.classList.add('loading');
+            goButton.innerHTML = '<i class="fas fa-spinner"></i>';
+            
+            // Navigasi setelah delay pendek
+            navigationTimeout = setTimeout(() => {
+                window.location.href = optimizerSelect.value;
+            }, 300);
+        }
+        
+        // Initialize saat DOM siap
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM fully loaded, initializing...');
+            
+            // Reset semua state
+            resetAllStates();
+            
+            // Setup dropdown change event
+            const optimizerSelect = document.getElementById('optimizerSelect');
+            const goButton = document.getElementById('goButton');
+            
             if (optimizerSelect && goButton) {
                 optimizerSelect.addEventListener('change', function() {
                     goButton.disabled = !this.value;
                 });
+                
+                // Auto-select first option on mobile untuk UX yang lebih baik
+                if (window.innerWidth <= 768) {
+                    setTimeout(() => {
+                        if (optimizerSelect.selectedIndex === 0) {
+                            optimizerSelect.selectedIndex = 1;
+                            goButton.disabled = false;
+                        }
+                    }, 100);
+                }
             }
             
-            // Set proper height for mobile viewport
+            // Set proper height untuk viewport mobile
             function setViewportHeight() {
                 const container = document.querySelector('.home-container');
                 if (container) {
@@ -614,7 +725,7 @@
                 setTimeout(setViewportHeight, 100);
             });
             
-            // Prevent zooming
+            // Mencegah zoom pada mobile
             document.addEventListener('touchstart', function(e) {
                 if (e.touches.length > 1) e.preventDefault();
             }, { passive: false });
@@ -625,36 +736,60 @@
                 if (now - lastTouchEnd <= 300) e.preventDefault();
                 lastTouchEnd = now;
             }, { passive: false });
+            
+            // Reset semua state ketika halaman menjadi visible lagi
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) {
+                    console.log('Page became visible, resetting states...');
+                    resetAllStates();
+                }
+            });
         });
         
-        // Navigation functions
-        function navigateTo(url) {
-            const cards = document.querySelectorAll('.modern-card');
-            cards.forEach(card => {
-                card.style.pointerEvents = 'none';
-                card.style.opacity = '0.7';
-            });
+        // Handle event pageshow (terjadi ketika halaman dimuat dari cache/bfcache)
+        window.addEventListener('pageshow', function(event) {
+            console.log('pageshow event fired, persisted:', event.persisted);
             
-            setTimeout(() => {
-                window.location.href = url;
-            }, 150);
-        }
+            // Jika halaman dimuat dari cache (bfcache), reset semua state
+            if (event.persisted) {
+                console.log('Page restored from cache, resetting states...');
+                setTimeout(resetAllStates, 50);
+            }
+            
+            // Selalu reset state untuk memastikan
+            resetAllStates();
+        });
         
-        function navigateToSelected() {
-            const optimizerSelect = document.getElementById('optimizerSelect');
-            const goButton = document.getElementById('goButton');
+        // Handle event sebelum halaman di-unload (sebelum navigasi)
+        window.addEventListener('beforeunload', function() {
+            console.log('Page unloading, cleaning up...');
             
-            if (!optimizerSelect || !goButton || !optimizerSelect.value) return;
+            // Hapus timeout jika ada
+            if (navigationTimeout) {
+                clearTimeout(navigationTimeout);
+                navigationTimeout = null;
+            }
             
-            goButton.disabled = true;
-            goButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            
-            setTimeout(() => {
-                window.location.href = optimizerSelect.value;
-            }, 200);
-        }
+            // Reset status navigasi
+            isNavigating = false;
+        });
         
-        // Allow Enter key to navigate
+        // Handle event saat halaman dimuat
+        window.addEventListener('load', function() {
+            console.log('Page fully loaded, final reset...');
+            resetAllStates();
+        });
+        
+        // Handle event saat halaman kembali (popstate)
+        window.addEventListener('popstate', function() {
+            console.log('Back/forward navigation, resetting states...');
+            setTimeout(resetAllStates, 50);
+        });
+        
+        // Juga reset saat halaman pertama kali dibuka
+        setTimeout(resetAllStates, 100);
+        
+        // Allow Enter key to navigate pada dropdown
         document.addEventListener('keypress', function(e) {
             const optimizerSelect = document.getElementById('optimizerSelect');
             if (e.key === 'Enter' && optimizerSelect && optimizerSelect.value) {
