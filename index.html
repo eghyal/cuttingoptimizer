@@ -41,7 +41,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
             padding: clamp(0.5rem, 3vmin, 1.5rem);
             overflow: hidden;
             position: relative;
@@ -71,7 +71,6 @@
             text-align: center;
             width: 100%;
             padding: 0.5rem;
-            margin-bottom: 1rem;
         }
         
         .main-title {
@@ -218,7 +217,7 @@
         }
         
         .dropdown-container {
-            width: 65%;
+            width: 85%;
             position: relative;
             margin: 0 auto;
         }
@@ -319,8 +318,10 @@
             text-align: center;
             background: #ffffff;
             border-top: 1px solid #e2e8f0;
-            margin-top: auto;
-            flex-shrink: 0;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            z-index: 10;
         }
         
         .home-footer p {
@@ -371,19 +372,20 @@
             
             .home-container {
                 padding: clamp(0.5rem, 2vmin, 1rem);
-                justify-content: flex-start;
+                justify-content: center;
             }
             
             .main-layout {
                 gap: clamp(1.5rem, 4vmin, 2.5rem);
                 padding: 0.25rem;
-                justify-content: flex-start;
-                overflow-y: auto;
-                max-height: calc(100vh - 80px);
+                justify-content: center;
+                overflow-y: hidden;
+                max-height: none;
             }
             
             .title-section {
-                padding-top: 1rem;
+                padding-top: 0;
+                margin-bottom: 0;
             }
             
             .main-title {
@@ -410,7 +412,7 @@
             
             /* Mobile dropdown specific styles */
             .dropdown-container {
-                width: 65%;
+                width: 85%;
             }
             
             .optimizer-select {
@@ -445,6 +447,13 @@
             .mobile-dropdown-wrapper {
                 gap: 0.5rem;
             }
+            
+            /* Push footer down */
+            .home-footer {
+                position: relative;
+                margin-top: auto;
+                width: 100%;
+            }
         }
         
         /* Very Small Screens (320px and below) */
@@ -458,7 +467,7 @@
             }
             
             .dropdown-container {
-                width: 70%;
+                width: 90%;
             }
             
             .optimizer-select {
@@ -492,12 +501,14 @@
         @media (orientation: landscape) and (max-height: 500px) {
             .home-container {
                 padding: 0.25rem;
+                justify-content: center;
             }
             
             .main-layout {
                 flex-direction: row;
                 gap: 1rem;
                 padding: 0.25rem;
+                justify-content: center;
             }
             
             .title-section {
@@ -544,7 +555,7 @@
             
             /* Landscape mobile dropdown */
             .dropdown-container {
-                width: 80%;
+                width: 85%;
             }
             
             .optimizer-select {
@@ -564,12 +575,17 @@
             .go-button-circle i {
                 font-size: 1.1rem;
             }
+            
+            .home-footer {
+                position: relative;
+                margin-top: auto;
+            }
         }
         
         /* Medium Screens (769px - 1024px) - Tablet */
         @media (min-width: 769px) and (max-width: 1024px) {
             .dropdown-container {
-                width: 50%;
+                width: 60%;
             }
         }
         
@@ -601,7 +617,7 @@
             pointer-events: none;
         }
         
-        /* Animation */
+        /* Animation - RESET untuk back button */
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -725,13 +741,58 @@
     </div>
     
     <script>
+        // Reset semua state saat halaman dimuat
+        function resetPageState() {
+            console.log('Resetting page state...');
+            
+            // Reset tombol loading
+            const goButton = document.getElementById('goButton');
+            if (goButton) {
+                goButton.disabled = false;
+                goButton.classList.remove('loading');
+                goButton.innerHTML = '<i class="fas fa-arrow-right"></i>';
+            }
+            
+            // Reset kartu loading
+            const cards = document.querySelectorAll('.modern-card');
+            cards.forEach(card => {
+                card.classList.remove('loading');
+                card.style.transform = '';
+                card.style.pointerEvents = 'auto';
+            });
+            
+            // Reset dropdown
+            const optimizerSelect = document.getElementById('optimizerSelect');
+            if (optimizerSelect) {
+                optimizerSelect.selectedIndex = 0;
+            }
+            
+            // Reset scroll
+            window.scrollTo(0, 0);
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
+            
+            // Pastikan body tidak overflow
+            document.body.style.overflow = 'hidden';
+            document.documentElement.style.overflow = 'hidden';
+            
+            console.log('Page state reset complete');
+        }
+        
         // Navigation function for cards
         function navigateTo(url) {
+            console.log('Navigating to:', url);
+            
+            // Reset dulu sebelum navigasi
+            resetPageState();
+            
+            // Tambah loading state
             const cards = document.querySelectorAll('.modern-card');
             cards.forEach(card => {
                 card.classList.add('loading');
             });
             
+            // Navigasi setelah delay pendek
             setTimeout(() => {
                 window.location.href = url;
             }, 150);
@@ -742,16 +803,20 @@
         const goButton = document.getElementById('goButton');
         
         // Enable/disable Go button based on selection
-        optimizerSelect.addEventListener('change', function() {
-            if (this.value) {
-                goButton.disabled = false;
-            } else {
-                goButton.disabled = true;
-            }
-        });
+        if (optimizerSelect) {
+            optimizerSelect.addEventListener('change', function() {
+                if (this.value) {
+                    goButton.disabled = false;
+                } else {
+                    goButton.disabled = true;
+                }
+            });
+        }
         
         // Navigate to selected option
         function navigateToSelected() {
+            if (!optimizerSelect || !goButton) return;
+            
             const selectedValue = optimizerSelect.value;
             if (selectedValue) {
                 goButton.disabled = true;
@@ -764,15 +829,22 @@
         }
         
         // Also allow Enter key on dropdown to navigate
-        optimizerSelect.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter' && this.value) {
-                navigateToSelected();
-            }
-        });
+        if (optimizerSelect) {
+            optimizerSelect.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && this.value) {
+                    navigateToSelected();
+                }
+            });
+        }
         
         // Prevent scrolling and zooming
         document.addEventListener('touchmove', function(e) {
             if (e.scale !== 1) e.preventDefault();
+        }, { passive: false });
+        
+        document.addEventListener('wheel', function(e) {
+            if (e.ctrlKey) return;
+            e.preventDefault();
         }, { passive: false });
         
         // Fix mobile viewport height
@@ -781,27 +853,17 @@
             document.documentElement.style.setProperty('--vh', `${vh}px`);
             
             const container = document.querySelector('.home-container');
-            container.style.height = window.innerHeight + 'px';
-            
-            // Adjust layout for mobile
-            const mainLayout = document.querySelector('.main-layout');
-            if (window.innerWidth <= 768) {
-                const availableHeight = window.innerHeight - 
-                    document.querySelector('.home-footer').offsetHeight - 
-                    document.querySelector('.title-section').offsetHeight - 40;
-                
-                mainLayout.style.maxHeight = availableHeight + 'px';
-                mainLayout.style.overflowY = 'auto';
-            } else {
-                mainLayout.style.maxHeight = 'none';
-                mainLayout.style.overflowY = 'visible';
+            if (container) {
+                container.style.height = window.innerHeight + 'px';
             }
         }
         
         // Initialize
         window.addEventListener('load', function() {
+            console.log('Page loaded, resetting state...');
+            
+            resetPageState();
             setViewportHeight();
-            window.scrollTo(0, 0);
             
             // Auto-select first option on mobile for better UX
             if (window.innerWidth <= 768 && optimizerSelect) {
@@ -814,7 +876,34 @@
         
         window.addEventListener('resize', setViewportHeight);
         window.addEventListener('orientationchange', function() {
-            setTimeout(setViewportHeight, 100);
+            setTimeout(() => {
+                setViewportHeight();
+                resetPageState();
+            }, 100);
+        });
+        
+        // Handle back button issues
+        window.addEventListener('pageshow', function(event) {
+            console.log('pageshow event fired, persisted:', event.persisted);
+            if (event.persisted) {
+                // Page was restored from bfcache
+                setTimeout(() => {
+                    resetPageState();
+                    setViewportHeight();
+                }, 50);
+            }
+        });
+        
+        // Handle page visibility changes
+        document.addEventListener('visibilitychange', function() {
+            console.log('Visibility changed, hidden:', document.hidden);
+            if (!document.hidden) {
+                // Page became visible again (user came back)
+                setTimeout(() => {
+                    resetPageState();
+                    setViewportHeight();
+                }, 50);
+            }
         });
         
         // Prevent double-tap zoom on iOS
@@ -827,10 +916,29 @@
             lastTouchEnd = now;
         }, false);
         
-        // Force fit on load
-        setTimeout(() => {
+        // Prevent any form of zooming
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
+        });
+        
+        // Force reset on DOM ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOMContentLoaded, initializing...');
+            resetPageState();
+            
+            // Extra protection against unwanted scrolling
+            window.scrollTo(0, 0);
+            document.body.scrollTop = 0;
+            document.documentElement.scrollTop = 0;
+            
+            // Lock body scroll
             document.body.style.overflow = 'hidden';
             document.documentElement.style.overflow = 'hidden';
+        });
+        
+        // Force fit on load
+        setTimeout(() => {
+            resetPageState();
             setViewportHeight();
         }, 100);
     </script>
