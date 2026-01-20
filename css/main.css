@@ -180,13 +180,13 @@ body.bg-slate-50 {
   flex-shrink: 0;
   height: 4rem; /* EXPLICIT HEIGHT */
   display: flex;
-  align-items: center;
+  align-items: center; /* Center vertically in footer */
 }
 
 .footer-container {
   max-width: var(--max-width-7xl);
   margin: 0 auto;
-  padding: 0 var(--space-4); /* Remove vertical padding */
+  padding: 0 var(--space-4); /* REVISED: Remove top padding, use flex centering */
   display: flex;
   flex-direction: column;
   justify-content: center; /* Center vertically */
@@ -201,26 +201,15 @@ body.bg-slate-50 {
 @media (min-width: 640px) {
   .footer-container {
     flex-direction: row;
+    justify-content: space-between; /* Kiri-kanan */
+    align-items: center;
     padding: 0 var(--space-6);
   }
 }
 
 @media (min-width: 1024px) {
   .footer-container {
-    padding: var(--space-4) 2rem;
-  }
-}
-
-@media (min-width: 640px) {
-  .footer-container {
-    flex-direction: row;
-    padding: var(--space-4) var(--space-6);
-  }
-}
-
-@media (min-width: 1024px) {
-  .footer-container {
-    padding: var(--space-4) 2rem;
+    padding: 0 2rem;
   }
 }
 
@@ -270,4 +259,94 @@ body.bg-slate-50 {
 
 .animate-fade-in-up {
   animation: fadeInUp 0.4s ease-out 0.1s forwards;
+}
+
+/* Mobile footer fix - Horizontal layout like desktop */
+@media (max-width: 639px) {
+  .footer {
+    height: auto; /* REVISED: Auto height for mobile */
+    padding: 0.75rem 0; /* REVISED: Add vertical padding */
+  }
+  
+  .footer-container {
+    flex-direction: row !important; /* Force horizontal layout */
+    justify-content: space-between !important; /* Kiri-kanan */
+    align-items: center !important; /* Center vertically */
+    /* REVISED: Balanced padding top & bottom */
+    padding: var(--space-3) var(--space-3) !important; /* 12px top & bottom */
+    gap: var(--space-2) !important;
+  }
+  
+  .footer-text {
+    font-size: var(--text-xs) !important;
+    margin: 0 !important;
+    flex-shrink: 1 !important;
+  }
+  
+  .btn-donate {
+    padding: var(--space-1) var(--space-2) !important; /* Smaller button */
+    font-size: var(--text-xs);
+    white-space: nowrap; /* Prevent text wrapping */
+    flex-shrink: 0; /* Prevent button from shrinking */
+  }
+  
+  .icon-heart {
+    width: 0.875rem !important; /* Slightly smaller icon */
+    height: 0.875rem !important;
+    margin-right: var(--space-1) !important;
+  }
+}
+
+/* ============================================================================
+   MOBILE FOOTER - Simplified fixed donate button at bottom right
+   ============================================================================ */
+@media (max-width: 767px) {
+  /* Add padding to body so content doesn't hide behind fixed button */
+  body {
+    padding-bottom: 5rem;
+  }
+  
+  /* Make footer fixed and transparent */
+  body > .footer {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: auto !important;
+    background: transparent !important;
+    border-top: none !important;
+    pointer-events: none !important;
+    z-index: 40 !important;
+  }
+  
+  /* Position button container at bottom right */
+  body > .footer .footer-container {
+    position: absolute !important;
+    bottom: 1rem !important;
+    right: 1rem !important;
+    left: auto !important;
+    padding: 0 !important;
+    pointer-events: auto !important;
+    background: none !important;
+    border: none !important;
+    justify-content: flex-end !important;
+    height: auto !important;
+    width: auto !important;
+    max-width: none !important;
+    margin: 0 !important;
+  }
+  
+  /* Hide footer text on mobile */
+  body > .footer .footer-text {
+    display: none !important;
+  }
+  
+  /* Style donate button for visibility */
+  body > .footer .btn-donate {
+    background: var(--color-white) !important;
+    border: 1px solid var(--color-slate-200) !important;
+    box-shadow: var(--shadow-lg) !important;
+    padding: var(--space-2) var(--space-3) !important;
+    font-size: var(--text-sm) !important;
+  }
 }

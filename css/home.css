@@ -1,4 +1,4 @@
-/* Home Page Styles - Fixed 100% Fit & Mobile Circular Cards */
+/* Home Page Styles - Fixed 100% Fit & Mobile Rectangular Cards */
 
 /* Background Animation */
 .home-background {
@@ -73,10 +73,18 @@
   overflow: hidden; /* Prevent any overflow */
 }
 
+/* NEW: Ensure content container centers everything */
+.content-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
 .home-page {
   position: relative;
   width: 100%;
-  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -186,7 +194,7 @@
 
 /* Card Icon */
 .card-icon {
-  flex-shrink: 0;
+  flex-shrink: 0; /* Prevent icon from shrinking */
   width: 3rem;
   height: 3rem;
   background-color: var(--color-slate-800);
@@ -205,11 +213,13 @@
 .card-icon-svg {
   width: 1.5rem;
   height: 1.5rem;
+  flex-shrink: 0; /* Ensure SVG doesn't shrink */
 }
 
 /* Card Content */
 .card-content {
   margin-top: var(--space-5);
+  min-width: 0; /* Allow flex item to shrink below its content size */
 }
 
 @media (min-width: 640px) {
@@ -225,6 +235,8 @@
   color: var(--color-slate-800);
   transition: color var(--transition-fast);
   margin-bottom: 0;
+  word-wrap: break-word; /* Force long words to break */
+  overflow-wrap: break-word; /* Modern alternative */
 }
 
 .info-card:hover .card-title {
@@ -236,10 +248,12 @@
   color: var(--color-slate-500);
   margin-top: var(--space-1);
   line-height: var(--leading-normal);
+  word-wrap: break-word; /* Force long words to break */
+  overflow-wrap: break-word; /* Modern alternative */
 }
 
 /* ============================================================================
-   MOBILE RESPONSIVE FIXES - CIRCULAR CARDS & HORIZONTAL LAYOUT
+   MOBILE RESPONSIVE FIXES - RECTANGULAR CARDS & PERFECT CENTERING
    ============================================================================ */
 @media (max-width: 767px) {
   /* Reset body/html overflow */
@@ -251,19 +265,24 @@
   /* Adjust main container */
   .home-main {
     min-height: calc(100vh - 7rem) !important; /* Adjusted for actual footer height */
-    padding: 0 0.5rem !important;
+    padding: 0 !important;
+  }
+  
+  /* NEW: Ensure perfect centering */
+  .content-container {
+    padding: 0 1rem;
   }
   
   .home-content {
-    padding: 0.5rem;
+    padding: 0;
     max-height: 100%;
     overflow: hidden; /* Prevent content overflow */
   }
   
   /* Make hero section more compact */
   .hero-section {
-    margin-bottom: 1.5rem;
-    padding: 0 0.5rem;
+    margin-bottom: 2rem;
+    padding: 0;
   }
   
   .hero-title {
@@ -275,78 +294,100 @@
     margin-top: var(--space-2);
   }
   
-  /* Cards grid - horizontal layout (2 cards side by side) */
+  /* Cards grid - single column for rectangular cards */
   .cards-grid {
-    grid-template-columns: 1fr 1fr; /* Two columns */
-    gap: 1rem; /* Smaller gap */
+    grid-template-columns: 1fr; /* Single column for rectangular layout */
+    gap: 0.75rem; /* Smaller gap */
     width: 100%;
-    max-width: 20rem; /* Limit width to fit */
+    max-width: 24rem; /* Max width for better readability */
     margin: 0 auto;
-    padding: 0 0.5rem;
   }
   
-  /* Circular cards - completely restyled */
+  /* RECTANGULAR cards (not circular) */
   .info-card {
-    flex-direction: column !important; /* Force vertical inside card */
+    flex-direction: row !important; /* Horizontal layout */
     align-items: center !important;
-    justify-content: center;
-    padding: 1rem; /* Smaller padding */
-    border-radius: var(--radius-full) !important; /* Fully circular */
-    width: 8rem; /* Fixed width for circle */
-    height: 8rem; /* Fixed height for circle */
-    margin: 0 auto; /* Center each card */
-    box-shadow: var(--shadow-sm); /* Lighter shadow */
-    background-color: rgba(255, 255, 255, 0.8); /* More opaque */
+    text-align: left !important;
+    padding: 1rem; /* Balanced padding */
+    border-radius: var(--radius-xl) !important; /* Rounded corners, not circular */
+    width: 100%; /* Full width */
+    height: auto; /* Auto height */
+    min-height: 4.5rem; /* Minimum height for better touch target */
+    margin: 0; /* Remove centering margin */
+    box-shadow: var(--shadow-md); /* Keep shadow */
+    background-color: rgba(255, 255, 255, 0.85); /* Slightly more opaque */
   }
   
-  /* Card icon - smaller and centered */
+  /* Card icon - keep circular but adjust size */
   .card-icon {
-    width: 2rem; /* Smaller icon container */
-    height: 2rem;
-    margin-bottom: 0.5rem; /* Space below icon */
+    width: 2.25rem; /* Smaller icon */
+    height: 2.25rem;
+    margin-bottom: 0 !important; /* Remove bottom margin */
+    margin-right: 0.75rem; /* Space between icon and text */
+    flex-shrink: 0 !important; /* Ensure icon never shrinks */
   }
   
   .card-icon-svg {
-    width: 1.25rem; /* Smaller icon */
-    height: 1.25rem;
+    width: 1.125rem; /* Smaller icon */
+    height: 1.125rem;
   }
   
-  /* Card content - minimal */
+  /* Card content - horizontal layout */
   .card-content {
-    margin: 0 !important; /* Remove margin */
-    text-align: center !important;
+    margin: 0 !important; /* Reset margin */
+    flex: 1; /* Take remaining space */
+    min-width: 0 !important; /* Critical: allow shrinking below content size */
+    overflow: hidden; /* Prevent overflow */
   }
   
   .card-title {
-    font-size: var(--text-base); /* Smaller text */
-    font-weight: var(--font-bold);
+    font-size: var(--text-sm); /* Smaller text for mobile */
+    font-weight: var(--font-semibold);
     color: var(--color-slate-800);
+    line-height: var(--leading-tight); /* Tighter line height */
+    word-wrap: break-word !important; /* Force word break */
+    overflow-wrap: break-word !important;
   }
   
-  /* Hide description on mobile */
+  /* SHOW description on mobile with rectangular cards */
   .card-description {
-    display: none !important;
+    display: block !important; /* Show description */
+    font-size: var(--text-xs); /* Smaller text */
+    margin-top: 0.25rem; /* Tight spacing */
+    line-height: var(--leading-tight);
+    word-wrap: break-word !important; /* Force word break */
+    overflow-wrap: break-word !important;
   }
   
-  /* Adjust footer for mobile */
+  /* ============================================================================
+     FOOTER FIX FOR HOME PAGE - INCREASED PADDING ON MOBILE
+     ============================================================================ */
   .footer-container {
-    padding: var(--space-3) var(--space-4); /* Smaller padding */
-    gap: var(--space-3);
+    flex-direction: row !important; /* Force horizontal layout like desktop */
+    justify-content: space-between !important; /* Kiri-kanan */
+    align-items: center !important; /* Center vertically */
+    /* INCREASED: More padding to avoid sticking to bottom */
+    padding: var(--space-4) var(--space-3) !important; /* 16px top & bottom */
+    gap: var(--space-2) !important;
   }
   
   .footer-text {
-    font-size: var(--text-xs); /* Smaller text */
+    font-size: var(--text-xs) !important;
+    margin: 0;
+    flex-shrink: 1 !important;
   }
   
   .btn-donate {
-    padding: var(--space-1) var(--space-3); /* Smaller button */
+    padding: var(--space-1) var(--space-2) !important; /* Smaller button */
     font-size: var(--text-xs);
+    white-space: nowrap; /* Prevent text wrapping */
+    flex-shrink: 0; /* Prevent button from shrinking */
   }
   
   .icon-heart {
-    width: 1rem;
-    height: 1rem;
-    margin-right: var(--space-1);
+    width: 0.875rem !important; /* Slightly smaller icon */
+    height: 0.875rem !important;
+    margin-right: var(--space-1) !important;
   }
 }
 
@@ -362,12 +403,15 @@
     height: auto;
     border-radius: var(--radius-2xl) !important;
     padding: var(--space-6);
+    min-height: 0; /* Reset min-height */
   }
   
   .card-icon {
     width: 3rem;
     height: 3rem;
     margin-bottom: 0;
+    margin-right: 0; /* Reset margin-right */
+    flex-shrink: 0;
   }
   
   .card-icon-svg {
@@ -378,19 +422,59 @@
   .card-content {
     margin-top: 0;
     margin-left: var(--space-5);
+    flex: 1; /* Allow content to take remaining space */
+    min-width: 0; /* Allow shrinking below content size */
   }
   
   .card-title {
     font-size: var(--text-lg);
+    line-height: var(--leading-tight);
   }
   
   .card-description {
     display: block !important;
+    font-size: var(--text-sm); /* Reset font size */
+    margin-top: var(--space-1); /* Reset spacing */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
   }
   
   .cards-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-6);
     max-width: 100%;
+  }
+  
+  /* Reset container */
+  .content-container {
+    padding: 0;
+  }
+  
+  /* Footer reset for desktop */
+  .footer-container {
+    padding: 0 var(--space-6) !important;
+  }
+}
+
+/* ============================================================================
+   MOBILE FOOTER - Home page specific override
+   ============================================================================ */
+@media (max-width: 767px) {
+  /* Override existing home.css footer styles */
+  .footer-container {
+    position: absolute !important;
+    bottom: 1rem !important;
+    right: 1rem !important;
+    left: auto !important;
+    padding: 0 !important;
+    justify-content: flex-end !important;
+    background: none !important;
+    border: none !important;
+    height: auto !important;
+    width: auto !important;
+  }
+  
+  .footer-text {
+    display: none !important;
   }
 }
