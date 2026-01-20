@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="EAV Cutting Optimizer - First has to be Sketched" />
+    <title>EAV Cutting Optimizer</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/reset.css" />
+    <link rel="stylesheet" href="css/variables.css" />
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="stylesheet" href="css/components.css" />
+    <link rel="stylesheet" href="css/home.css" />
+    <link rel="stylesheet" href="css/modal.css" />
+    <link rel="stylesheet" href="css/loading.css" />
+  </head>
+  <body class="bg-slate-50 text-slate-800" style="overflow: hidden;">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-container">
+        <div class="header-left">
+          <a href="index.html" class="logo" aria-label="Home">
+            <svg xmlns="http://www.w3.org/2000/svg" class="logo-icon home-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+          </a>
+          <div class="header-text">
+            <h1 class="header-title">EAV Cutting Optimizer</h1>
+            <p class="header-subtitle">First has to be Sketched</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content home-main">
+      <div class="content-container">
+        <div class="home-page">
+          <div class="home-background" aria-hidden="true">
+            <div class="blur-circle circle-1"></div>
+            <div class="blur-circle circle-2"></div>
+          </div>
+          <div class="home-content">
+            <div class="hero-section">
+              <h1 class="hero-title">First has to be Sketched</h1>
+              <p class="hero-description">
+                Optimize your cutting process with precision and efficiency. Our tools assist you to minimize waste and maximize material usage.
+              </p>
+            </div>
+            <div class="cards-grid">
+              <a href="pages/1d.html" class="info-card group">
+                <div class="card-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="card-icon-svg minus-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                  </svg>
+                </div>
+                <div class="card-content">
+                  <h3 class="card-title">1D Optimizer</h3>
+                  <p class="card-description">Optimize linear cuts for bars, pipes, and beams with precision.</p>
+                </div>
+              </a>
+              <a href="pages/2d.html" class="info-card group">
+                <div class="card-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="card-icon-svg square-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h16v16H4z" />
+                  </svg>
+                </div>
+                <div class="card-content">
+                  <h3 class="card-title">2D Optimizer</h3>
+                  <p class="card-description">Efficiently arrange rectangular parts on larger sheets or plates.</p>
+                </div>
+              </a>
+              <a href="pages/prj.html" class="info-card group">
+                <div class="card-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="card-icon-svg project-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                </div>
+                <div class="card-content">
+                  <h3 class="card-title">Project Optimizer (Beta)</h3>
+                  <p class="card-description">Optimize multiple materials with mixed 1D & 2D cutting in one project.</p>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Loading Spinner -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+      <div class="loading-spinner">
+        <svg class="spinner" viewBox="0 0 24 24" aria-hidden="true">
+          <circle class="spinner-circle" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="spinner-path" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <p class="loading-text">Optimizing...</p>
+      </div>
+    </div>
+
+    <!-- Donation Modal -->
+    <div id="donation-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title" id="modal-title">Support This Project</h2>
+          <button class="modal-close" id="modal-close" aria-label="Close modal">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon-close" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-description">
+            This website is free to use. If you find it helpful, please consider making a donation to support its maintenance and future development.
+          </p>
+          <div class="qr-container">
+            <img src="assets/img/qr-code.png" alt="QRIS Donation Code" class="qr-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjFmNWY5Ii8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY0NzQ4YiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPlFSIENvZGU8L3RleHQ+PC9zdmc+'" />
+          </div>
+          <div class="modal-footer-text">
+            <p class="company-name">FIRST HAS TO BE SKETCHED, DIGITAL & KREATIF</p>
+            <p class="nmid">NMID: ID1026473908725</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer footer-fixed">
+        <div class="footer-container">
+            <p class="footer-text">Engineered by Eghy Al Vandi</p>
+            <button class="btn btn-donate" id="donate-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon-heart" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
+                </svg>
+                Donate
+            </button>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/app.js"></script>
+  </body>
+</html>
