@@ -3,6 +3,7 @@
  * Pixel-Perfect Migration from React TypeScript
  * Made globally available without module system
  * Updated with QRIS Support
+ * FIXED: exportProjectToPDF now inside IIFE to access helpers
  */
 
 (function(window) {
@@ -186,7 +187,7 @@
   // ============================================================================
   // 1D PDF EXPORT
   // ============================================================================
-  window.export1DToPDF = function(result, formData) {
+  function export1DToPDF(result, formData) {
       var { jsPDF } = window.jspdf;
       var pdf = new jsPDF('p', 'mm', 'a4');
       var y = 20;
@@ -309,12 +310,12 @@
       // Footer
       addPageBreaks(pdf);
       pdf.save('1D_Report_' + new Date().toISOString().slice(0, 10) + '.pdf');
-  };
+  }
 
   // ============================================================================
   // 2D PDF EXPORT
   // ============================================================================
-  window.export2DToPDF = function(result, formData, itemColors) {
+  function export2DToPDF(result, formData, itemColors) {
       var { jsPDF } = window.jspdf;
       var pdf = new jsPDF('p', 'mm', 'a4');
       var y = 20;
@@ -530,8 +531,113 @@
       // Footer
       addPageBreaks(pdf);
       pdf.save('2D_Report_' + new Date().toISOString().slice(0, 10) + '.pdf');
-  };
+  }
 
-  console.log('✅ PDF Export module loaded with QR code support');
+  // ============================================================================
+  // PROJECT PDF EXPORT - FIXED: Now inside IIFE with proper scope access
+  // ============================================================================
+  function exportProjectToPDF(results) {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      let y = 20;
 
+      // Header
+      pdf.setFontSize(18);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(FONT_COLOR_DARK);
+      pdf.text('PROJECT CUTTING OPTIMIZATION REPORT', 105, y, { align: 'center' });
+      y += 7;
+
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(FONT_COLOR_MEDIUM);
+      pdf.text('Multiple Material Optimization Project', 105, y, { align: 'center' });
+      y += 12;
+
+      // Summary
+      y = drawSectionTitle(pdf, 'PROJECT SUMMARY', y);
+      
+      const totalGroups = results.length;
+      const totalItems = results.reduce((sum, res) => sum + res.result.totalItems, 0);
+      const avgEfficiency = totalGroups > 0 ? Math.round(results.reduce((sum, res) => sum + res.result.overallEfficiency, 0) / totalGroups) : 0;
+
+      const summaryData = [
+          { label: 'Date:', value: new Date().toLocaleDateString('en-US'), label2: 'Total Groups:', value2: totalGroups.toString() },
+          { label: 'Total Items:', value: totalItems.toString(), label2: 'Avg Efficiency:', value2: avgEfficiency + '%' },
+      ];
+
+      pdf.setFontSize(10);
+      summaryData.forEach(row => {
+          pdf.setFont('helvetica', 'normal'); pdf.setTextColor(FONT_COLOR_MEDIUM);
+          pdf.text(row.label, PAGE_MARGIN, y);
+          pdf.setFont('helvetica', 'bold'); pdf.setTextColor(FONT_COLOR_DARK);
+          pdf.text(row.value, PAGE_MARGIN + 35, y);
+          pdf.setFont('helvetica', 'normal'); pdf.setTextColor(FONT_COLOR_MEDIUM);
+          pdf.text(row.label2, 115, y);
+          pdf.setFont('helvetica', 'bold'); pdf.setTextColor(FONT_COLOR_DARK);
+          pdf.text(row.value2, 115 + 35, y);
+          y += 7;
+      });
+      y += 8;
+
+      // Group Results
+      results.forEach((res, index) => {
+          if (y > 250) {
+              pdf.addPage();
+              y = 25;
+          }
+          
+          const is1D = res.type === '1d';
+          const group = res.group;
+          
+          y = drawSectionTitle(pdf, `${group.name} (${is1D ? '1D Linear' : '2D Sheet'})`, y);
+          
+          const groupData = [
+              { label: 'Algorithm:', value: group.parameters.algorithm, label2: 'Efficiency:', value2: res.result.overallEfficiency + '%' },
+              { label: is1D ? 'Total Bars:' : 'Total Plates:', value: is1D ? res.result.totalBars.toString() : res.result.totalPlates.toString(), label2: 'Items:', value2: res.result.totalItems.toString() },
+          ];
+          
+          pdf.setFontSize(10);
+          groupData.forEach(row => {
+              pdf.setFont('helvetica', 'normal'); pdf.setTextColor(FONT_COLOR_MEDIUM);
+              pdf.text(row.label, PAGE_MARGIN, y);
+              pdf.setFont('helvetica', 'bold'); pdf.setTextColor(FONT_COLOR_DARK);
+              pdf.text(row.value, PAGE_MARGIN + 40, y);
+              pdf.setFont('helvetica', 'normal'); pdf.setTextColor(FONT_COLOR_MEDIUM);
+              pdf.text(row.label2, 115, y);
+              pdf.setFont('helvetica', 'bold'); pdf.setTextColor(FONT_COLOR_DARK);
+              pdf.text(row.value2, 115 + 25, y);
+              y += 7;
+          });
+          y += 5;
+
+          // Cut List
+          const cutHeaders = is1D ? ['ID', 'Length', 'Qty'] : ['ID', 'Width', 'Height', 'Qty'];
+          const cutData = group.items.map(item => {
+              if (is1D) {
+                  return [item.itemId, item.length + ' mm', item.quantity];
+              } else {
+                  return [item.itemId, item.width + ' mm', item.height + ' mm', item.quantity];
+              }
+          });
+
+          const colWidths = is1D ? [30, 50, 30] : [30, 40, 40, 30];
+          y = drawTable(pdf, y, cutHeaders, cutData, colWidths);
+          y += 8;
+      });
+
+      // Donation Page
+      addDonationSection(pdf);
+
+      // Footer
+      addPageBreaks(pdf);
+      pdf.save('Project_Report_' + new Date().toISOString().slice(0, 10) + '.pdf');
+  }
+
+  // Attach all exports to window
+  window.export1DToPDF = export1DToPDF;
+  window.export2DToPDF = export2DToPDF;
+  window.exportProjectToPDF = exportProjectToPDF; // FIXED: Now properly scoped
+
+  console.log('✅ PDF Export module loaded with Project support');
 })(window);

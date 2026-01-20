@@ -1,5 +1,5 @@
 /**
- * 1D Optimizer - Fixed Version
+ * 1D Optimizer - Fixed Version with Global Export
  * Changed from module to IIFE pattern for reliability
  */
 
@@ -722,8 +722,12 @@
   };
 
   // ============================================================================
-  // INITIALIZATION
+  // INITIALIZATION & GLOBAL EXPORT
   // ============================================================================
+
+  // Export classes to global scope
+  window.CuttingOptimizer1D = CuttingOptimizer1D;
+  window.Bar1D = Bar1D;
 
   // Initialize when DOM is ready
   if (document.readyState === 'loading') {
@@ -741,5 +745,5 @@
     }
   }
 
-  console.log('✅ 1D Optimizer script loaded');
+  console.log('✅ 1D Optimizer script loaded - With global exports');
 })(window, document);

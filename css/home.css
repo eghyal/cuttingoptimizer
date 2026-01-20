@@ -1,4 +1,4 @@
-/* Home Page Styles - Fixed 100% Fit & Mobile Rectangular Cards */
+/* Home Page Styles - Fixed Card Layout */
 
 /* Background Animation */
 .home-background {
@@ -62,7 +62,7 @@
   }
 }
 
-/* Home Main Content - Fixed 100% Fit */
+/* Home Main Content */
 .home-main {
   flex: 1;
   display: flex;
@@ -70,10 +70,10 @@
   justify-content: center;
   min-height: calc(100vh - 8rem);
   padding: 0 !important;
-  overflow: hidden; /* Prevent any overflow */
+  overflow: hidden;
 }
 
-/* NEW: Ensure content container centers everything */
+/* Ensure content container centers everything */
 .content-container {
   display: flex;
   align-items: center;
@@ -92,7 +92,7 @@
 
 .home-content {
   width: 100%;
-  max-width: var(--max-width-2xl);
+  max-width: var(--max-width-5xl); /* Increased from 2xl to 5xl for wider cards */
   padding: 1rem;
 }
 
@@ -140,21 +140,27 @@
   }
 }
 
-/* Cards Grid */
+/* Cards Grid - 3 Columns with wider cards */
 .cards-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(3, 1fr); /* 3 columns default */
   gap: var(--space-6);
   width: 100%;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 768px) and (max-width: 1023px) {
   .cards-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr); /* 2 columns on tablet */
   }
 }
 
-/* Info Card */
+@media (max-width: 767px) {
+  .cards-grid {
+    grid-template-columns: 1fr; /* 1 column on mobile */
+  }
+}
+
+/* Info Card - Made wider and more spacious */
 .info-card {
   display: flex;
   flex-direction: column;
@@ -172,12 +178,14 @@
   cursor: pointer;
   text-decoration: none;
   color: inherit;
+  min-height: 180px; /* Added minimum height for consistency */
 }
 
 @media (min-width: 640px) {
   .info-card {
     flex-direction: row;
     text-align: left;
+    padding: var(--space-8); /* Increased padding for more space */
   }
 }
 
@@ -194,7 +202,7 @@
 
 /* Card Icon */
 .card-icon {
-  flex-shrink: 0; /* Prevent icon from shrinking */
+  flex-shrink: 0;
   width: 3rem;
   height: 3rem;
   background-color: var(--color-slate-800);
@@ -213,13 +221,14 @@
 .card-icon-svg {
   width: 1.5rem;
   height: 1.5rem;
-  flex-shrink: 0; /* Ensure SVG doesn't shrink */
+  flex-shrink: 0;
 }
 
 /* Card Content */
 .card-content {
   margin-top: var(--space-5);
-  min-width: 0; /* Allow flex item to shrink below its content size */
+  min-width: 0;
+  flex: 1; /* Allow content to take available space */
 }
 
 @media (min-width: 640px) {
@@ -235,8 +244,9 @@
   color: var(--color-slate-800);
   transition: color var(--transition-fast);
   margin-bottom: 0;
-  word-wrap: break-word; /* Force long words to break */
-  overflow-wrap: break-word; /* Modern alternative */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  line-height: var(--leading-tight); /* Improved line height */
 }
 
 .info-card:hover .card-title {
@@ -246,29 +256,26 @@
 .card-description {
   font-size: var(--text-sm);
   color: var(--color-slate-500);
-  margin-top: var(--space-1);
+  margin-top: var(--space-2); /* Increased margin for better spacing */
   line-height: var(--leading-normal);
-  word-wrap: break-word; /* Force long words to break */
-  overflow-wrap: break-word; /* Modern alternative */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* ============================================================================
-   MOBILE RESPONSIVE FIXES - RECTANGULAR CARDS & PERFECT CENTERING
+   MOBILE RESPONSIVE FIXES - Improved Card Layout
    ============================================================================ */
 @media (max-width: 767px) {
-  /* Reset body/html overflow */
   html, body {
     height: 100%;
-    overflow: hidden; /* Prevent any scroll */
+    overflow: hidden;
   }
   
-  /* Adjust main container */
   .home-main {
-    min-height: calc(100vh - 7rem) !important; /* Adjusted for actual footer height */
+    min-height: calc(100vh - 7rem) !important;
     padding: 0 !important;
   }
   
-  /* NEW: Ensure perfect centering */
   .content-container {
     padding: 0 1rem;
   }
@@ -276,17 +283,16 @@
   .home-content {
     padding: 0;
     max-height: 100%;
-    overflow: hidden; /* Prevent content overflow */
+    overflow: hidden;
   }
   
-  /* Make hero section more compact */
   .hero-section {
     margin-bottom: 2rem;
     padding: 0;
   }
   
   .hero-title {
-    font-size: var(--text-3xl); /* Smaller font for mobile */
+    font-size: var(--text-3xl);
   }
   
   .hero-description {
@@ -294,80 +300,72 @@
     margin-top: var(--space-2);
   }
   
-  /* Cards grid - single column for rectangular cards */
+  /* Cards grid - single column for mobile */
   .cards-grid {
-    grid-template-columns: 1fr; /* Single column for rectangular layout */
-    gap: 0.75rem; /* Smaller gap */
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
     width: 100%;
-    max-width: 24rem; /* Max width for better readability */
+    max-width: 24rem;
     margin: 0 auto;
   }
   
-  /* RECTANGULAR cards (not circular) */
   .info-card {
-    flex-direction: row !important; /* Horizontal layout */
+    flex-direction: row !important;
     align-items: center !important;
     text-align: left !important;
-    padding: 1rem; /* Balanced padding */
-    border-radius: var(--radius-xl) !important; /* Rounded corners, not circular */
-    width: 100%; /* Full width */
-    height: auto; /* Auto height */
-    min-height: 4.5rem; /* Minimum height for better touch target */
-    margin: 0; /* Remove centering margin */
-    box-shadow: var(--shadow-md); /* Keep shadow */
-    background-color: rgba(255, 255, 255, 0.85); /* Slightly more opaque */
+    padding: 1rem;
+    border-radius: var(--radius-xl) !important;
+    width: 100%;
+    height: auto;
+    min-height: 4.5rem;
+    margin: 0;
+    box-shadow: var(--shadow-md);
+    background-color: rgba(255, 255, 255, 0.85);
   }
   
-  /* Card icon - keep circular but adjust size */
   .card-icon {
-    width: 2.25rem; /* Smaller icon */
+    width: 2.25rem;
     height: 2.25rem;
-    margin-bottom: 0 !important; /* Remove bottom margin */
-    margin-right: 0.75rem; /* Space between icon and text */
-    flex-shrink: 0 !important; /* Ensure icon never shrinks */
+    margin-bottom: 0 !important;
+    margin-right: 0.75rem;
+    flex-shrink: 0 !important;
   }
   
   .card-icon-svg {
-    width: 1.125rem; /* Smaller icon */
+    width: 1.125rem;
     height: 1.125rem;
   }
   
-  /* Card content - horizontal layout */
   .card-content {
-    margin: 0 !important; /* Reset margin */
-    flex: 1; /* Take remaining space */
-    min-width: 0 !important; /* Critical: allow shrinking below content size */
-    overflow: hidden; /* Prevent overflow */
+    margin: 0 !important;
+    flex: 1;
+    min-width: 0 !important;
+    overflow: hidden;
   }
   
   .card-title {
-    font-size: var(--text-sm); /* Smaller text for mobile */
+    font-size: var(--text-sm);
     font-weight: var(--font-semibold);
     color: var(--color-slate-800);
-    line-height: var(--leading-tight); /* Tighter line height */
-    word-wrap: break-word !important; /* Force word break */
-    overflow-wrap: break-word !important;
-  }
-  
-  /* SHOW description on mobile with rectangular cards */
-  .card-description {
-    display: block !important; /* Show description */
-    font-size: var(--text-xs); /* Smaller text */
-    margin-top: 0.25rem; /* Tight spacing */
     line-height: var(--leading-tight);
-    word-wrap: break-word !important; /* Force word break */
+    word-wrap: break-word !important;
     overflow-wrap: break-word !important;
   }
   
-  /* ============================================================================
-     FOOTER FIX FOR HOME PAGE - INCREASED PADDING ON MOBILE
-     ============================================================================ */
+  .card-description {
+    display: block !important;
+    font-size: var(--text-xs);
+    margin-top: 0.25rem;
+    line-height: var(--leading-tight);
+    word-wrap: break-word !important;
+    overflow-wrap: break-word !important;
+  }
+  
   .footer-container {
-    flex-direction: row !important; /* Force horizontal layout like desktop */
-    justify-content: space-between !important; /* Kiri-kanan */
-    align-items: center !important; /* Center vertically */
-    /* INCREASED: More padding to avoid sticking to bottom */
-    padding: var(--space-4) var(--space-3) !important; /* 16px top & bottom */
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: var(--space-4) var(--space-3) !important;
     gap: var(--space-2) !important;
   }
   
@@ -378,39 +376,38 @@
   }
   
   .btn-donate {
-    padding: var(--space-1) var(--space-2) !important; /* Smaller button */
+    padding: var(--space-1) var(--space-2) !important;
     font-size: var(--text-xs);
-    white-space: nowrap; /* Prevent text wrapping */
-    flex-shrink: 0; /* Prevent button from shrinking */
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   
   .icon-heart {
-    width: 0.875rem !important; /* Slightly smaller icon */
+    width: 0.875rem !important;
     height: 0.875rem !important;
     margin-right: var(--space-1) !important;
   }
 }
 
 /* ============================================================================
-   DESKTOP - Restored original layout
+   DESKTOP - Restored original layout with wider cards
    ============================================================================ */
 @media (min-width: 768px) {
-  /* Restore original card layout */
   .info-card {
     flex-direction: row;
     text-align: left;
     width: 100%;
     height: auto;
     border-radius: var(--radius-2xl) !important;
-    padding: var(--space-6);
-    min-height: 0; /* Reset min-height */
+    padding: var(--space-8); /* More padding for desktop */
+    min-height: 0;
   }
   
   .card-icon {
     width: 3rem;
     height: 3rem;
     margin-bottom: 0;
-    margin-right: 0; /* Reset margin-right */
+    margin-right: 0;
     flex-shrink: 0;
   }
   
@@ -422,8 +419,8 @@
   .card-content {
     margin-top: 0;
     margin-left: var(--space-5);
-    flex: 1; /* Allow content to take remaining space */
-    min-width: 0; /* Allow shrinking below content size */
+    flex: 1;
+    min-width: 0;
   }
   
   .card-title {
@@ -433,24 +430,22 @@
   
   .card-description {
     display: block !important;
-    font-size: var(--text-sm); /* Reset font size */
-    margin-top: var(--space-1); /* Reset spacing */
+    font-size: var(--text-sm);
+    margin-top: var(--space-2);
     word-wrap: break-word;
     overflow-wrap: break-word;
   }
   
   .cards-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--space-6);
     max-width: 100%;
   }
   
-  /* Reset container */
   .content-container {
     padding: 0;
   }
   
-  /* Footer reset for desktop */
   .footer-container {
     padding: 0 var(--space-6) !important;
   }
@@ -460,7 +455,6 @@
    MOBILE FOOTER - Home page specific override
    ============================================================================ */
 @media (max-width: 767px) {
-  /* Override existing home.css footer styles */
   .footer-container {
     position: absolute !important;
     bottom: 1rem !important;
