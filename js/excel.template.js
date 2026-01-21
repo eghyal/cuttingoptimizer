@@ -1,6 +1,8 @@
 /**
- * Excel Template Generator & Parser for Project Manager
- * Added: Proper dropdown validation for algorithms
+ * Excel Template Generator & Parser - Ultra Simplified Version
+ * Removed: Parameter columns from template
+ * Updated: Parse logic to use website defaults only
+ * CHANGED: Removed Rotate column from 2D sheet - always default to true
  */
 
 (function(window) {
@@ -9,59 +11,33 @@
   var ExcelTemplate = {
     
     /**
-     * Generate and download Excel template - 3 sheets with dropdown validation
+     * Generate and download Excel template - Minimal version
      */
     generateTemplate: function() {
       var wb = XLSX.utils.book_new();
       
-      // 1D Sheet - with algorithm dropdown
-      var headers1D = ['Group Name', 'Material Length (mm)', 'Kerf (mm)', 'Algorithm', 'Item ID', 'Length (mm)', 'Quantity'];
+      // 1D Sheet - Hanya Item data
+      var headers1D = ['Group Name', 'Item ID', 'Length (mm)', 'Quantity'];
       var ws1D = XLSX.utils.aoa_to_sheet([headers1D]);
       
-      // Add data validation for algorithm in 1D sheet (cells D2:D1000)
-      if (!ws1D['!dataValidation']) ws1D['!dataValidation'] = [];
-      ws1D['!dataValidation'].push({
-        type: 'list',
-        allowBlank: false,
-        sqref: 'D2:D1000',
-        formulas: ['"first-fit,best-fit,worst-fit"']
-      });
-      
-      // Add example data
+      // Example data
       var example1D = [
-        ['Group 1', '6000', '5', 'first-fit', 'A1', '300', '10'],
-        ['Group 1', '6000', '5', 'first-fit', 'A2', '2100', '5'],
-        ['Group 2', '6000', '3', 'best-fit', 'B1', '320', '10']
+        ['Group 1', 'A1', '300', '10'],
+        ['Group 1', 'A2', '2100', '5'],
+        ['Group 2', 'B1', '320', '10']
       ];
       XLSX.utils.sheet_add_aoa(ws1D, example1D, { origin: 1 });
       
       XLSX.utils.book_append_sheet(wb, ws1D, '1D');
       
-      // 2D Sheet - with algorithm and rotate dropdown
-      var headers2D = ['Group Name', 'Plate Width (mm)', 'Plate Height (mm)', 'Kerf (mm)', 'Algorithm', 'Item ID', 'Width (mm)', 'Height (mm)', 'Quantity', 'Rotate'];
+      // 2D Sheet - Hanya Item data (TANPA ROTATE)
+      var headers2D = ['Group Name', 'Item ID', 'Width (mm)', 'Height (mm)', 'Quantity'];
       var ws2D = XLSX.utils.aoa_to_sheet([headers2D]);
       
-      // Add data validation for algorithm in 2D sheet (cells E2:E1000)
-      if (!ws2D['!dataValidation']) ws2D['!dataValidation'] = [];
-      ws2D['!dataValidation'].push({
-        type: 'list',
-        allowBlank: false,
-        sqref: 'E2:E1000',
-        formulas: ['"GUILLOTINE,MAXRECTS,SIMPLE"']
-      });
-      
-      // Add data validation for Rotate in 2D sheet (cells J2:J1000)
-      ws2D['!dataValidation'].push({
-        type: 'list',
-        allowBlank: false,
-        sqref: 'J2:J1000',
-        formulas: ['"Yes,No"']
-      });
-      
-      // Add example data
+      // Example data - TANPA ROTATE
       var example2D = [
-        ['Plate Group 1', '2440', '1220', '2', 'GUILLOTINE', 'P1', '320', '1200', '10', 'Yes'],
-        ['Plate Group 1', '2440', '1220', '2', 'GUILLOTINE', 'P2', '1100', '320', '4', 'Yes']
+        ['Plate Group 1', 'P1', '320', '1200', '10'],
+        ['Plate Group 1', 'P2', '1100', '320', '4']
       ];
       XLSX.utils.sheet_add_aoa(ws2D, example2D, { origin: 1 });
       
@@ -72,28 +48,28 @@
         ['CONTOH PENGISIAN - 1D'],
         [''],
         headers1D,
-        ['UNP 200x80', '6000', '5', 'first-fit', 'A1', '300', '10'],
-        ['UNP 200x80', '6000', '5', 'first-fit', 'A2', '2100', '10'],
-        ['SIKU 50', '6000', '3', 'best-fit', 'B1', '320', '10'],
+        ['UNP 200x80', 'A1', '300', '10'],
+        ['UNP 200x80', 'A2', '2100', '10'],
+        ['SIKU 50', 'B1', '320', '10'],
         [''],
         ['CONTOH PENGISIAN - 2D'],
         [''],
         headers2D,
-        ['Steel Plate 3mm', '2440', '1220', '2', 'GUILLOTINE', 'C1', '320', '1200', '10', 'Yes'],
-        ['Steel Plate 3mm', '2440', '1220', '2', 'GUILLOTINE', 'C2', '1100', '320', '4', 'Yes']
+        ['Steel Plate 3mm', 'P1', '320', '1200', '10'],
+        ['Steel Plate 3mm', 'P2', '1100', '320', '4']
       ];
       var wsExample = XLSX.utils.aoa_to_sheet(exampleData);
       XLSX.utils.book_append_sheet(wb, wsExample, 'Contoh Pengisian');
       
-      // Set column widths for better visibility
-      ws1D['!cols'] = [{ wch: 15 }, { wch: 12 }, { wch: 10 }, { wch: 15 }, { wch: 10 }, { wch: 12 }, { wch: 10 }];
-      ws2D['!cols'] = [{ wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 15 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 10 }];
+      // Set column widths
+      ws1D['!cols'] = [{ wch: 15 }, { wch: 10 }, { wch: 12 }, { wch: 10 }];
+      ws2D['!cols'] = [{ wch: 15 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 10 }];
       
       XLSX.writeFile(wb, 'EAV_Project_Template.xlsx');
     },
 
     /**
-     * Parse Excel file data - Only read 1D and 2D sheets
+     * Parse Excel file data - Updated for new format
      */
     parseExcelData: function(data) {
       var groups = {};
@@ -113,19 +89,15 @@
         }
         
         var groupName = row['Group Name'];
-        var algorithm = (row['Algorithm'] || '').toString().toLowerCase();
         var type = null;
         
-        // Determine type from algorithm
-        var valid1DAlgos = ['first-fit', 'best-fit', 'worst-fit'];
-        var valid2DAlgos = ['guillotine', 'maxrects', 'simple'];
-        
-        if (valid1DAlgos.includes(algorithm)) {
+        // Determine type by checking which columns exist
+        if (row['Length (mm)'] !== undefined) {
           type = '1d';
-        } else if (valid2DAlgos.includes(algorithm)) {
+        } else if (row['Width (mm)'] !== undefined && row['Height (mm)'] !== undefined) {
           type = '2d';
         } else {
-          errors.push('Line ' + line + ': Invalid algorithm ' + algorithm);
+          errors.push('Line ' + line + ': Could not determine type (missing Length or Width/Height)');
           return;
         }
         
@@ -134,18 +106,16 @@
             groupId: groupName,
             name: groupName,
             type: type,
+            // Use defaults from website, not from Excel
             parameters: type === '1d' ? {
-              materialLength: parseInt(row['Material Length (mm)']) || 6000,
-              plateWidth: '',
-              plateHeight: '',
-              kerfWidth: parseInt(row['Kerf Width (mm)']) || parseInt(row['Kerf (mm)']) || 0,
-              algorithm: algorithm
+              materialLength: 6000,
+              kerfWidth: 3,
+              algorithm: 'first-fit'
             } : {
-              materialLength: '',
-              plateWidth: parseInt(row['Plate Width (mm)']) || 2440,
-              plateHeight: parseInt(row['Plate Height (mm)']) || 1220,
-              kerfWidth: parseInt(row['Kerf Width (mm)']) || parseInt(row['Kerf (mm)']) || 0,
-              algorithm: algorithm
+              plateWidth: 2440,
+              plateHeight: 1220,
+              kerfWidth: 3,
+              algorithm: 'GUILLOTINE'
             },
             items: []
           };
@@ -156,13 +126,14 @@
           return;
         }
         
+        // ADDED: Set rotation to true by default for 2D items
         groups[groupName].items.push({
           itemId: row['Item ID'],
           length: row['Length (mm)'] || '',
           width: row['Width (mm)'] || '',
           height: row['Height (mm)'] || '',
           quantity: parseInt(row['Quantity']) || 0,
-          rotation: (row['Rotation'] || row['Rotate'] || 'Yes').toString().toLowerCase() === 'yes'
+          rotation: type === '2d' ? true : true // Always true for both types
         });
       });
       
@@ -173,7 +144,7 @@
     },
 
     /**
-     * Convert data to Excel format
+     * Convert data to Excel format (for export)
      */
     convertToExcel: function(materialGroups) {
       var excelData = [];
@@ -182,18 +153,12 @@
         group.items.forEach(function(item) {
           excelData.push({
             'Group Name': group.name,
-            'Type': group.type.toUpperCase(),
-            'Material Length (mm)': group.type === '1d' ? group.parameters.materialLength : '',
-            'Plate Width (mm)': group.type === '2d' ? group.parameters.plateWidth : '',
-            'Plate Height (mm)': group.type === '2d' ? group.parameters.plateHeight : '',
-            'Kerf Width (mm)': group.parameters.kerfWidth,
-            'Algorithm': group.parameters.algorithm,
             'Item ID': item.itemId,
             'Length (mm)': group.type === '1d' ? item.length : '',
             'Width (mm)': group.type === '2d' ? item.width : '',
             'Height (mm)': group.type === '2d' ? item.height : '',
-            'Quantity': item.quantity,
-            'Rotation': item.rotation ? 'Yes' : 'No'
+            'Quantity': item.quantity
+            // REMOVED: No rotation column in export
           });
         });
       });
@@ -228,6 +193,6 @@
   // Export to global scope
   window.ExcelTemplate = ExcelTemplate;
   
-  console.log('✅ Excel Template module loaded - With dropdown validation support');
+  console.log('✅ Excel Template module loaded - Simplified format (No Rotate column)');
 
 })(window);

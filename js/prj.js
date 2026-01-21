@@ -1,24 +1,19 @@
 /**
  * Project Manager - Complete Fixed Version
- * Removed: All fade animations for add/delete/remove operations
- * Fixed: Project PDF export functionality
- * Improved: Results layout with better structure
- * Fixed: Default values for kerf, group name, and parameters
+ * Enhanced: Excel import handler for simplified template
  */
 
 (function(window, document) {
   'use strict';
 
-  // Initialize Project
+  // Initialize Project - ALWAYS FRESH (no localStorage)
   async function initProject() {
     console.log('📁 Project Manager: Initializing...');
     
-    let groups = JSON.parse(localStorage.getItem('projectGroups')) || [];
-    
-    if (groups.length === 0) {
-      groups = [createGroup('Group 1', '1d')];
-      saveGroups(groups);
-    }
+    // Start with fresh state
+    const groups = [createGroup('Group 1', '1d')];
+    // Add first item with proper ID
+    groups[0].items.push(createDefaultItem(0, 0));
     
     renderGroups(groups);
     setupEventListeners(groups);
@@ -26,27 +21,28 @@
 
   function createGroup(name, type) {
     return {
-      id: Date.now().toString(),
+      id: Date.now().toString() + Math.random(),
       name: name,
       type: type,
       parameters: type === '1d' ? {
-        materialLength: 6000,
-        kerfWidth: 3, // FIXED: Changed from 5 to 3
+        materialLength: 6000, // Default 6000
+        kerfWidth: 3, // Default 3
         algorithm: 'first-fit'
       } : {
-        plateWidth: 2440,
-        plateHeight: 1220,
-        kerfWidth: 3, // FIXED: Changed from 0 to 3
+        plateWidth: 2440, // Default 2440
+        plateHeight: 1220, // Default 1220
+        kerfWidth: 3, // Default 3
         algorithm: 'GUILLOTINE'
       },
-      items: [createDefaultItem(type)]
+      items: []
     };
   }
 
-  function createDefaultItem(type) {
+  function createDefaultItem(groupIndex, itemIndex) {
+    const groupLetter = String.fromCharCode(65 + groupIndex); // A, B, C...
     return {
-      id: Date.now() + '-1',
-      itemId: 'A1', // FIXED: Ensure first item ID is A1
+      id: Date.now().toString() + Math.random(),
+      itemId: groupLetter + (itemIndex + 1), // A1, A2, B1...
       length: '',
       width: '',
       height: '',
@@ -55,8 +51,9 @@
     };
   }
 
-  function saveGroups(groups) {
-    localStorage.setItem('projectGroups', JSON.stringify(groups));
+  function getNextItemId(group, groupIndex) {
+    const groupLetter = String.fromCharCode(65 + groupIndex);
+    return groupLetter + (group.items.length + 1);
   }
 
   function renderGroups(groups) {
@@ -76,12 +73,12 @@
       return;
     }
     
-    // Render without fade animation
     container.innerHTML = groups.map(group => renderGroup(group)).join('');
   }
 
   function renderGroup(group) {
     const is1D = group.type === '1d';
+    const groupIndex = parseInt(group.name.split(' ')[1]) - 1;
     
     return `
       <div class="group-card" data-group-id="${group.id}">
@@ -181,7 +178,7 @@
             </div>
             
             <div class="cut-list-items">
-              ${group.items.map(item => renderCutItem(group, item)).join('')}
+              ${group.items.map((item, itemIndex) => renderCutItem(group, item, groupIndex, itemIndex)).join('')}
             </div>
           </div>
         </div>
@@ -189,7 +186,7 @@
     `;
   }
 
-  function renderCutItem(group, item) {
+  function renderCutItem(group, item, groupIndex, itemIndex) {
     const is1D = group.type === '1d';
     
     return `
@@ -249,28 +246,15 @@
     `;
   }
 
-  function getNextItemId(items) {
-    if (items.length === 0) return 'A1';
-    
-    const lastItem = items[items.length - 1];
-    const match = lastItem.itemId.match(/([A-Z]+)(\d+)/);
-    
-    if (match) {
-      const letters = match[1];
-      const number = parseInt(match[2]);
-      return letters + (number + 1);
-    }
-    
-    return lastItem.itemId + '1';
-  }
-
   function setupEventListeners(groups) {
     const addGroupBtn = document.getElementById('add-group');
     if (addGroupBtn) {
       addGroupBtn.addEventListener('click', () => {
-        const newGroup = createGroup(`Group ${groups.length + 1}`, '1d');
+        const newGroupIndex = groups.length;
+        const newGroupName = `Group ${newGroupIndex + 1}`;
+        const newGroup = createGroup(newGroupName, '1d');
+        newGroup.items.push(createDefaultItem(newGroupIndex, 0));
         groups.push(newGroup);
-        saveGroups(groups);
         renderGroups(groups);
       });
     }
@@ -317,10 +301,8 @@
     
     const groupCard = button.closest('.group-card');
     const groupId = groupCard ? groupCard.dataset.groupId : null;
-    
     const itemRow = button.closest('.cut-item-row');
     const itemId = itemRow ? itemRow.dataset.itemId : null;
-    
     const group = groups.find(g => g.id === groupId);
     
     switch (action) {
@@ -331,35 +313,36 @@
         }
         const index = groups.findIndex(g => g.id === groupId);
         groups.splice(index, 1);
-        saveGroups(groups);
         renderGroups(groups);
         break;
         
       case 'change-type':
         if (group) {
           group.type = group.type === '1d' ? '2d' : '1d';
-          group.items = [createDefaultItem(group.type)];
+          const groupIndex = groups.findIndex(g => g.id === groupId);
+          group.items = [createDefaultItem(groupIndex, 0)];
           group.parameters = group.type === '1d' ? {
             materialLength: 6000,
-            kerfWidth: 3, // FIXED: Consistent default
+            kerfWidth: 3,
             algorithm: 'first-fit'
           } : {
             plateWidth: 2440,
             plateHeight: 1220,
-            kerfWidth: 3, // FIXED: Consistent default
+            kerfWidth: 3,
             algorithm: 'GUILLOTINE'
           };
-          saveGroups(groups);
           renderGroups(groups);
         }
         break;
         
       case 'add-item':
         if (group) {
-          const nextId = getNextItemId(group.items);
-          group.items.push(createDefaultItem(group.type));
-          group.items[group.items.length - 1].itemId = nextId;
-          saveGroups(groups);
+          const groupIndex = groups.findIndex(g => g.id === groupId);
+          const nextItemIndex = group.items.length;
+          const nextId = getNextItemId(group, groupIndex);
+          const newItem = createDefaultItem(groupIndex, nextItemIndex);
+          newItem.itemId = nextId;
+          group.items.push(newItem);
           renderGroups(groups);
         }
         break;
@@ -367,7 +350,6 @@
       case 'remove-item':
         if (group && itemId && group.items.length > 1) {
           group.items = group.items.filter(item => item.id !== itemId);
-          saveGroups(groups);
           renderGroups(groups);
         } else if (group && group.items.length <= 1) {
           showError('Cannot remove the last item');
@@ -385,7 +367,6 @@
       const group = groups.find(g => g.id === groupId);
       if (group) {
         group.name = target.value;
-        saveGroups(groups);
       }
       return;
     }
@@ -401,7 +382,6 @@
       if (group) {
         group.parameters[field] = target.type === 'number' ? 
           (parseInt(target.value) || 0) : target.value;
-        saveGroups(groups);
       }
     }
     
@@ -423,7 +403,6 @@
       if (item) {
         item[field] = target.type === 'number' ? 
           (parseInt(target.value) || '') : target.value;
-        saveGroups(groups);
       }
     }
   }
@@ -443,7 +422,6 @@
       
       if (item && field === 'rotation') {
         item.rotation = target.checked;
-        saveGroups(groups);
       }
     }
     
@@ -455,30 +433,24 @@
       
       if (group) {
         group.parameters[field] = target.value;
-        saveGroups(groups);
       }
     }
   }
 
-  // Main optimization function - async with progress
   async function optimizeProject(groups) {
-    // Check dependencies first
     if (typeof window.CuttingOptimizer1D === 'undefined') {
       showError('1D Optimizer module not loaded. Please refresh the page.');
-      console.error('❌ CuttingOptimizer1D is not available in window');
       return;
     }
     
     if (typeof window.PlateOptimizer2D === 'undefined') {
       showError('2D Optimizer module not loaded. Please refresh the page.');
-      console.error('❌ PlateOptimizer2D is not available in window');
       return;
     }
     
     const errors = [];
     const validGroups = [];
     
-    // Validate groups
     groups.forEach(group => {
       const validItems = group.items.filter(item => {
         if (group.type === '1d') {
@@ -508,7 +480,6 @@
     const resultsContainer = document.getElementById('project-results');
     const formContainer = document.getElementById('optimizer-prj-form');
     
-    // Show loading
     resultsContainer.innerHTML = `
       <div class="loading-overlay" style="position: relative;">
         <div class="loading-spinner">
@@ -533,33 +504,25 @@
     }
   }
 
-  // Process groups with progress tracking
   async function processGroupsWithProgress(groups) {
     const results = [];
     const total = groups.length;
     
     for (let i = 0; i < groups.length; i++) {
-      const group = groups[i];
       const progress = Math.round(((i + 1) / total) * 100);
-      
-      // Update progress
       const progressText = document.getElementById('progress-text');
       if (progressText) {
         progressText.textContent = `${progress}% (${i + 1}/${total})`;
       }
       
-      // Process group
-      const result = await processGroup(group);
+      const result = await processGroup(groups[i]);
       results.push(result);
-      
-      // Allow UI to update
       await new Promise(resolve => setTimeout(resolve, 10));
     }
     
     return results;
   }
 
-  // Process single group with timeout protection
   function processGroup(group) {
     return new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
@@ -619,7 +582,6 @@
     });
   }
 
-  // Show results with visualizations
   function showResults(originalGroups, optimizationResults) {
     const resultsContainer = document.getElementById('project-results');
     const totalGroups = optimizationResults.length;
@@ -628,7 +590,6 @@
       optimizationResults.reduce((sum, res) => sum + res.result.overallEfficiency, 0) / totalGroups
     ) : 0;
     
-    // Generate colors for items
     const itemColors = new Map();
     const uniqueItemIds = [...new Set(optimizationResults.flatMap(res => 
       res.result.bars ? res.result.bars.flatMap(bar => bar.items.map(i => i.originalId)) :
@@ -639,7 +600,6 @@
       itemColors.set(id, colors[i % colors.length]);
     });
     
-    // Store globally for navigation
     window.projectResultsData = {
       results: optimizationResults,
       itemColors: itemColors,
@@ -692,7 +652,6 @@
       </div>
     `;
     
-    // Attach event listeners
     const backBtn = document.getElementById('back-to-form-project');
     if (backBtn) {
       backBtn.addEventListener('click', () => {
@@ -701,12 +660,10 @@
       });
     }
     
-    // FIXED: PDF export button now properly calls the function
     const exportBtn = document.getElementById('export-pdf-project');
     if (exportBtn) {
       exportBtn.addEventListener('click', () => {
         try {
-          // FIXED: Pass correct data structure
           if (typeof window.exportProjectToPDF === 'function') {
             window.exportProjectToPDF(optimizationResults);
           } else {
@@ -719,7 +676,6 @@
       });
     }
     
-    // Setup navigation for each group
     optimizationResults.forEach((res, groupIndex) => {
       const prevBtn = document.getElementById(`prev-viz-${groupIndex}`);
       const nextBtn = document.getElementById(`next-viz-${groupIndex}`);
@@ -735,7 +691,6 @@
     resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  // Render group result with visualization
   function renderGroupResult(res, groupIndex, itemColors) {
     const is1D = res.type === '1d';
     const group = res.group;
@@ -771,7 +726,6 @@
     `;
   }
 
-  // Render visualization for a group
   function renderGroupVisualization(res, groupIndex, itemColors) {
     if (res.type === '1d') {
       return render1DVisualization(res.result, groupIndex, itemColors, res.group.parameters);
@@ -780,7 +734,6 @@
     }
   }
 
-  // 1D Visualization
   function render1DVisualization(result, groupIndex, itemColors, parameters) {
     if (!result.bars || result.bars.length === 0) return '<div class="empty-state">No bars to display</div>';
     
@@ -830,7 +783,6 @@
     `;
   }
 
-  // 2D Visualization
   function render2DVisualization(result, groupIndex, itemColors, parameters) {
     if (!result.plates || result.plates.length === 0) return '<div class="empty-state">No plates to display</div>';
     
@@ -885,7 +837,6 @@
     `;
   }
 
-  // Navigation function
   function navigateVisualization(groupIndex, direction) {
     const data = window.projectResultsData;
     const res = data.results[groupIndex];
@@ -897,20 +848,15 @@
     if (container) {
       container.innerHTML = renderGroupVisualization(res, groupIndex, data.itemColors);
       
-      // Re-attach event listeners
       const prevBtn = document.getElementById(`prev-viz-${groupIndex}`);
       const nextBtn = document.getElementById(`next-viz-${groupIndex}`);
       
-      if (prevBtn) {
-        prevBtn.onclick = () => navigateVisualization(groupIndex, -1);
-      }
-      if (nextBtn) {
-        nextBtn.onclick = () => navigateVisualization(groupIndex, 1);
-      }
+      if (prevBtn) prevBtn.onclick = () => navigateVisualization(groupIndex, -1);
+      if (nextBtn) nextBtn.onclick = () => navigateVisualization(groupIndex, 1);
     }
   }
 
-  // Excel import functions
+  // Enhanced Excel Import Handler
   function handleExcelImport(event, groups) {
     const file = event.target.files[0];
     if (!file) return;
@@ -938,10 +884,16 @@
           newGroups.push(...processSheetData(json2D, '2d'));
         }
         
-        // Replace groups
+        // Clear existing groups and replace with imported data
         groups.length = 0;
-        groups.push(...newGroups);
-        saveGroups(groups);
+        if (newGroups.length > 0) {
+          groups.push(...newGroups);
+        } else {
+          // If no data imported, create default group
+          groups.push(createGroup('Group 1', '1d'));
+          groups[0].items.push(createDefaultItem(0, 0));
+        }
+        
         renderGroups(groups);
         
         event.target.value = '';
@@ -949,7 +901,7 @@
         
       } catch (error) {
         console.error('Error importing Excel:', error);
-        showError('Error importing Excel. Please check the file format.');
+        showError('Error importing Excel. Please check the file format: ' + error.message);
       }
     };
     
@@ -959,7 +911,9 @@
   function processSheetData(data, type) {
     const groupsMap = {};
     
-    data.forEach(row => {
+    data.forEach((row, index) => {
+      if (index === 0) return; // Skip header row
+      
       const groupName = row['Group Name'];
       if (!groupName) return;
       
@@ -969,14 +923,14 @@
           name: groupName,
           type: type,
           parameters: type === '1d' ? {
-            materialLength: row['Material Length (mm)'] || 6000,
-            kerfWidth: row['Kerf (mm)'] || 3, // FIXED: Consistent default
-            algorithm: row['Algorithm'] || 'first-fit'
+            materialLength: 6000,
+            kerfWidth: 3,
+            algorithm: 'first-fit'
           } : {
-            plateWidth: row['Plate Width (mm)'] || 2440,
-            plateHeight: row['Plate Height (mm)'] || 1220,
-            kerfWidth: row['Kerf (mm)'] || 3, // FIXED: Consistent default
-            algorithm: row['Algorithm'] || 'GUILLOTINE'
+            plateWidth: 2440,
+            plateHeight: 1220,
+            kerfWidth: 3,
+            algorithm: 'GUILLOTINE'
           },
           items: []
         };
@@ -988,7 +942,7 @@
         length: type === '1d' ? (row['Length (mm)'] || '') : '',
         width: type === '2d' ? (row['Width (mm)'] || '') : '',
         height: type === '2d' ? (row['Height (mm)'] || '') : '',
-        quantity: row['Quantity'] || '',
+        quantity: parseInt(row['Quantity']) || 0,
         rotation: type === '2d' ? (row['Rotate'] || 'Yes').toString().toLowerCase() === 'yes' : true
       });
     });
@@ -999,63 +953,38 @@
   function downloadExcelTemplate() {
     const wb = XLSX.utils.book_new();
     
-    // 1D Sheet
-    const headers1D = ['Group Name', 'Material Length (mm)', 'Kerf (mm)', 'Algorithm', 'Item ID', 'Length (mm)', 'Quantity'];
+    const headers1D = ['Group Name', 'Item ID', 'Length (mm)', 'Quantity'];
     const ws1D = XLSX.utils.aoa_to_sheet([headers1D]);
-    
-    // Add data validation for 1D algorithms
-    if (!ws1D['!dataValidation']) ws1D['!dataValidation'] = [];
-    ws1D['!dataValidation'].push({
-      type: 'list',
-      allowBlank: false,
-      sqref: 'D2:D1000',
-      formulas: ['"first-fit,best-fit,worst-fit"']
-    });
-    
-    // Add example data
     const example1D = [
-      ['Group 1', '6000', '3', 'first-fit', 'A1', '300', '10'], // FIXED: kerf = 3
-      ['Group 1', '6000', '3', 'first-fit', 'A2', '2100', '5'],
-      ['Group 2', '6000', '3', 'best-fit', 'B1', '320', '10']
+      ['Group 1', 'A1', '300', '10'],
+      ['Group 1', 'A2', '2100', '5'],
+      ['Group 2', 'B1', '320', '10']
     ];
     XLSX.utils.sheet_add_aoa(ws1D, example1D, { origin: 1 });
-    
     XLSX.utils.book_append_sheet(wb, ws1D, '1D');
     
-    // 2D Sheet
-    const headers2D = ['Group Name', 'Plate Width (mm)', 'Plate Height (mm)', 'Kerf (mm)', 'Algorithm', 'Item ID', 'Width (mm)', 'Height (mm)', 'Quantity', 'Rotate'];
+    const headers2D = ['Group Name', 'Item ID', 'Width (mm)', 'Height (mm)', 'Quantity', 'Rotate'];
     const ws2D = XLSX.utils.aoa_to_sheet([headers2D]);
-    
-    // Add data validation for 2D algorithms
     if (!ws2D['!dataValidation']) ws2D['!dataValidation'] = [];
     ws2D['!dataValidation'].push({
       type: 'list',
       allowBlank: false,
-      sqref: 'E2:E1000',
-      formulas: ['"GUILLOTINE,MAXRECTS,SIMPLE"']
-    });
-    
-    // Add data validation for Rotate
-    ws2D['!dataValidation'].push({
-      type: 'list',
-      allowBlank: false,
-      sqref: 'J2:J1000',
+      sqref: 'F2:F1000',
       formulas: ['"Yes,No"']
     });
-    
-    // Add example data
     const example2D = [
-      ['Plate Group 1', '2440', '1220', '3', 'GUILLOTINE', 'P1', '320', '1200', '10', 'Yes'], // FIXED: kerf = 3
-      ['Plate Group 1', '2440', '1220', '3', 'GUILLOTINE', 'P2', '1100', '320', '4', 'Yes']
+      ['Plate Group 1', 'P1', '320', '1200', '10', 'Yes'],
+      ['Plate Group 1', 'P2', '1100', '320', '4', 'Yes']
     ];
     XLSX.utils.sheet_add_aoa(ws2D, example2D, { origin: 1 });
-    
     XLSX.utils.book_append_sheet(wb, ws2D, '2D');
+    
+    ws1D['!cols'] = [{ wch: 15 }, { wch: 10 }, { wch: 12 }, { wch: 10 }];
+    ws2D['!cols'] = [{ wch: 15 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 10 }, { wch: 10 }];
     
     XLSX.writeFile(wb, 'EAV_Project_Template.xlsx');
   }
 
-  // Message functions
   function showError(message) {
     if (window.App && typeof window.App.showError === 'function') {
       window.App.showError(message, 'optimizer-prj-form');
@@ -1084,19 +1013,16 @@
     setTimeout(() => successEl.remove(), 3000);
   }
 
-  // Initialize
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initProject);
   } else {
     initProject();
   }
 
-  // Export to window
   window.projectManager = {
     init: initProject,
-    saveGroups: saveGroups,
     renderGroups: renderGroups
   };
 
-  console.log('✅ Project Manager script loaded - All animations removed');
+  console.log('✅ Project Manager script loaded - Enhanced Excel import');
 })(window, document);

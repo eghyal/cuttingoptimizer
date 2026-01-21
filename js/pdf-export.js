@@ -1,9 +1,8 @@
 /**
- * PDF Export Module - Reusable PDF generation functions
- * Pixel-Perfect Migration from React TypeScript
- * Made globally available without module system
- * Updated with QRIS Support
- * FIXED: exportProjectToPDF now inside IIFE to access helpers
+ * PDF Export Module - Enhanced Visualizations for Project Export
+ * Fixed: 1D table layout and 2D plate visualization
+ * CHANGED: Restructured PDF with input data first, then output per group, then donation
+ * FIXED: Consistent colors using itemColors from global state
  */
 
 (function(window) {
@@ -24,18 +23,10 @@
   var EFFICIENCY_RED = '#ef4444';
 
   // ============================================================================
-  // QR CODE CONFIGURATION - MASUKKAN GAMBAR QR CODE ANDA DI SINI
+  // QR CODE CONFIGURATION
   // ============================================================================
   
-  // ANDA BISA GUNAKAN SALAH SATU DARI DUA OPSI BERIKUT:
-  
-  // OPSI 1: URL Langsung ke gambar QR code (pastikan URL bisa diakses dan CORS-enabled)
-  // Salin URL gambar QR code Anda di bawah ini (contoh menggunakan API QR Server):
   var QR_CODE_IMAGE_SRC = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=00020101021126610014COM.GO-JEK.WWW01189360091431965170060210G1965170060303UMI51440014ID.CO.QRIS.WWW0215ID10264739087250303UMI5204899953033605802ID5925First%20has%20to%20be%20Sketched%2C6014LAMPUNG%20TENGAH61053416462070703A016304DBAB";
-  
-  // OPSI 2: Data URL Base64 (LEBIH AMAN & TANPA MASALAH CORS)
-  // Jika Anda memiliki base64 string gambar QR code, gunakan format:
-  // var QR_CODE_IMAGE_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUg...";
 
   function addFooter(pdf, pageNum, totalPages) {
       pdf.setFontSize(9);
@@ -57,6 +48,11 @@
       margin = margin || 20;
       if (y > 297 - margin) {
           pdf.addPage();
+          // Add small header for continued tables
+          pdf.setFontSize(9);
+          pdf.setFont('helvetica', 'italic');
+          pdf.setTextColor(FONT_COLOR_MEDIUM);
+          pdf.text('(continued)', PAGE_MARGIN, 20);
           return 25;
       }
       return y;
@@ -99,7 +95,9 @@
       for (var rowIndex = 0; rowIndex < data.length; rowIndex++) {
           var row = data[rowIndex];
           y = checkAndAddPage(pdf, y, 30);
-          if (rowIndex > 0 && y === 25) {
+          
+          // If new page, redraw header
+          if (y === 25 && rowIndex > 0) {
                var newX = PAGE_MARGIN;
                pdf.setFontSize(9);
                pdf.setFont('helvetica', 'bold');
@@ -153,15 +151,12 @@
       pdf.text(lines, 105, y, { align: 'center' });
       y += lines.length * 5 + 15;
 
-      // QR CODE IMPLEMENTATION
-      var qrSize = 50; // Ukuran QR code dalam mm
-      var qrX = (210 - qrSize) / 2; // Pusatkan secara horizontal
-
-      // Menambahkan Box di belakang QR agar lebih rapi
+      // QR CODE
+      var qrSize = 50;
+      var qrX = (210 - qrSize) / 2;
       pdf.setDrawColor(BORDER_COLOR);
       pdf.rect(qrX - 5, y - 5, qrSize + 10, qrSize + 10, 'D');
 
-      // Menggambar QR Code dari sumber yang telah dikonfigurasi
       try {
           pdf.addImage(QR_CODE_IMAGE_SRC, 'PNG', qrX, y, qrSize, qrSize);
       } catch (e) {
@@ -185,7 +180,7 @@
   }
 
   // ============================================================================
-  // 1D PDF EXPORT
+  // 1D PDF EXPORT - Fixed Table Layout
   // ============================================================================
   function export1DToPDF(result, formData) {
       var { jsPDF } = window.jspdf;
@@ -276,7 +271,7 @@
 
       y = drawTable(pdf, y, cutListHeaders, cutListData, [30, 50, 30, 70]);
 
-      // Bar Results
+      // Bar Results - Fixed to match 1d.html layout
       pdf.addPage();
       y = 25;
       y = drawSectionTitle(pdf, 'BAR CUTTING RESULTS', y);
@@ -313,7 +308,7 @@
   }
 
   // ============================================================================
-  // 2D PDF EXPORT
+  // 2D PDF EXPORT - Fixed Plate Visualization
   // ============================================================================
   function export2DToPDF(result, formData, itemColors) {
       var { jsPDF } = window.jspdf;
@@ -343,32 +338,21 @@
       y += 8;
 
       var detailsData = [
-          { label: 'Date:', value: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) },
-          { label: 'Algorithm:', value: formData.algorithm },
-          { label: 'Kerf Width:', value: formData.kerfWidth + ' mm' },
-      ];
-      var detailsData2 = [
-          { label: 'Plate Size:', value: formData.plateWidth + ' × ' + formData.plateHeight + ' mm' },
-          { label: 'Plate Area:', value: (formData.plateWidth * formData.plateHeight).toLocaleString() + ' mm²' },
+          { label: 'Date:', value: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }), label2: 'Plate Size:', value2: formData.plateWidth + ' × ' + formData.plateHeight + ' mm' },
+          { label: 'Algorithm:', value: formData.algorithm, label2: 'Plate Area:', value2: (formData.plateWidth * formData.plateHeight).toLocaleString() + ' mm²' },
+          { label: 'Kerf Width:', value: formData.kerfWidth + ' mm' }
       ];
 
       pdf.setFontSize(10);
-      detailsData.forEach(function(row) {
+      detailsData.forEach(function(row, idx) {
+          var currentY = y + Math.floor(idx / 2) * 7;
+          var currentX = (idx % 2 === 0) ? PAGE_MARGIN : 115;
           pdf.setFont('helvetica', 'normal'); pdf.setTextColor(FONT_COLOR_MEDIUM);
-          pdf.text(row.label, PAGE_MARGIN, y);
-          pdf.setFont('helvetica', 'normal'); pdf.setTextColor(FONT_COLOR_DARK);
-          pdf.text(row.value, PAGE_MARGIN + 35, y);
-          y += 7;
+          pdf.text(row.label, currentX, currentY);
+          pdf.setFont('helvetica', 'bold'); pdf.setTextColor(FONT_COLOR_DARK);
+          pdf.text(row.value, (idx % 2 === 0) ? currentX + 35 : currentX + 40, currentY);
       });
-      var y2 = y - (detailsData.length * 7);
-      detailsData2.forEach(function(row) {
-          pdf.setFont('helvetica', 'normal'); pdf.setTextColor(FONT_COLOR_MEDIUM);
-          pdf.text(row.label, 120, y2);
-          pdf.setFont('helvetica', 'normal'); pdf.setTextColor(FONT_COLOR_DARK);
-          pdf.text(row.value, 120 + 25, y2);
-          y2 += 7;
-      });
-      y += 8;
+      y += Math.ceil(detailsData.length / 2) * 7 + 8;
 
       // Optimization Results
       pdf.setFontSize(11);
@@ -388,7 +372,7 @@
       pdf.setFontSize(10);
       resultsData.forEach(function(stat, index) {
           var currentY = y + Math.floor(index / 2) * 10;
-          var currentX = (index % 2 === 0) ? PAGE_MARGIN : 120;
+          var currentX = (index % 2 === 0) ? PAGE_MARGIN : 115;
           pdf.setFont('helvetica', 'normal'); pdf.setTextColor(FONT_COLOR_MEDIUM);
           pdf.text(stat.label, currentX, currentY);
           pdf.setFont('helvetica', 'bold'); pdf.setTextColor(FONT_COLOR_DARK);
@@ -415,7 +399,7 @@
 
       y = drawTable(pdf, y, cutListHeaders, cutListData, [20, 30, 30, 30, 70]);
 
-      // Visualization Pages
+      // Visualization Pages - Fixed to match 2d.html
       if (result.plates.length > 0) {
           pdf.addPage();
           var vizY = 25;
@@ -457,12 +441,14 @@
               pdf.setDrawColor(BORDER_COLOR);
               pdf.rect(PAGE_MARGIN, vizBoxY, vizWidth, vizHeight, 'D');
 
-              // Draw items
+              // Draw items with consistent colors
               plate.items.forEach(function(item) {
                   var itemX = PAGE_MARGIN + (item.x / formData.plateWidth) * vizWidth;
                   var itemY = vizBoxY + (item.y / formData.plateHeight) * vizHeight;
                   var itemW = (item.width / formData.plateWidth) * vizWidth;
                   var itemH = (item.height / formData.plateHeight) * vizHeight;
+                  
+                  // FIXED: Use itemColors from parameter for consistency
                   var color = itemColors.get(item.originalId) || '#3b82f6';
                   var rgb = color.match(/\w\w/g).map(function(val) { return parseInt(val, 16); });
 
@@ -480,48 +466,6 @@
                       pdf.text(label, itemX + itemW / 2, itemY + itemH / 2, { align: 'center', baseline: 'middle' });
                   }
               });
-
-              // Legend
-              var legendY = vizBoxY + vizHeight + 8;
-              var legendX = PAGE_MARGIN;
-              pdf.setFontSize(9);
-              pdf.setFont('helvetica', 'bold');
-              pdf.setTextColor(FONT_COLOR_MEDIUM);
-              pdf.text('Items:', legendX, legendY);
-              legendX += 12;
-
-              var legendItems = new Map();
-              plate.items.forEach(function(item) {
-                  var key = item.originalId + '_' + item.rotated;
-                  var existing = legendItems.get(key);
-                  if (existing) {
-                      existing.count++;
-                  } else {
-                      legendItems.set(key, { item: item, count: 1 });
-                  }
-              });
-
-              pdf.setFontSize(9);
-              pdf.setFont('helvetica', 'normal');
-              
-              Array.from(legendItems.values()).forEach(function(legend) {
-                  var color = itemColors.get(legend.item.originalId) || '#3b82f6';
-                  var rgb = color.match(/\w\w/g).map(function(val) { return parseInt(val, 16); });
-                  pdf.setFillColor(rgb[0], rgb[1], rgb[2]);
-                  pdf.rect(legendX, legendY - 3, 4, 4, 'F');
-                  legendX += 6;
-
-                  var rotationIndicator = legend.item.rotated ? ' (R)' : '';
-                  var text = legend.item.originalId + ': ' + legend.item.originalWidth + 'x' + legend.item.originalHeight + rotationIndicator + ' (x' + legend.count + ')';
-                  pdf.setTextColor(FONT_COLOR_DARK);
-                  pdf.text(text, legendX, legendY);
-                  legendX += pdf.getStringUnitWidth(text) * 3 + 5;
-
-                  if (legendX > 180) {
-                      legendX = PAGE_MARGIN + 12;
-                      legendY += 6;
-                  }
-              });
           });
       }
 
@@ -534,7 +478,7 @@
   }
 
   // ============================================================================
-  // PROJECT PDF EXPORT - FIXED: Now inside IIFE with proper scope access
+  // PROJECT PDF EXPORT - Enhanced with Proper Visualizations
   // ============================================================================
   function exportProjectToPDF(results) {
       const { jsPDF } = window.jspdf;
@@ -554,76 +498,206 @@
       pdf.text('Multiple Material Optimization Project', 105, y, { align: 'center' });
       y += 12;
 
-      // Summary
-      y = drawSectionTitle(pdf, 'PROJECT SUMMARY', y);
-      
-      const totalGroups = results.length;
-      const totalItems = results.reduce((sum, res) => sum + res.result.totalItems, 0);
-      const avgEfficiency = totalGroups > 0 ? Math.round(results.reduce((sum, res) => sum + res.result.overallEfficiency, 0) / totalGroups) : 0;
+      // ============================================================================
+      // INPUT DATA SECTION - All groups first
+      // ============================================================================
+      y = drawSectionTitle(pdf, 'INPUT DATA - ALL GROUPS', y);
 
-      const summaryData = [
-          { label: 'Date:', value: new Date().toLocaleDateString('en-US'), label2: 'Total Groups:', value2: totalGroups.toString() },
-          { label: 'Total Items:', value: totalItems.toString(), label2: 'Avg Efficiency:', value2: avgEfficiency + '%' },
-      ];
-
+      // Group summary table
       pdf.setFontSize(10);
-      summaryData.forEach(row => {
-          pdf.setFont('helvetica', 'normal'); pdf.setTextColor(FONT_COLOR_MEDIUM);
-          pdf.text(row.label, PAGE_MARGIN, y);
-          pdf.setFont('helvetica', 'bold'); pdf.setTextColor(FONT_COLOR_DARK);
-          pdf.text(row.value, PAGE_MARGIN + 35, y);
-          pdf.setFont('helvetica', 'normal'); pdf.setTextColor(FONT_COLOR_MEDIUM);
-          pdf.text(row.label2, 115, y);
-          pdf.setFont('helvetica', 'bold'); pdf.setTextColor(FONT_COLOR_DARK);
-          pdf.text(row.value2, 115 + 35, y);
-          y += 7;
-      });
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(FONT_COLOR_MEDIUM);
+      pdf.text('Total Groups: ' + results.length, PAGE_MARGIN, y);
       y += 8;
 
-      // Group Results
-      results.forEach((res, index) => {
-          if (y > 250) {
-              pdf.addPage();
-              y = 25;
-          }
-          
+      results.forEach(function(res, idx) {
           const is1D = res.type === '1d';
           const group = res.group;
           
-          y = drawSectionTitle(pdf, `${group.name} (${is1D ? '1D Linear' : '2D Sheet'})`, y);
+          pdf.setFontSize(11);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(FONT_COLOR_DARK);
+          pdf.text((idx + 1) + '. ' + group.name + ' (' + (is1D ? '1D' : '2D') + ')', PAGE_MARGIN, y);
+          y += 6;
           
-          const groupData = [
-              { label: 'Algorithm:', value: group.parameters.algorithm, label2: 'Efficiency:', value2: res.result.overallEfficiency + '%' },
-              { label: is1D ? 'Total Bars:' : 'Total Plates:', value: is1D ? res.result.totalBars.toString() : res.result.totalPlates.toString(), label2: 'Items:', value2: res.result.totalItems.toString() },
-          ];
+          // Parameters
+          pdf.setFontSize(9);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setTextColor(FONT_COLOR_MEDIUM);
+          var params = '';
+          if (is1D) {
+              params = 'Material: ' + group.parameters.materialLength + 'mm | Kerf: ' + group.parameters.kerfWidth + 'mm | Algo: ' + group.parameters.algorithm;
+          } else {
+              params = 'Plate: ' + group.parameters.plateWidth + 'x' + group.parameters.plateHeight + 'mm | Kerf: ' + group.parameters.kerfWidth + 'mm | Algo: ' + group.parameters.algorithm;
+          }
+          pdf.text(params, PAGE_MARGIN + 10, y);
+          y += 8;
           
-          pdf.setFontSize(10);
-          groupData.forEach(row => {
-              pdf.setFont('helvetica', 'normal'); pdf.setTextColor(FONT_COLOR_MEDIUM);
-              pdf.text(row.label, PAGE_MARGIN, y);
-              pdf.setFont('helvetica', 'bold'); pdf.setTextColor(FONT_COLOR_DARK);
-              pdf.text(row.value, PAGE_MARGIN + 40, y);
-              pdf.setFont('helvetica', 'normal'); pdf.setTextColor(FONT_COLOR_MEDIUM);
-              pdf.text(row.label2, 115, y);
-              pdf.setFont('helvetica', 'bold'); pdf.setTextColor(FONT_COLOR_DARK);
-              pdf.text(row.value2, 115 + 25, y);
-              y += 7;
-          });
-          y += 5;
-
-          // Cut List
-          const cutHeaders = is1D ? ['ID', 'Length', 'Qty'] : ['ID', 'Width', 'Height', 'Qty'];
-          const cutData = group.items.map(item => {
+          // Items table
+          var itemHeaders = is1D ? ['ID', 'Length', 'Qty'] : ['ID', 'Width', 'Height', 'Qty'];
+          var itemData = group.items.map(function(item) {
               if (is1D) {
-                  return [item.itemId, item.length + ' mm', item.quantity];
+                  return [item.itemId, item.length + 'mm', item.quantity];
               } else {
-                  return [item.itemId, item.width + ' mm', item.height + ' mm', item.quantity];
+                  return [item.itemId, item.width + 'mm', item.height + 'mm', item.quantity];
               }
           });
+          var colWidths = is1D ? [30, 40, 30] : [30, 35, 35, 30];
+          
+          y = drawTable(pdf, y, itemHeaders, itemData, colWidths);
+          y += 5;
+      });
+      
+      // ============================================================================
+      // OUTPUT DATA SECTION - Per group with page breaks
+      // ============================================================================
+      pdf.addPage();
+      y = 25;
+      y = drawSectionTitle(pdf, 'OUTPUT RESULTS - GROUP DETAILS', y);
 
-          const colWidths = is1D ? [30, 50, 30] : [30, 40, 40, 30];
-          y = drawTable(pdf, y, cutHeaders, cutData, colWidths);
+      results.forEach(function(res, groupIndex) {
+          const is1D = res.type === '1d';
+          const group = res.group;
+          
+          // NEW: Page break before each group (except the first one)
+          if (groupIndex > 0) {
+              pdf.addPage();
+              y = 25;
+              y = drawSectionTitle(pdf, 'OUTPUT RESULTS - GROUP DETAILS', y);
+          }
+          
+          // Group header
+          pdf.setFontSize(14);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(FONT_COLOR_DARK);
+          pdf.text('Group ' + (groupIndex + 1) + ': ' + group.name, PAGE_MARGIN, y);
+          y += 6;
+          
+          // Summary stats
+          pdf.setFontSize(10);
+          var summaryStats = [
+              ['Algorithm', group.parameters.algorithm],
+              ['Efficiency', res.result.overallEfficiency + '%'],
+              [is1D ? 'Total Bars' : 'Total Plates', is1D ? res.result.totalBars.toString() : res.result.totalPlates.toString()],
+              ['Total Items', res.result.totalItems.toString()]
+          ];
+          
+          summaryStats.forEach(function(stat, idx) {
+              var currentY = y + Math.floor(idx / 2) * 7;
+              var currentX = (idx % 2 === 0) ? PAGE_MARGIN : 115;
+              pdf.setFont('helvetica', 'normal'); pdf.setTextColor(FONT_COLOR_MEDIUM);
+              pdf.text(stat[0] + ':', currentX, currentY);
+              pdf.setFont('helvetica', 'bold'); pdf.setTextColor(FONT_COLOR_DARK);
+              pdf.text(stat[1], currentX + 35, currentY);
+          });
+          y += Math.ceil(summaryStats.length / 2) * 7 + 8;
+          
+          // VISUALIZATION SECTION
+          pdf.setFontSize(12);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(is1D ? 'Bar Layouts' : 'Plate Layouts', PAGE_MARGIN, y);
           y += 8;
+          
+          // Generate colors for this group
+          const groupItemIds = [...new Set(
+              is1D ? 
+              res.result.bars.flatMap(bar => bar.items.map(i => i.originalId)) :
+              res.result.plates.flatMap(plate => plate.items.map(i => i.originalId))
+          )];
+          const colors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#ef4444', '#0ea5e9'];
+          const itemColors = new Map();
+          groupItemIds.forEach((id, i) => {
+              itemColors.set(id, colors[i % colors.length]);
+          });
+          
+          if (is1D) {
+              // 1D Bar visualization
+              var barHeaders = ['Bar', 'Used Length', 'Waste', 'Efficiency', 'Cut Sequence'];
+              var barData = res.result.bars.map(function(bar) {
+                  var detailsMap = new Map();
+                  bar.items.forEach(function(item) {
+                      var count = detailsMap.get(item.originalId) || 0;
+                      detailsMap.set(item.originalId, count + 1);
+                  });
+                  var details = Array.from(detailsMap.entries())
+                      .map(function(entry) { 
+                          return entry[0] + ' (' + entry[1] + 'x' + bar.items.find(i => i.originalId === entry[0]).originalLength + 'mm)'; 
+                      })
+                      .join(', ');
+                  
+                  return [
+                      bar.id,
+                      bar.usedLength + ' mm',
+                      bar.remainingLength + ' mm',
+                      bar.efficiency + '%',
+                      details,
+                  ];
+              });
+
+              y = drawTable(pdf, y, barHeaders, barData, [25, 35, 30, 25, 65]);
+          } else {
+              // 2D Plate visualization - multiple plates per page
+              res.result.plates.forEach(function(plate, plateIndex) {
+                  // Page break every 2 plates
+                  if (plateIndex > 0 && plateIndex % 2 === 0) {
+                      pdf.addPage();
+                      y = 25;
+                      pdf.setFontSize(12);
+                      pdf.setFont('helvetica', 'bold');
+                      pdf.text('Plate Layouts (continued)', PAGE_MARGIN, y);
+                      y += 8;
+                  }
+                  
+                  var currentY = (plateIndex % 2 === 0) ? y + 8 : y + 125;
+                  
+                  // Plate title
+                  pdf.setFontSize(10);
+                  pdf.setFont('helvetica', 'bold');
+                  pdf.setTextColor(FONT_COLOR_DARK);
+                  pdf.text('Plate ' + plate.id, PAGE_MARGIN, currentY);
+                  
+                  pdf.setFontSize(9);
+                  pdf.setFont('helvetica', 'normal');
+                  pdf.setTextColor(FONT_COLOR_MEDIUM);
+                  pdf.text('Eff: ' + plate.getEfficiency() + '% | Items: ' + plate.items.length + ' | Waste: ' + plate.getWasteArea().toLocaleString() + ' mm²', PAGE_MARGIN, currentY + 5);
+
+                  // Visualization box
+                  var vizWidth = 180;
+                  var plateAspectRatio = group.parameters.plateHeight / group.parameters.plateWidth;
+                  var vizHeight = Math.min(vizWidth * plateAspectRatio, 95);
+                  var vizBoxY = currentY + 10;
+
+                  pdf.setDrawColor(BORDER_COLOR);
+                  pdf.rect(PAGE_MARGIN, vizBoxY, vizWidth, vizHeight, 'D');
+
+                  // Draw items with consistent colors
+                  plate.items.forEach(function(item) {
+                      var itemX = PAGE_MARGIN + (item.x / group.parameters.plateWidth) * vizWidth;
+                      var itemY = vizBoxY + (item.y / group.parameters.plateHeight) * vizHeight;
+                      var itemW = (item.width / group.parameters.plateWidth) * vizWidth;
+                      var itemH = (item.height / group.parameters.plateHeight) * vizHeight;
+                      
+                      var color = itemColors.get(item.originalId) || '#3b82f6';
+                      var rgb = color.match(/\w\w/g).map(function(val) { return parseInt(val, 16); });
+
+                      pdf.setFillColor(rgb[0], rgb[1], rgb[2]);
+                      pdf.rect(itemX, itemY, itemW, itemH, 'F');
+                      pdf.setDrawColor(255, 255, 255);
+                      pdf.setLineWidth(0.2);
+                      pdf.rect(itemX, itemY, itemW, itemH, 'D');
+                      
+                      if (itemW > 10 && itemH > 8) {
+                          pdf.setFontSize(7);
+                          pdf.setTextColor(255, 255, 255);
+                          var label = item.rotated ? 'R\n' + item.originalId : item.originalId;
+                          pdf.text(label, itemX + itemW / 2, itemY + itemH / 2, { align: 'center', baseline: 'middle' });
+                      }
+                  });
+              });
+          }
+          
+          // Move y to bottom for next iteration
+          y = 250; // Reset for next group visualization
       });
 
       // Donation Page
@@ -634,10 +708,10 @@
       pdf.save('Project_Report_' + new Date().toISOString().slice(0, 10) + '.pdf');
   }
 
-  // Attach all exports to window
+  // Attach exports to window
   window.export1DToPDF = export1DToPDF;
   window.export2DToPDF = export2DToPDF;
-  window.exportProjectToPDF = exportProjectToPDF; // FIXED: Now properly scoped
+  window.exportProjectToPDF = exportProjectToPDF;
 
-  console.log('✅ PDF Export module loaded with Project support');
+  console.log('✅ PDF Export module loaded - Fixed visualizations & restructured');
 })(window);
