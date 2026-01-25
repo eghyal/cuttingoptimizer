@@ -25,12 +25,13 @@
       this.setupKeyboardShortcuts();
       this.setupFocusManagement();
       this.setupNumericValidation();
+      this.setupManualTourTrigger();
       
       // Check first visit with delay to ensure all resources loaded
       var self = this;
       setTimeout(function() {
         self.checkFirstVisit();
-      }, 500); // Reduced delay for faster tour appearance
+      }, 800); // Increased delay for better reliability
       
       this.isInitialized = true;
     },
@@ -154,6 +155,24 @@
           }
         });
       });
+    },
+    
+    setupManualTourTrigger: function() {
+      var trigger = document.getElementById('manual-tour-trigger');
+      if (trigger) {
+        var self = this;
+        trigger.addEventListener('click', function() {
+          self.openTour();
+        });
+        
+        // Show trigger on Ctrl+?
+        document.addEventListener('keydown', function(e) {
+          if ((e.ctrlKey || e.metaKey) && e.key === '?') {
+            e.preventDefault();
+            trigger.style.display = trigger.style.display === 'none' ? 'inline-flex' : 'none';
+          }
+        });
+      }
     },
     
     setupKeyboardShortcuts: function() {
@@ -476,7 +495,7 @@
       var self = this;
       setTimeout(function() {
         self.updateTourStep();
-      }, 100); // Reduced delay for snappier response
+      }, 50); // Reduced delay for snappier response
     },
     
     closeTour: function() {
@@ -516,15 +535,17 @@
         step.style.display = 'none';
       });
       
-      // Show current step with slight delay for transition
+      // Show current step
       var currentStep = document.querySelector('#tour-modal .tour-step[data-step="' + this.tourStep + '"]');
       if (currentStep) {
-        // Force display first
-        currentStep.style.display = 'flex';
-        // Force reflow to ensure transition works
-        void currentStep.offsetHeight;
-        // Add active class for animation
-        currentStep.classList.add('active');
+        // Use setTimeout to ensure display change happens after reflow
+        setTimeout(function() {
+          currentStep.style.display = 'flex';
+          // Force reflow
+          void currentStep.offsetWidth;
+          // Add active class
+          currentStep.classList.add('active');
+        }, 10);
       }
       
       // Update dots

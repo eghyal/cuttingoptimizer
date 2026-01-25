@@ -3,6 +3,8 @@
 /* Startup Tour Styles - ASCII ART STYLING */
 .tour-backdrop {
   z-index: 9999 !important;
+  /* Ensure tour is above everything */
+  position: fixed !important;
 }
 
 .tour-modal {
@@ -22,8 +24,8 @@
 
 /* FIXED: Tour steps - Simplified visibility system */
 .tour-step {
-  /* Default state: hidden but preserve layout space for transitions */
-  display: none;
+  /* Default state: hidden */
+  display: none !important;
   opacity: 0;
   transform: translateY(10px);
   flex-direction: column;
@@ -51,13 +53,6 @@
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-/* Ensure first step visible when tour opens */
-.tour-step[data-step="1"].active {
-  display: flex !important;
-  opacity: 1;
-  transform: translateY(0);
 }
 
 /* ASCII Art Container Styling */
@@ -424,4 +419,21 @@
   .cut-list-section + button.btn-full {
     margin-top: var(--space-6) !important;
   }
+}
+
+/* MANUAL TOUR TRIGGER - Show on hover or specific keys */
+#manual-tour-trigger {
+  display: none !important; /* Hidden by default */
+}
+
+/* Show manual trigger on small screens or when pressing Ctrl+? */
+@media (max-width: 1024px) {
+  body:hover #manual-tour-trigger {
+    display: inline-flex !important;
+  }
+}
+
+/* Debug mode - always show manual trigger */
+body.debug-mode #manual-tour-trigger {
+  display: inline-flex !important;
 }
