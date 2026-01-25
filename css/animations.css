@@ -1,0 +1,233 @@
+/**
+ * Animation Styles - FIXED VERSION
+ * CSS-only animations with proper initial states
+ */
+
+/* ============================================
+   PAGE LOAD ANIMATIONS (No JavaScript needed)
+   ============================================ */
+
+/* Initial state: elements are visible but transparent */
+.animate-on-load {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Key difference: animation starts immediately, no waiting for JS */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stagger animations using inline style="animation-delay: Xs" */
+
+/* ============================================
+   PAGE TRANSITIONS (For optimizer pages)
+   ============================================ */
+
+.page-transition-in {
+  animation: pageFadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   MODAL ANIMATIONS
+   ============================================ */
+
+.modal-backdrop:not(.hidden) {
+  animation: fadeInBackdrop 0.3s ease-out forwards;
+}
+
+.modal-backdrop:not(.hidden) .modal-content {
+  animation: modalScaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes fadeInBackdrop {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Tour specific animation - ENSURE VISIBILITY */
+@keyframes fadeInUpModal {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================
+   LOADING SPINNER
+   ============================================ */
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   BACKGROUND ANIMATIONS (Blur circles)
+   ============================================ */
+
+.circle-1 {
+  animation: float 20s ease-in-out infinite, pulseSlow 8s ease-in-out infinite;
+}
+
+.circle-2 {
+  animation: float 25s ease-in-out infinite reverse, pulseSlow 8s ease-in-out infinite;
+  animation-delay: -5s, 4s;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  25% { transform: translateY(-20px) translateX(10px); }
+  50% { transform: translateY(0px) translateX(20px); }
+  75% { transform: translateY(20px) translateX(10px); }
+}
+
+@keyframes pulseSlow {
+  0%, 100% { opacity: 0.2; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(1.05); }
+}
+
+/* ============================================
+   HOVER EFFECTS
+   ============================================ */
+
+.info-card,
+.btn-donate,
+.logo {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.info-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+}
+
+.btn-donate:hover,
+.logo:hover {
+  transform: translateY(-2px);
+}
+
+/* Card icon hover */
+.card-icon {
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.info-card:hover .card-icon {
+  transform: scale(1.1);
+  background-color: var(--color-blue-600);
+}
+
+/* Keyboard key hover */
+.ascii-key {
+  transition: all 0.2s ease;
+}
+
+.ascii-key:hover {
+  background: var(--color-blue-600);
+  color: var(--color-white);
+  transform: translateY(-2px);
+}
+
+/* Step number hover */
+.step-number {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.quick-step:hover .step-number {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+/* Link underline animation */
+.template-link,
+.animate-underline {
+  position: relative;
+}
+
+.template-link::after,
+.animate-underline::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 1px;
+  bottom: -2px;
+  left: 0;
+  background-color: currentColor;
+  transition: width 0.3s ease;
+}
+
+.template-link:hover::after,
+.animate-underline:hover::after {
+  width: 100%;
+}
+
+/* ============================================
+   SMOOTH SCROLLING
+   ============================================ */
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ============================================
+   REDUCED MOTION SUPPORT
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .animate-on-load {
+    opacity: 1;
+    transform: none;
+  }
+  
+  /* Ensure tour visibility */
+  .tour-step.active {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

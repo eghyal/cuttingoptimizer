@@ -351,3 +351,89 @@
     right: 0.5rem;
   }
 }
+
+/* Smooth card hover transitions */
+.info-card {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.info-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+}
+
+/* Card icon animation on hover */
+.info-card:hover .card-icon {
+  transform: scale(1.1) rotate(5deg);
+  transition: transform 0.3s ease;
+}
+
+/* Quick step number pulse */
+.step-number {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.quick-step:hover .step-number {
+  transform: scale(1.1);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+}
+
+/* Step content hover */
+.step-content {
+  transition: transform 0.3s ease;
+}
+
+.quick-step:hover .step-content {
+  transform: translateX(5px);
+}
+
+/* Keyboard key hover effects */
+.ascii-key {
+  transition: all 0.2s ease;
+}
+
+.ascii-key:hover {
+  background: var(--color-blue-600);
+  color: var(--color-white);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Hero title gradient animation */
+.hero-title {
+  background: linear-gradient(135deg, var(--color-slate-900) 0%, var(--color-blue-700) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  background-size: 200% 200%;
+  animation: gradientShift 8s ease infinite;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Blur circle animations */
+.circle-1 {
+  animation: float 20s ease-in-out infinite, pulse-slow 8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.circle-2 {
+  animation: float 25s ease-in-out infinite reverse, pulse-slow 8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation-delay: -5s, 4s;
+}
+
+/* Mobile adjustments for animations */
+@media (max-width: 767px) {
+  .hero-title {
+    animation: none;
+    background: none;
+    -webkit-text-fill-color: var(--color-slate-900);
+  }
+  
+  .info-card:hover {
+    transform: translateY(-4px);
+  }
+}

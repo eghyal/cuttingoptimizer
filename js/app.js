@@ -1,6 +1,7 @@
 /**
  * Main Application - Modal, Navigation & Tour
- * Enhanced: Startup tour for first-time users
+ * Enhanced: Startup tour with ASCII Art styling - FIXED VERSION
+ * FIXED: Added event listeners for optimizer page donate buttons
  */
 
 (function() {
@@ -12,10 +13,17 @@
     isInitialized: false,
     shortcutModal: null,
     activeModal: null,
-    tourStep: 0,
+    tourStep: 1,
     maxTourSteps: 4,
+    tourInitialized: false,
     
     init: function() {
+      // Guard against double initialization
+      if (this.isInitialized) {
+        console.log('⚠️ App: Already initialized, skipping...');
+        return;
+      }
+      
       console.log('🚀 App: Initializing...');
       this.setupEventListeners();
       this.updateActiveNav();
@@ -30,16 +38,23 @@
     setupEventListeners: function() {
       console.log('🔧 App: Setting up event listeners...');
       
-      // Donate button
-      var donateBtn = document.getElementById('donate-btn');
-      if (donateBtn) {
-        donateBtn.addEventListener('click', this.openModal.bind(this, 'donation-modal'));
-      }
+      var self = this;
+      
+      // FIXED: Donate buttons - handle all possible IDs across all pages
+      var donateBtnIds = ['donate-btn', 'donate-btn-1d', 'donate-btn-2d', 'donate-btn-project'];
+      donateBtnIds.forEach(function(id) {
+        var btn = document.getElementById(id);
+        if (btn) {
+          btn.addEventListener('click', function() {
+            self.openModal('donation-modal');
+          });
+        }
+      });
       
       // Modal close buttons
       this.setupModalCloseButtons();
       
-      // Tour close/skip/next buttons
+      // Tour buttons - FIXED: Better event handling
       this.setupTourButtons();
       
       // Home button navigation
@@ -68,20 +83,20 @@
       });
       
       // Click outside modal to close
-      var modalBackdrop = document.querySelector('.modal-backdrop');
-      if (modalBackdrop) {
-        modalBackdrop.addEventListener('click', function(e) {
-          if (e.target === this) {
-            this.closeModal();
+      document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal-backdrop') && self.isModalOpen) {
+          // Only close if clicking the backdrop itself, not the content
+          if (e.target === e.currentTarget) {
+            self.closeModal();
           }
-        }.bind(this));
-      }
+        }
+      });
     },
     
     setupModalCloseButtons: function() {
       var self = this;
       
-      // Donation modal close
+      // Donation modal close - works for all pages since they all use id="modal-close"
       var modalClose = document.getElementById('modal-close');
       if (modalClose) {
         modalClose.addEventListener('click', function() {
@@ -104,45 +119,75 @@
       // Tour close button
       var tourClose = document.getElementById('tour-close');
       if (tourClose) {
-        tourClose.addEventListener('click', this.closeTour.bind(this));
+        tourClose.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          self.closeTour();
+        });
       }
       
       // Tour skip button
       var tourSkip = document.getElementById('tour-skip');
       if (tourSkip) {
-        tourSkip.addEventListener('click', this.closeTour.bind(this));
+        tourSkip.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          self.closeTour();
+        });
       }
       
-      // Tour next button
+      // Tour next button - FIXED: Remove cloning, use proper binding
       var tourNext = document.getElementById('tour-next');
-      if (tourNext) {
-        tourNext.addEventListener('click', this.nextTourStep.bind(this));
+      if (tourNext && !this.tourInitialized) {
+        tourNext.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          self.nextTourStep();
+        });
+        this.tourInitialized = true;
       }
+      
+      // Tour dots navigation
+      var dots = document.querySelectorAll('.dot');
+      dots.forEach(function(dot) {
+        dot.addEventListener('click', function() {
+          var step = parseInt(this.dataset.step);
+          if (step && step !== self.tourStep) {
+            self.tourStep = step;
+            self.updateTourStep();
+          }
+        });
+      });
     },
     
     setupKeyboardShortcuts: function() {
+      var self = this;
+      
       // Global keyboard shortcuts
       document.addEventListener('keydown', function(e) {
         // Skip if typing in input fields (except specific shortcuts)
         var isInInput = e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable;
         
         // Don't trigger shortcuts when modal is open (except Escape)
-        if (this.isModalOpen) {
+        if (self.isModalOpen) {
           if (e.key === 'Escape') {
             e.preventDefault();
-            this.closeModal();
+            if (!document.getElementById('tour-modal').classList.contains('hidden')) {
+              self.closeTour();
+            } else {
+              self.closeModal();
+            }
           }
-          return;
-        }
-        
-        // Tour navigation with arrow keys
-        if (document.getElementById('tour-modal') && !document.getElementById('tour-modal').classList.contains('hidden')) {
-          if (e.key === 'ArrowRight') {
-            e.preventDefault();
-            this.nextTourStep();
-          } else if (e.key === 'Escape') {
-            e.preventDefault();
-            this.closeTour();
+          // Tour navigation with arrow keys
+          if (!document.getElementById('tour-modal').classList.contains('hidden')) {
+            if (e.key === 'ArrowRight') {
+              e.preventDefault();
+              self.nextTourStep();
+            } else if (e.key === 'ArrowLeft' && self.tourStep > 1) {
+              e.preventDefault();
+              self.tourStep--;
+              self.updateTourStep();
+            }
           }
           return;
         }
@@ -154,7 +199,7 @@
         // Allow ? shortcut even in inputs
         if (e.key === '?' && !ctrlOrMeta && !altKey) {
           e.preventDefault();
-          this.showShortcutModal();
+          self.showShortcutModal();
           return;
         }
         
@@ -221,17 +266,18 @@
             }
             break;
         }
-      }.bind(this));
+      });
     },
     
     setupFocusManagement: function() {
+      var self = this;
       // Trap focus inside modals when open
       document.addEventListener('keydown', function(e) {
-        if (e.key === 'Tab' && this.isModalOpen) {
+        if (e.key === 'Tab' && self.isModalOpen) {
           var modal = document.querySelector('.modal-backdrop:not(.hidden)');
           if (!modal) return;
           
-          var focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+          var focusable = modal.querySelectorAll('button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
           var first = focusable[0];
           var last = focusable[focusable.length - 1];
           
@@ -247,11 +293,11 @@
             }
           }
         }
-      }.bind(this));
+      });
     },
     
-    // NEW: Setup numeric validation for number inputs
     setupNumericValidation: function() {
+      var self = this;
       document.addEventListener('keydown', function(e) {
         // Only validate numeric inputs
         if (!e.target.classList.contains('numeric-only') && 
@@ -274,9 +320,9 @@
         if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
           e.preventDefault();
           // Show error message
-          this.showInputError(e.target, 'Please enter numbers only');
+          self.showInputError(e.target, 'Please enter numbers only');
         }
-      }.bind(this));
+      });
       
       // Additional validation for paste events
       document.addEventListener('paste', function(e) {
@@ -289,12 +335,11 @@
         var pastedText = (e.clipboardData || window.clipboardData).getData('text');
         if (!/^\d+$/.test(pastedText)) {
           e.preventDefault();
-          this.showInputError(e.target, 'Only numeric values can be pasted');
+          self.showInputError(e.target, 'Only numeric values can be pasted');
         }
-      }.bind(this));
+      });
     },
     
-    // NEW: Show input error message
     showInputError: function(input, message) {
       // Remove existing error
       var existingError = input.parentNode.querySelector('.input-error');
@@ -342,23 +387,26 @@
     },
     
     openModal: function(modalId) {
-      console.log('📱 App: Opening modal...');
+      console.log('📱 App: Opening modal ' + modalId);
       this.isModalOpen = true;
       this.activeModal = modalId;
       var modal = document.getElementById(modalId);
       if (modal) {
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
-        // Focus trap
-        var focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-        if (focusable.length) {
-          focusable[0].focus();
-        }
+        
+        // Focus trap - delay slightly to allow animation to start
+        setTimeout(function() {
+          var focusable = modal.querySelectorAll('button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+          if (focusable.length) {
+            focusable[0].focus();
+          }
+        }, 100);
       }
     },
     
     closeModal: function(modalId) {
-      console.log('📱 App: Closing modal...');
+      console.log('📱 App: Closing modal');
       this.isModalOpen = false;
       var modal = modalId ? document.getElementById(modalId) : document.querySelector('.modal-backdrop:not(.hidden)');
       if (modal) {
@@ -372,29 +420,37 @@
       this.openModal('shortcut-modal');
     },
     
-    // Tour functionality
+    // Tour functionality - FIXED
     checkFirstVisit: function() {
       // Check if user has visited before
       var hasVisited = localStorage.getItem('eav-visited');
       if (!hasVisited) {
-        // Show tour after a short delay
+        console.log('👋 First visit detected, showing tour...');
+        // Show tour after a short delay to ensure DOM is fully rendered
+        var self = this;
         setTimeout(function() {
-          this.openTour();
-        }.bind(this), 1000);
+          self.openTour();
+        }, 1000);
       }
     },
     
     openTour: function() {
+      console.log('🎯 Opening tour...');
       this.tourStep = 1;
       this.openModal('tour-modal');
-      this.updateTourStep();
+      // Update tour step after modal is visible
+      var self = this;
+      setTimeout(function() {
+        self.updateTourStep();
+      }, 100);
     },
     
     closeTour: function() {
+      console.log('🎯 Closing tour...');
       this.closeModal('tour-modal');
       // Mark as visited
       localStorage.setItem('eav-visited', 'true');
-      this.tourStep = 0;
+      this.tourStep = 1;
     },
     
     nextTourStep: function() {
@@ -407,23 +463,31 @@
     },
     
     updateTourStep: function() {
+      var self = this;
+      console.log('🎯 Updating tour step:', this.tourStep);
+      
       // Update step visibility
       var steps = document.querySelectorAll('#tour-modal .tour-step');
       steps.forEach(function(step) {
-        step.classList.remove('active');
-        if (parseInt(step.dataset.step) === this.tourStep) {
+        var stepNum = parseInt(step.dataset.step);
+        if (stepNum === self.tourStep) {
           step.classList.add('active');
+          step.style.display = 'flex';
+        } else {
+          step.classList.remove('active');
+          step.style.display = 'none';
         }
-      }.bind(this));
+      });
       
       // Update dots
       var dots = document.querySelectorAll('#tour-modal .dot');
       dots.forEach(function(dot, index) {
-        dot.classList.remove('active');
-        if (index + 1 === this.tourStep) {
+        if (index + 1 === self.tourStep) {
           dot.classList.add('active');
+        } else {
+          dot.classList.remove('active');
         }
-      }.bind(this));
+      });
       
       // Update button text
       var nextBtn = document.getElementById('tour-next');
@@ -431,10 +495,16 @@
         nextBtn.textContent = this.tourStep === this.maxTourSteps ? 'Get Started' : 'Next';
       }
       
+      // Update skip button text for last step
+      var skipBtn = document.getElementById('tour-skip');
+      if (skipBtn) {
+        skipBtn.textContent = this.tourStep === this.maxTourSteps ? 'Close' : 'Skip Tour';
+      }
+      
       // Announce to screen readers
       var activeStep = document.querySelector('#tour-modal .tour-step.active');
       if (activeStep && window.AccessibilityManager) {
-        var stepText = activeStep.textContent;
+        var stepText = activeStep.querySelector('h3') ? activeStep.querySelector('h3').textContent : '';
         window.AccessibilityManager.announce('Tour step ' + this.tourStep + ' of ' + this.maxTourSteps + ': ' + stepText);
       }
     },
@@ -511,7 +581,7 @@
       successEl.setAttribute('role', 'status');
       successEl.textContent = message;
       document.body.appendChild(successEl);
-      setTimeout(() => successEl.remove(), 3000);
+      setTimeout(function() { successEl.remove(); }, 3000);
       
       // Announce to screen readers
       if (window.AccessibilityManager) {
@@ -520,7 +590,7 @@
     }
   };
 
-  // Initialize when DOM is ready
+  // Initialize when DOM is ready - Only initialize once
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
       window.App.init();
@@ -549,12 +619,8 @@
       bottom: -1.5rem;
       left: 0;
     }
-    @keyframes fadeInUpModal {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
   `;
   document.head.appendChild(style);
 
-  console.log('✅ App script loaded with Tour functionality');
+  console.log('✅ App script loaded with ASCII Art Tour functionality - Fixed donate buttons for all pages');
 })();

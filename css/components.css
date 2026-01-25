@@ -740,3 +740,39 @@
 .cut-list-section + #optimize-1d {
     margin-top: var(--space-8) !important;
 }
+
+/* Static Logo (Non-clickable) - Matches index.html card icons */
+.logo-static {
+  cursor: default;
+  pointer-events: none;
+  background-color: var(--color-slate-800);
+}
+
+.logo-static:hover {
+  background-color: var(--color-slate-800); /* Prevent hover color change */
+  transform: none;
+}
+
+/* Ensure icon sizing matches index.html cards */
+.logo-static .logo-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* 1D specific icon sizing to match card */
+.logo-static .minus-icon,
+.logo-static svg[path="M20 12H4"] {
+  stroke-width: 2;
+}
+
+/* 2D specific icon sizing to match card */
+.logo-static .square-icon,
+.logo-static svg[path="M4 4h16v16H4z"] {
+  stroke-width: 2;
+}
+
+/* Project specific icon sizing to match card */
+.logo-static .project-icon,
+.logo-static svg[stroke-width="1.8"] {
+  stroke-width: 1.8;
+}

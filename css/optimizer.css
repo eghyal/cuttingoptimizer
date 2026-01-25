@@ -470,3 +470,186 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Panel entrance animation */
+.panel {
+  animation: slideInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Form group stagger animation */
+.form-group {
+  animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+}
+
+/* Item row animations */
+.item-row, .item-card-2d, .cut-item-row {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+}
+
+.item-row:hover, .item-card-2d:hover, .cut-item-row:hover {
+  background-color: var(--color-slate-50);
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Button press effect */
+.btn-primary:active, .btn-add:active {
+  transform: translateY(1px) scale(0.98);
+  transition: transform 0.1s ease;
+}
+
+/* Group card animations */
+.group-card {
+  animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.group-card:hover {
+  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+}
+
+/* Parameter input focus animation */
+.parameter-input:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+/* Results view animations */
+.results-view {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.stat-card {
+  animation: scaleIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+}
+
+/* Bar segment animations */
+.bar-segment {
+  animation: expandWidth 0.6s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+  transform-origin: left;
+}
+
+@keyframes expandWidth {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+/* Plate item animations */
+.plate-item {
+  animation: scaleIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.plate-item:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+
+/* Navigation button animations */
+.nav-btn {
+  transition: all 0.2s ease;
+}
+
+.nav-btn:hover:not(:disabled) {
+  transform: scale(1.1);
+  background-color: var(--color-blue-100);
+  color: var(--color-blue-600);
+}
+
+/* Add item button pulse */
+#add-item-1d, #add-item-2d, #add-group {
+  position: relative;
+  overflow: hidden;
+}
+
+#add-item-1d::after, #add-item-2d::after, #add-group::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+#add-item-1d:active::after, #add-item-2d:active::after, #add-group:active::after {
+  width: 300px;
+  height: 300px;
+}
+
+/* Group result card animations */
+.group-result-card {
+  animation: slideInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.group-result-stat {
+  transition: transform 0.2s ease;
+}
+
+.group-result-stat:hover {
+  transform: translateY(-2px);
+}
+
+/* Loading progress animation */
+#progress-text {
+  display: inline-block;
+  min-width: 3rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Smooth transitions for form elements */
+.form-input, .form-select, .parameter-input, .cut-item-input {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Empty state animation */
+.empty-groups {
+  animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Template link underline animation */
+.template-link {
+  position: relative;
+}
+
+.template-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 1px;
+  bottom: -2px;
+  left: 0;
+  background-color: currentColor;
+  transition: width 0.3s ease;
+}
+
+.template-link:hover::after {
+  width: 100%;
+}
