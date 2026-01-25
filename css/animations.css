@@ -75,18 +75,6 @@
   }
 }
 
-/* Tour specific animation - ENSURE VISIBILITY */
-@keyframes fadeInUpModal {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* ============================================
    LOADING SPINNER
    ============================================ */

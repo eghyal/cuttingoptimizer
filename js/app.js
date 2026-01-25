@@ -25,7 +25,13 @@
       this.setupKeyboardShortcuts();
       this.setupFocusManagement();
       this.setupNumericValidation();
-      this.checkFirstVisit();
+      
+      // Check first visit with delay to ensure all resources loaded
+      var self = this;
+      setTimeout(function() {
+        self.checkFirstVisit();
+      }, 500); // Reduced delay for faster tour appearance
+      
       this.isInitialized = true;
     },
     
@@ -50,18 +56,6 @@
       
       // Tour buttons - FIXED: Better event handling
       this.setupTourButtons();
-      
-      // Home button navigation
-      var logoElements = document.querySelectorAll('.logo');
-      logoElements.forEach(function(logo) {
-        logo.addEventListener('click', function(e) {
-          var href = this.getAttribute('href');
-          if (href && href === '../index.html' || href === 'index.html') {
-            // Allow default navigation
-            return;
-          }
-        });
-      });
       
       // Prevent form submission on Enter
       document.addEventListener('keydown', function(e) {
@@ -90,7 +84,7 @@
     setupModalCloseButtons: function() {
       var self = this;
       
-      // Donation modal close - works for all pages since they all use id="modal-close"
+      // Donation modal close
       var modalClose = document.getElementById('modal-close');
       if (modalClose) {
         modalClose.addEventListener('click', function() {
@@ -130,10 +124,14 @@
         });
       }
       
-      // Tour next button - FIXED: Remove cloning, use proper binding
+      // Tour next button - FIXED: Ensure single binding
       var tourNext = document.getElementById('tour-next');
       if (tourNext && !this.tourInitialized) {
-        tourNext.addEventListener('click', function(e) {
+        // Remove existing listeners to prevent double binding
+        var newBtn = tourNext.cloneNode(true);
+        tourNext.parentNode.replaceChild(newBtn, tourNext);
+        
+        newBtn.addEventListener('click', function(e) {
           e.preventDefault();
           e.stopPropagation();
           self.nextTourStep();
@@ -144,7 +142,11 @@
       // Tour dots navigation
       var dots = document.querySelectorAll('.dot');
       dots.forEach(function(dot) {
-        dot.addEventListener('click', function() {
+        // Remove old listeners
+        var newDot = dot.cloneNode(true);
+        dot.parentNode.replaceChild(newDot, dot);
+        
+        newDot.addEventListener('click', function() {
           var step = parseInt(this.dataset.step);
           if (step && step !== self.tourStep) {
             self.tourStep = step;
@@ -166,14 +168,16 @@
         if (self.isModalOpen) {
           if (e.key === 'Escape') {
             e.preventDefault();
-            if (!document.getElementById('tour-modal').classList.contains('hidden')) {
+            var tourModal = document.getElementById('tour-modal');
+            if (tourModal && !tourModal.classList.contains('hidden')) {
               self.closeTour();
             } else {
               self.closeModal();
             }
           }
           // Tour navigation with arrow keys
-          if (!document.getElementById('tour-modal').classList.contains('hidden')) {
+          var tourModal = document.getElementById('tour-modal');
+          if (tourModal && !tourModal.classList.contains('hidden')) {
             if (e.key === 'ArrowRight') {
               e.preventDefault();
               self.nextTourStep();
@@ -212,7 +216,7 @@
         
         // Block other shortcuts when in input
         if (isInInput) {
-          return; // Block all shortcuts
+          return;
         }
         
         // Determine current page
@@ -307,7 +311,7 @@
     setupNumericValidation: function() {
       var self = this;
       document.addEventListener('keydown', function(e) {
-        // FIXED: Skip validation for ID fields and group name fields (allow strings)
+        // Skip validation for ID fields and group name fields (allow strings)
         if (e.target.classList.contains('item-input-id') || 
             e.target.classList.contains('item-input-2d-id') ||
             e.target.classList.contains('cut-item-id') ||
@@ -342,7 +346,7 @@
       
       // Additional validation for paste events
       document.addEventListener('paste', function(e) {
-        // FIXED: Skip validation for ID fields and group name fields
+        // Skip validation for ID fields and group name fields
         if (e.target.classList.contains('item-input-id') || 
             e.target.classList.contains('item-input-2d-id') ||
             e.target.classList.contains('cut-item-id') ||
@@ -444,17 +448,22 @@
       this.openModal('shortcut-modal');
     },
     
-    // Tour functionality - FIXED
+    // Tour functionality - FIXED COMPREHENSIVELY
     checkFirstVisit: function() {
       // Check if user has visited before
       var hasVisited = localStorage.getItem('eav-visited');
+      
+      // DEBUG: Uncomment line below to test tour (clears visited status)
+      // localStorage.removeItem('eav-visited'); hasVisited = false;
+      
       if (!hasVisited) {
         console.log('👋 First visit detected, showing tour...');
-        // Show tour after a short delay to ensure DOM is fully rendered
-        var self = this;
+        // Small delay to ensure DOM is fully ready
         setTimeout(function() {
-          self.openTour();
-        }, 1500); // Increased delay to ensure all animations are ready
+          window.App.openTour();
+        }, 300);
+      } else {
+        console.log('👋 Returning visitor, skipping tour');
       }
     },
     
@@ -462,16 +471,12 @@
       console.log('🎯 Opening tour...');
       this.tourStep = 1;
       this.openModal('tour-modal');
-      // Update tour step after modal is visible - use longer delay for animation sync
+      
+      // Ensure tour is visible then update step
       var self = this;
       setTimeout(function() {
         self.updateTourStep();
-        // Force reflow to ensure CSS animations trigger
-        var steps = document.querySelectorAll('.tour-step');
-        steps.forEach(function(step) {
-          void step.offsetHeight; // Trigger reflow
-        });
-      }, 300);
+      }, 100); // Reduced delay for snappier response
     },
     
     closeTour: function() {
@@ -480,6 +485,13 @@
       // Mark as visited
       localStorage.setItem('eav-visited', 'true');
       this.tourStep = 1;
+      
+      // Reset steps for next time
+      var steps = document.querySelectorAll('.tour-step');
+      steps.forEach(function(step) {
+        step.classList.remove('active');
+        step.style.display = 'none';
+      });
     },
     
     nextTourStep: function() {
@@ -495,19 +507,25 @@
       var self = this;
       console.log('🎯 Updating tour step:', this.tourStep);
       
-      // Update step visibility
+      // Get all steps
       var steps = document.querySelectorAll('#tour-modal .tour-step');
+      
+      // Hide all steps first
       steps.forEach(function(step) {
-        var stepNum = parseInt(step.dataset.step);
-        if (stepNum === self.tourStep) {
-          step.classList.add('active');
-          // Ensure display is set properly for animation
-          step.style.display = 'flex';
-        } else {
-          step.classList.remove('active');
-          step.style.display = 'none';
-        }
+        step.classList.remove('active');
+        step.style.display = 'none';
       });
+      
+      // Show current step with slight delay for transition
+      var currentStep = document.querySelector('#tour-modal .tour-step[data-step="' + this.tourStep + '"]');
+      if (currentStep) {
+        // Force display first
+        currentStep.style.display = 'flex';
+        // Force reflow to ensure transition works
+        void currentStep.offsetHeight;
+        // Add active class for animation
+        currentStep.classList.add('active');
+      }
       
       // Update dots
       var dots = document.querySelectorAll('#tour-modal .dot');
@@ -532,9 +550,8 @@
       }
       
       // Announce to screen readers
-      var activeStep = document.querySelector('#tour-modal .tour-step.active');
-      if (activeStep && window.AccessibilityManager) {
-        var stepText = activeStep.querySelector('h3') ? activeStep.querySelector('h3').textContent : '';
+      if (currentStep && window.AccessibilityManager) {
+        var stepText = currentStep.querySelector('h3') ? currentStep.querySelector('h3').textContent : '';
         window.AccessibilityManager.announce('Tour step ' + this.tourStep + ' of ' + this.maxTourSteps + ': ' + stepText);
       }
     },
@@ -652,5 +669,5 @@
   `;
   document.head.appendChild(style);
 
-  console.log('✅ App script loaded with updated shortcuts: 1->1D, 2->2D, 3->Project, Space->Optimize, Ctrl+I->Import');
+  console.log('✅ App script loaded with comprehensive tour fix');
 })();

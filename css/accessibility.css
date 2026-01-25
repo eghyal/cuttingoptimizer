@@ -1,38 +1,63 @@
-/* Accessibility Improvements & Mobile Responsiveness - ASCII TOUR VERSION */
+/* Accessibility Improvements & Mobile Responsiveness - FIXED TOUR VERSION */
 
 /* Startup Tour Styles - ASCII ART STYLING */
+.tour-backdrop {
+  z-index: 9999 !important;
+}
+
 .tour-modal {
   max-width: 28rem !important;
   text-align: center;
+  position: relative;
+  overflow: visible;
 }
 
 .tour-body {
   padding: var(--space-6) var(--space-6) var(--space-4);
-  min-height: 320px;
+  min-height: 380px;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
-/* CRITICAL FIX: Tour steps initial state - hidden but animatable */
+/* FIXED: Tour steps - Simplified visibility system */
 .tour-step {
-  display: none; /* Hidden by default using display:none */
+  /* Default state: hidden but preserve layout space for transitions */
+  display: none;
   opacity: 0;
-  transform: translateY(20px);
-  visibility: hidden;
+  transform: translateY(10px);
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   flex: 1;
-  /* Removed conflicting flex:1 and display:flex that were here before */
+  width: 100%;
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
-/* CRITICAL FIX: Active step visibility with animation support */
+/* Active state: visible with animation */
 .tour-step.active {
-  display: flex !important; /* Must use !important to override inline styles if any */
-  visibility: visible !important;
-  opacity: 1 !important;
-  transform: translateY(0) !important;
-  animation: fadeInUpModal 0.4s ease-out forwards;
+  display: flex !important;
+  opacity: 1;
+  transform: translateY(0);
+  animation: tourFadeIn 0.4s ease-out forwards;
+}
+
+@keyframes tourFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Ensure first step visible when tour opens */
+.tour-step[data-step="1"].active {
+  display: flex !important;
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* ASCII Art Container Styling */
@@ -222,10 +247,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: var(--space-6);
+  margin-top: auto;
   padding-top: var(--space-4);
   border-top: 1px solid var(--color-slate-200);
   width: 100%;
+  position: relative;
+  z-index: 10;
+  background: var(--color-white);
 }
 
 .tour-dots {
@@ -254,9 +282,11 @@
 /* Ensure tour buttons are clickable */
 #tour-next, #tour-skip, #tour-close {
   position: relative;
-  z-index: 10;
+  z-index: 20;
+  cursor: pointer;
 }
 
+/* Mobile Responsiveness */
 @media (max-width: 480px) {
   .tour-nav {
     flex-direction: row;
@@ -270,6 +300,12 @@
   .tour-modal {
     margin: var(--space-4);
     max-height: calc(100vh - 2rem);
+    width: calc(100% - 2rem);
+  }
+  
+  .tour-body {
+    min-height: 350px;
+    padding: var(--space-4);
   }
   
   .ascii-container {
@@ -330,7 +366,6 @@
     opacity: 1 !important;
     transform: none !important;
     display: flex !important;
-    visibility: visible !important;
   }
   
   .process-arrow {

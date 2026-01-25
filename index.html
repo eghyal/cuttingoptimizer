@@ -40,7 +40,8 @@
   <body class="bg-slate-50 text-slate-800 page-loaded">
     
     <!-- Startup Tour Modal - ASCII STYLE -->
-    <div id="tour-modal" class="modal-backdrop hidden" role="dialog" aria-labelledby="tour-title" aria-modal="true">
+    <!-- Ditempatkan di awal body untuk z-index prioritas -->
+    <div id="tour-modal" class="modal-backdrop tour-backdrop hidden" role="dialog" aria-labelledby="tour-title" aria-modal="true" style="z-index: 9999;">
       <div class="modal-content tour-modal">
         <div class="modal-header">
           <h2 id="tour-title">Quick Start Guide</h2>
@@ -48,7 +49,7 @@
         </div>
         <div class="modal-body tour-body">
           <!-- Step 1: Choose Optimizer -->
-          <div class="tour-step" data-step="1">
+          <div class="tour-step" data-step="1" style="display: none;">
             <div class="tour-ascii-art">
               <div class="ascii-container">
                 <div class="ascii-row">
@@ -64,7 +65,7 @@
           </div>
           
           <!-- Step 2: Set Parameters -->
-          <div class="tour-step" data-step="2">
+          <div class="tour-step" data-step="2" style="display: none;">
             <div class="tour-ascii-art">
               <div class="ascii-container">
                 <div class="ascii-params">
@@ -87,7 +88,7 @@
           </div>
           
           <!-- Step 3: Add Items -->
-          <div class="tour-step" data-step="3">
+          <div class="tour-step" data-step="3" style="display: none;">
             <div class="tour-ascii-art">
               <div class="ascii-container">
                 <div class="ascii-list">
@@ -103,7 +104,7 @@
           </div>
           
           <!-- Step 4: Optimize & Export -->
-          <div class="tour-step" data-step="4">
+          <div class="tour-step" data-step="4" style="display: none;">
             <div class="tour-ascii-art">
               <div class="ascii-container">
                 <div class="ascii-process">
@@ -133,7 +134,7 @@
     </div>
 
     <!-- Shortcut Help Modal -->
-    <div id="shortcut-modal" class="modal-backdrop hidden" role="dialog" aria-labelledby="shortcut-title">
+    <div id="shortcut-modal" class="modal-backdrop hidden" role="dialog" aria-labelledby="shortcut-title" style="z-index: 9998;">
       <div class="modal-content shortcut-modal">
         <div class="modal-header">
           <h2 id="shortcut-title">Keyboard Shortcuts</h2>
@@ -309,7 +310,7 @@
     </div>
     
     <!-- Donation Modal -->
-    <div id="donation-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true">
+    <div id="donation-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" style="z-index: 9997;">
       <div class="modal-content">
         <div class="modal-header">
           <h2 class="modal-title">Support This Project</h2>
