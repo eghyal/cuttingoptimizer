@@ -1,4 +1,4 @@
-/* Optimizer Page Styles - FIXED SPACING */
+/* Optimizer Page Styles - NO ANIMATIONS VERSION */
 
 /* Bar Visualization */
 .bar-viz-container {
@@ -25,7 +25,6 @@
   color: var(--color-white);
   font-size: var(--text-xs);
   font-weight: var(--font-bold);
-  transition: opacity var(--transition-fast);
   position: relative;
 }
 
@@ -63,7 +62,6 @@
   font-size: var(--text-xs);
   font-weight: var(--font-bold);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
-  transition: opacity var(--transition-fast);
 }
 
 .plate-info {
@@ -74,7 +72,74 @@
   margin-top: var(--space-2);
 }
 
-/* Project Page Styles - FIXED SPACING */
+/* Detailed Cut List Table Styles - NEW */
+.detailed-cut-list-container {
+  margin-bottom: 1.5rem;
+  overflow-x: auto;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-slate-200);
+  background-color: var(--color-white);
+}
+
+.detailed-cut-list-table {
+  width: 100%;
+  font-size: 0.875rem;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.detailed-cut-list-table thead {
+  background-color: var(--color-slate-100);
+  border-bottom: 2px solid var(--color-slate-200);
+}
+
+.detailed-cut-list-table th {
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  color: var(--color-slate-700);
+  border-right: 1px solid var(--color-slate-200);
+  white-space: nowrap;
+}
+
+.detailed-cut-list-table th:last-child {
+  border-right: none;
+}
+
+.detailed-cut-list-table tbody tr {
+  border-bottom: 1px solid var(--color-slate-100);
+  transition: background-color 0.15s ease;
+}
+
+.detailed-cut-list-table tbody tr:hover {
+  background-color: var(--color-slate-50);
+}
+
+.detailed-cut-list-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.detailed-cut-list-table td {
+  padding: 0.75rem 1rem;
+  color: var(--color-slate-600);
+  border-right: 1px solid var(--color-slate-100);
+  vertical-align: middle;
+}
+
+.detailed-cut-list-table td:first-child {
+  color: var(--color-slate-800);
+  font-weight: 500;
+}
+
+.detailed-cut-list-table td:last-child {
+  border-right: none;
+}
+
+.detailed-cut-list-table .mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.875rem;
+}
+
+/* Project Page Styles */
 .project-header-section {
   margin-bottom: var(--space-3);
   display: flex;
@@ -118,7 +183,7 @@
   margin-bottom: var(--space-3);
 }
 
-/* Group Card */
+/* Group Card - NO ANIMATION */
 .group-card {
   background: var(--color-white);
   border-radius: var(--radius-xl);
@@ -249,7 +314,7 @@
   gap: var(--space-3);
 }
 
-/* Cut Item Row */
+/* Cut Item Row - NO ANIMATION */
 .cut-item-row {
   display: grid;
   grid-template-columns: 80px 1fr 1fr 100px auto 50px;
@@ -294,7 +359,7 @@
   min-width: 80px;
 }
 
-/* Add Group & Optimize Sections - REDUCED SPACING */
+/* Add Group & Optimize Sections */
 .add-group-section {
   margin: var(--space-2) 0;
 }
@@ -303,12 +368,13 @@
   margin: var(--space-2) 0;
 }
 
-/* Navigation Controls */
+/* Navigation Controls - NO ANIMATION */
 .nav-controls {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--space-4);
+  margin-top: var(--space-6);
 }
 
 .nav-title {
@@ -336,7 +402,6 @@
   background: none;
   cursor: pointer;
   color: var(--color-slate-600);
-  transition: all var(--transition-fast);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -361,7 +426,7 @@
   height: 1.25rem;
 }
 
-/* Project Results - Professional Layout */
+/* Project Results - NO ANIMATION */
 .group-results {
   display: grid;
   gap: var(--space-6);
@@ -373,11 +438,6 @@
   border-radius: var(--radius-xl);
   overflow: hidden;
   box-shadow: var(--shadow-md);
-  transition: box-shadow var(--transition-fast);
-}
-
-.group-result-card:hover {
-  box-shadow: var(--shadow-lg);
 }
 
 .group-result-header {
@@ -448,6 +508,13 @@
   .group-result-title {
     font-size: var(--text-lg);
   }
+  
+  /* Mobile table adjustments */
+  .detailed-cut-list-table th,
+  .detailed-cut-list-table td {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -469,187 +536,24 @@
   .group-result-stats {
     grid-template-columns: 1fr;
   }
-}
-
-/* Panel entrance animation */
-.panel {
-  animation: slideInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes slideInUp {
-  from {
-    opacity: 0;
-    transform: translateY(40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  
+  .detailed-cut-list-container {
+    border-radius: var(--radius-sm);
+    margin-bottom: 1rem;
   }
 }
 
-/* Form group stagger animation */
-.form-group {
-  animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
-}
-
-/* Item row animations */
-.item-row, .item-card-2d, .cut-item-row {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) backwards;
-}
-
-.item-row:hover, .item-card-2d:hover, .cut-item-row:hover {
-  background-color: var(--color-slate-50);
-  transform: translateX(4px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-/* Button press effect */
-.btn-primary:active, .btn-add:active {
-  transform: translateY(1px) scale(0.98);
-  transition: transform 0.1s ease;
-}
-
-/* Group card animations */
-.group-card {
-  animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
-}
-
-.group-card:hover {
-  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
-}
-
-/* Parameter input focus animation */
-.parameter-input:focus {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
-}
-
-/* Results view animations */
-.results-view {
-  animation: fadeIn 0.4s ease-out;
-}
-
+/* NO ANIMATIONS - Static only */
+.panel,
+.group-card,
+.group-result-card,
+.item-row, 
+.item-card-2d, 
+.cut-item-row,
+.bar-segment,
+.plate-item,
 .stat-card {
-  animation: scaleIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) backwards;
-}
-
-/* Bar segment animations */
-.bar-segment {
-  animation: expandWidth 0.6s cubic-bezier(0.4, 0, 0.2, 1) backwards;
-  transform-origin: left;
-}
-
-@keyframes expandWidth {
-  from {
-    transform: scaleX(0);
-    opacity: 0;
-  }
-  to {
-    transform: scaleX(1);
-    opacity: 1;
-  }
-}
-
-/* Plate item animations */
-.plate-item {
-  animation: scaleIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) backwards;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.plate-item:hover {
-  transform: scale(1.02);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  z-index: 10;
-}
-
-/* Navigation button animations */
-.nav-btn {
-  transition: all 0.2s ease;
-}
-
-.nav-btn:hover:not(:disabled) {
-  transform: scale(1.1);
-  background-color: var(--color-blue-100);
-  color: var(--color-blue-600);
-}
-
-/* Add item button pulse */
-#add-item-1d, #add-item-2d, #add-group {
-  position: relative;
-  overflow: hidden;
-}
-
-#add-item-1d::after, #add-item-2d::after, #add-group::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.3);
-  transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
-}
-
-#add-item-1d:active::after, #add-item-2d:active::after, #add-group:active::after {
-  width: 300px;
-  height: 300px;
-}
-
-/* Group result card animations */
-.group-result-card {
-  animation: slideInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.group-result-stat {
-  transition: transform 0.2s ease;
-}
-
-.group-result-stat:hover {
-  transform: translateY(-2px);
-}
-
-/* Loading progress animation */
-#progress-text {
-  display: inline-block;
-  min-width: 3rem;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-/* Smooth transitions for form elements */
-.form-input, .form-select, .parameter-input, .cut-item-input {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Empty state animation */
-.empty-groups {
-  animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Template link underline animation */
-.template-link {
-  position: relative;
-}
-
-.template-link::after {
-  content: '';
-  position: absolute;
-  width: 0;
-  height: 1px;
-  bottom: -2px;
-  left: 0;
-  background-color: currentColor;
-  transition: width 0.3s ease;
-}
-
-.template-link:hover::after {
-  width: 100%;
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
 }

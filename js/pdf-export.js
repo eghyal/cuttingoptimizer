@@ -41,7 +41,6 @@
       margin = margin || 20;
       if (y > 297 - margin) {
           pdf.addPage();
-          // Add small header for continued tables
           pdf.setFontSize(9);
           pdf.setFont('helvetica', 'italic');
           pdf.setTextColor(FONT_COLOR_MEDIUM);
@@ -173,9 +172,15 @@
   }
 
   // ============================================================================
-  // 1D PDF EXPORT - Fixed Table Layout
+  // 1D PDF EXPORT - FIXED
   // ============================================================================
   function export1DToPDF(result, formData) {
+      // Check if jsPDF is available
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+          alert('PDF Export Error: jsPDF library not loaded. Please check your internet connection.');
+          return;
+      }
+      
       var { jsPDF } = window.jspdf;
       var pdf = new jsPDF('p', 'mm', 'a4');
       var y = 20;
@@ -264,7 +269,7 @@
 
       y = drawTable(pdf, y, cutListHeaders, cutListData, [30, 50, 30, 70]);
 
-      // Bar Results - Fixed to match 1d.html layout
+      // Bar Results - FIXED
       pdf.addPage();
       y = 25;
       y = drawSectionTitle(pdf, 'BAR CUTTING RESULTS', y);
@@ -272,14 +277,16 @@
       var barHeaders = ['Bar', 'Used Length', 'Waste', 'Efficiency', 'Cut Details'];
       
       var barData = result.bars.map(function(bar) {
+          // FIXED: Use originalId as key, not originalLength
           var detailsMap = new Map();
           bar.items.forEach(function(item) {
-              var count = detailsMap.get(item.originalLength) || 0;
-              detailsMap.set(item.originalLength, count + 1);
+              var key = item.originalId + ' (' + item.originalLength + 'mm)';
+              var count = detailsMap.get(key) || 0;
+              detailsMap.set(key, count + 1);
           });
           var details = Array.from(detailsMap.entries())
               .map(function(entry) { 
-                  return entry[0] + 'mm (' + entry[1] + 'x' + bar.items.find(i => i.originalId === entry[0]).originalLength + 'mm)'; 
+                  return entry[1] + 'x ' + entry[0]; 
               })
               .join(', ');
           
@@ -303,9 +310,15 @@
   }
 
   // ============================================================================
-  // 2D PDF EXPORT - Fixed Plate Visualization
+  // 2D PDF EXPORT - Enhanced with Detailed Item Information
   // ============================================================================
   function export2DToPDF(result, formData, itemColors) {
+      // Check if jsPDF is available
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+          alert('PDF Export Error: jsPDF library not loaded. Please check your internet connection.');
+          return;
+      }
+      
       var { jsPDF } = window.jspdf;
       var pdf = new jsPDF('p', 'mm', 'a4');
       var y = 20;
@@ -394,8 +407,30 @@
 
       y = drawTable(pdf, y, cutListHeaders, cutListData, [20, 30, 30, 30, 70]);
 
-      // Visualization Pages - Fixed to match 2d.html
-      if (result.plates.length > 0) {
+      // NEW: Detailed Items List (Plate by Plate)
+      pdf.addPage();
+      y = 25;
+      y = drawSectionTitle(pdf, 'DETAILED CUT LIST BY PLATE', y);
+      
+      var detailHeaders = ['Plate', 'Item ID', 'Dimensions', 'Position (X,Y)', 'Rotated'];
+      
+      var detailData = [];
+      result.plates.forEach(function(plate) {
+          plate.items.forEach(function(item) {
+              detailData.push([
+                  plate.id,
+                  item.originalId,
+                  item.originalWidth + '×' + item.originalHeight + ' mm',
+                  item.x + ', ' + item.y,
+                  item.rotated ? 'Yes' : 'No'
+              ]);
+          });
+      });
+      
+      y = drawTable(pdf, y, detailHeaders, detailData, [25, 30, 40, 35, 25]);
+
+      // Visualization Pages - Fixed
+      if (result.plates && result.plates.length > 0) {
           pdf.addPage();
           var vizY = 25;
           
@@ -437,30 +472,38 @@
               pdf.rect(PAGE_MARGIN, vizBoxY, vizWidth, vizHeight, 'D');
 
               // Draw items with consistent colors
-              plate.items.forEach(function(item) {
-                  var itemX = PAGE_MARGIN + (item.x / formData.plateWidth) * vizWidth;
-                  var itemY = vizBoxY + (item.y / formData.plateHeight) * vizHeight;
-                  var itemW = (item.width / formData.plateWidth) * vizWidth;
-                  var itemH = (item.height / formData.plateHeight) * vizHeight;
-                  
-                  // FIXED: Use itemColors from parameter for consistency
-                  var color = itemColors.get(item.originalId) || '#3b82f6';
-                  var rgb = color.match(/\w\w/g).map(function(val) { return parseInt(val, 16); });
+              if (plate.items && plate.items.length > 0) {
+                  plate.items.forEach(function(item) {
+                      var itemX = PAGE_MARGIN + (item.x / formData.plateWidth) * vizWidth;
+                      var itemY = vizBoxY + (item.y / formData.plateHeight) * vizHeight;
+                      var itemW = (item.width / formData.plateWidth) * vizWidth;
+                      var itemH = (item.height / formData.plateHeight) * vizHeight;
+                      
+                      // Get color from Map or use default
+                      var color = '#3b82f6';
+                      if (itemColors && itemColors instanceof Map && itemColors.has(item.originalId)) {
+                          color = itemColors.get(item.originalId);
+                      } else if (itemColors && typeof itemColors === 'object' && itemColors[item.originalId]) {
+                          color = itemColors[item.originalId];
+                      }
+                      
+                      var rgb = hexToRgb(color) || {r: 59, g: 130, b: 246};
 
-                  pdf.setFillColor(rgb[0], rgb[1], rgb[2]);
-                  pdf.rect(itemX, itemY, itemW, itemH, 'F');
-                  pdf.setDrawColor(255, 255, 255);
-                  pdf.setLineWidth(0.2);
-                  pdf.rect(itemX, itemY, itemW, itemH, 'D');
-                  
-                  if (itemW > 10 && itemH > 8) {
-                      pdf.setFontSize(7);
-                      pdf.setTextColor(255, 255, 255);
-                      var label = item.originalId;
-                      if(item.rotated) label = 'R\n' + label;
-                      pdf.text(label, itemX + itemW / 2, itemY + itemH / 2, { align: 'center', baseline: 'middle' });
-                  }
-              });
+                      pdf.setFillColor(rgb.r, rgb.g, rgb.b);
+                      pdf.rect(itemX, itemY, itemW, itemH, 'F');
+                      pdf.setDrawColor(255, 255, 255);
+                      pdf.setLineWidth(0.2);
+                      pdf.rect(itemX, itemY, itemW, itemH, 'D');
+                      
+                      if (itemW > 10 && itemH > 8) {
+                          pdf.setFontSize(7);
+                          pdf.setTextColor(255, 255, 255);
+                          var label = item.originalId;
+                          if(item.rotated) label = 'R\n' + label;
+                          pdf.text(label, itemX + itemW / 2, itemY + itemH / 2, { align: 'center', baseline: 'middle' });
+                      }
+                  });
+              }
           });
       }
 
@@ -472,10 +515,26 @@
       pdf.save('2D_Report_' + new Date().toISOString().slice(0, 10) + '.pdf');
   }
 
+  // Helper function to convert hex to RGB
+  function hexToRgb(hex) {
+      var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+          r: parseInt(result[1], 16),
+          g: parseInt(result[2], 16),
+          b: parseInt(result[3], 16)
+      } : null;
+  }
+
   // ============================================================================
-  // PROJECT PDF EXPORT - Enhanced with Proper Visualizations
+  // PROJECT PDF EXPORT - Enhanced with Proper Visualizations and 2D Details
   // ============================================================================
   function exportProjectToPDF(results) {
+      // Check if jsPDF is available
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+          alert('PDF Export Error: jsPDF library not loaded. Please check your internet connection.');
+          return;
+      }
+      
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF('p', 'mm', 'a4');
       let y = 20;
@@ -554,7 +613,7 @@
           const is1D = res.type === '1d';
           const group = res.group;
           
-          // NEW: Page break before each group (except the first one)
+          // Page break before each group (except the first one)
           if (groupIndex > 0) {
               pdf.addPage();
               y = 25;
@@ -631,68 +690,100 @@
 
               drawTable(pdf, y, barHeaders, barData, [25, 35, 30, 25, 65]);
           } else {
-              // 2D Plate visualization - multiple plates per page
-              res.result.plates.forEach(function(plate, plateIndex) {
-                  // Page break every 2 plates
-                  if (plateIndex > 0 && plateIndex % 2 === 0) {
-                      pdf.addPage();
-                      y = 25;
-                      pdf.setFontSize(12);
-                      pdf.setFont('helvetica', 'bold');
-                      pdf.text('Plate Layouts (continued)', PAGE_MARGIN, y);
-                      y += 8;
-                  }
-                  
-                  var currentY = (plateIndex % 2 === 0) ? y + 8 : y + 125;
-                  
-                  // Plate title
-                  pdf.setFontSize(10);
-                  pdf.setFont('helvetica', 'bold');
-                  pdf.setTextColor(FONT_COLOR_DARK);
-                  pdf.text('Plate ' + plate.id, PAGE_MARGIN, currentY);
-                  
-                  pdf.setFontSize(9);
-                  pdf.setFont('helvetica', 'normal');
-                  pdf.setTextColor(FONT_COLOR_MEDIUM);
-                  pdf.text('Eff: ' + plate.getEfficiency() + '% | Items: ' + plate.items.length + ' | Waste: ' + plate.getWasteArea().toLocaleString() + ' mm²', PAGE_MARGIN, currentY + 5);
-
-                  // Visualization box
-                  var vizWidth = 180;
-                  var plateAspectRatio = group.parameters.plateHeight / group.parameters.plateWidth;
-                  var vizHeight = Math.min(vizWidth * plateAspectRatio, 95);
-                  var vizBoxY = currentY + 10;
-
-                  pdf.setDrawColor(BORDER_COLOR);
-                  pdf.rect(PAGE_MARGIN, vizBoxY, vizWidth, vizHeight, 'D');
-
-                  // Draw items with consistent colors
+              // NEW: 2D Detailed item table before visualization
+              var detailHeaders = ['Plate', 'Item ID', 'Dimensions', 'Position', 'Rotated'];
+              var detailData = [];
+              
+              res.result.plates.forEach(function(plate) {
                   plate.items.forEach(function(item) {
-                      var itemX = PAGE_MARGIN + (item.x / group.parameters.plateWidth) * vizWidth;
-                      var itemY = vizBoxY + (item.y / group.parameters.plateHeight) * vizHeight;
-                      var itemW = (item.width / group.parameters.plateWidth) * vizWidth;
-                      var itemH = (item.height / group.parameters.plateHeight) * vizHeight;
-                      
-                      var color = itemColors.get(item.originalId) || '#3b82f6';
-                      var rgb = color.match(/\w\w/g).map(function(val) { return parseInt(val, 16); });
-
-                      pdf.setFillColor(rgb[0], rgb[1], rgb[2]);
-                      pdf.rect(itemX, itemY, itemW, itemH, 'F');
-                      pdf.setDrawColor(255, 255, 255);
-                      pdf.setLineWidth(0.2);
-                      pdf.rect(itemX, itemY, itemW, itemH, 'D');
-                      
-                      if (itemW > 10 && itemH > 8) {
-                          pdf.setFontSize(7);
-                          pdf.setTextColor(255, 255, 255);
-                          var label = item.rotated ? 'R\n' + item.originalId : item.originalId;
-                          pdf.text(label, itemX + itemW / 2, itemY + itemH / 2, { align: 'center', baseline: 'middle' });
-                      }
+                      detailData.push([
+                          plate.id,
+                          item.originalId,
+                          item.originalWidth + '×' + item.originalHeight + ' mm',
+                          item.x + ', ' + item.y,
+                          item.rotated ? 'Yes' : 'No'
+                      ]);
                   });
               });
+              
+              if (detailData.length > 0) {
+                  y = drawTable(pdf, y, detailHeaders, detailData, [25, 30, 40, 35, 25]);
+                  y += 5;
+              }
+              
+              // 2D Plate visualization - multiple plates per page
+              if (res.result.plates && res.result.plates.length > 0) {
+                  pdf.addPage();
+                  y = 25;
+                  pdf.setFontSize(12);
+                  pdf.setFont('helvetica', 'bold');
+                  pdf.text('Plate Visualizations', PAGE_MARGIN, y);
+                  y += 10;
+                  
+                  res.result.plates.forEach(function(plate, plateIndex) {
+                      // Page break every 2 plates
+                      if (plateIndex > 0 && plateIndex % 2 === 0) {
+                          pdf.addPage();
+                          y = 25;
+                          pdf.setFontSize(12);
+                          pdf.setFont('helvetica', 'bold');
+                          pdf.text('Plate Visualizations (continued)', PAGE_MARGIN, y);
+                          y += 10;
+                      }
+                      
+                      var currentY = (plateIndex % 2 === 0) ? y : y + 125;
+                      
+                      // Plate title
+                      pdf.setFontSize(10);
+                      pdf.setFont('helvetica', 'bold');
+                      pdf.setTextColor(FONT_COLOR_DARK);
+                      pdf.text('Plate ' + plate.id, PAGE_MARGIN, currentY);
+                      
+                      pdf.setFontSize(9);
+                      pdf.setFont('helvetica', 'normal');
+                      pdf.setTextColor(FONT_COLOR_MEDIUM);
+                      pdf.text('Eff: ' + plate.getEfficiency() + '% | Items: ' + plate.items.length + ' | Waste: ' + plate.getWasteArea().toLocaleString() + ' mm²', PAGE_MARGIN, currentY + 5);
+
+                      // Visualization box
+                      var vizWidth = 180;
+                      var plateAspectRatio = group.parameters.plateHeight / group.parameters.plateWidth;
+                      var vizHeight = Math.min(vizWidth * plateAspectRatio, 95);
+                      var vizBoxY = currentY + 10;
+
+                      pdf.setDrawColor(BORDER_COLOR);
+                      pdf.rect(PAGE_MARGIN, vizBoxY, vizWidth, vizHeight, 'D');
+
+                      // Draw items with consistent colors
+                      if (plate.items && plate.items.length > 0) {
+                          plate.items.forEach(function(item) {
+                              var itemX = PAGE_MARGIN + (item.x / group.parameters.plateWidth) * vizWidth;
+                              var itemY = vizBoxY + (item.y / group.parameters.plateHeight) * vizHeight;
+                              var itemW = (item.width / group.parameters.plateWidth) * vizWidth;
+                              var itemH = (item.height / group.parameters.plateHeight) * vizHeight;
+                              
+                              var color = itemColors.get(item.originalId) || '#3b82f6';
+                              var rgb = hexToRgb(color) || {r: 59, g: 130, b: 246};
+
+                              pdf.setFillColor(rgb.r, rgb.g, rgb.b);
+                              pdf.rect(itemX, itemY, itemW, itemH, 'F');
+                              pdf.setDrawColor(255, 255, 255);
+                              pdf.setLineWidth(0.2);
+                              pdf.rect(itemX, itemY, itemW, itemH, 'D');
+                              
+                              if (itemW > 10 && itemH > 8) {
+                                  pdf.setFontSize(7);
+                                  pdf.setTextColor(255, 255, 255);
+                                  var label = item.rotated ? 'R\n' + item.originalId : item.originalId;
+                                  pdf.text(label, itemX + itemW / 2, itemY + itemH / 2, { align: 'center', baseline: 'middle' });
+                              }
+                          });
+                      }
+                  });
+              }
           }
           
           // Move y to bottom for next iteration
-          y = 250; // Reset for next group visualization
+          y = 250;
       });
 
       // Donation Page
@@ -708,5 +799,5 @@
   window.export2DToPDF = export2DToPDF;
   window.exportProjectToPDF = exportProjectToPDF;
 
-  console.log('✅ PDF Export module loaded - Fixed visualizations, no undo/redo');
+  console.log('✅ PDF Export module loaded - Fixed bugs, no animations, enhanced 2D details');
 })(window);

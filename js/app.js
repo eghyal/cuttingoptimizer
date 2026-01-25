@@ -1,9 +1,3 @@
-/**
- * Main Application - Modal, Navigation & Tour
- * Enhanced: Startup tour with ASCII Art styling - FIXED VERSION
- * FIXED: Added event listeners for optimizer page donate buttons
- */
-
 (function() {
   'use strict';
 
@@ -196,6 +190,19 @@
         var ctrlOrMeta = e.ctrlKey || e.metaKey;
         var altKey = e.altKey;
         
+        // Handle Ctrl+I for Import Excel (only on project page)
+        if (ctrlOrMeta && key === 'i') {
+          e.preventDefault();
+          var fileInput = document.getElementById('excel-file');
+          if (fileInput) {
+            fileInput.click();
+            if (window.AccessibilityManager) {
+              window.AccessibilityManager.announce('Import Excel dialog opened.');
+            }
+          }
+          return;
+        }
+        
         // Allow ? shortcut even in inputs
         if (e.key === '?' && !ctrlOrMeta && !altKey) {
           e.preventDefault();
@@ -233,7 +240,7 @@
               window.location.href = 'pages/2d.html';
             }
             break;
-          case 'p':
+          case '3':
             if (!altKey && !ctrlOrMeta && isHomePage) {
               e.preventDefault();
               window.location.href = 'pages/prj.html';
@@ -248,7 +255,8 @@
               if (addBtn) addBtn.click();
             }
             break;
-          case 'o':
+          case ' ':
+          case 'spacebar':
             if (!altKey && !ctrlOrMeta) {
               e.preventDefault();
               var optimizeBtn = document.getElementById('optimize-1d') || 
@@ -299,6 +307,14 @@
     setupNumericValidation: function() {
       var self = this;
       document.addEventListener('keydown', function(e) {
+        // FIXED: Skip validation for ID fields and group name fields (allow strings)
+        if (e.target.classList.contains('item-input-id') || 
+            e.target.classList.contains('item-input-2d-id') ||
+            e.target.classList.contains('cut-item-id') ||
+            e.target.classList.contains('group-name-input')) {
+          return;
+        }
+        
         // Only validate numeric inputs
         if (!e.target.classList.contains('numeric-only') && 
             !e.target.classList.contains('item-input') &&
@@ -326,6 +342,14 @@
       
       // Additional validation for paste events
       document.addEventListener('paste', function(e) {
+        // FIXED: Skip validation for ID fields and group name fields
+        if (e.target.classList.contains('item-input-id') || 
+            e.target.classList.contains('item-input-2d-id') ||
+            e.target.classList.contains('cut-item-id') ||
+            e.target.classList.contains('group-name-input')) {
+          return;
+        }
+        
         if (!e.target.classList.contains('numeric-only') && 
             !e.target.classList.contains('item-input') &&
             !e.target.classList.contains('cut-item-input')) {
@@ -430,7 +454,7 @@
         var self = this;
         setTimeout(function() {
           self.openTour();
-        }, 1000);
+        }, 1500); // Increased delay to ensure all animations are ready
       }
     },
     
@@ -438,11 +462,16 @@
       console.log('🎯 Opening tour...');
       this.tourStep = 1;
       this.openModal('tour-modal');
-      // Update tour step after modal is visible
+      // Update tour step after modal is visible - use longer delay for animation sync
       var self = this;
       setTimeout(function() {
         self.updateTourStep();
-      }, 100);
+        // Force reflow to ensure CSS animations trigger
+        var steps = document.querySelectorAll('.tour-step');
+        steps.forEach(function(step) {
+          void step.offsetHeight; // Trigger reflow
+        });
+      }, 300);
     },
     
     closeTour: function() {
@@ -472,6 +501,7 @@
         var stepNum = parseInt(step.dataset.step);
         if (stepNum === self.tourStep) {
           step.classList.add('active');
+          // Ensure display is set properly for animation
           step.style.display = 'flex';
         } else {
           step.classList.remove('active');
@@ -622,5 +652,5 @@
   `;
   document.head.appendChild(style);
 
-  console.log('✅ App script loaded with ASCII Art Tour functionality - Fixed donate buttons for all pages');
+  console.log('✅ App script loaded with updated shortcuts: 1->1D, 2->2D, 3->Project, Space->Optimize, Ctrl+I->Import');
 })();

@@ -179,7 +179,7 @@
   justify-content: center;
   color: var(--color-white);
   transition: background-color var(--transition-fast);
-  margin-bottom: var(--space-3); /* REDUCED from var(--space-4) */
+  margin-bottom: var(--space-3);
 }
 
 .info-card:hover .card-icon {
@@ -193,7 +193,7 @@
 
 /* Card Content - FIXED SPACING */
 .card-content {
-  margin-top: var(--space-3); /* REDUCED from var(--space-4) */
+  margin-top: var(--space-3);
   min-width: 0;
   flex: 1;
   position: relative;
@@ -203,7 +203,7 @@
   font-size: var(--text-lg);
   font-weight: var(--font-semibold);
   color: var(--color-slate-800);
-  margin-bottom: var(--space-2); /* ADDED SPACING */
+  margin-bottom: var(--space-2);
 }
 
 .info-card:hover .card-title {
@@ -227,6 +227,20 @@
   font-weight: var(--font-semibold);
   border-radius: var(--radius-full);
   margin-left: var(--space-2);
+}
+
+/* Stable Badge - UPDATED with Lighter Greenish-Gray Background */
+.badge-stable {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  background: #d8e0d8; /* Hijau abu-abu lebih cerah */
+  color: #3d5c3d; /* Hijau gelap untuk kontras yang baik */
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  border-radius: var(--radius-full);
+  margin-left: var(--space-2);
+  border: 1px solid #c5d1c5;
 }
 
 /* Hover Shortcut Hint - NEW FEATURE */
@@ -435,5 +449,85 @@
   
   .info-card:hover {
     transform: translateY(-4px);
+  }
+}
+
+/* ============================================
+   ICON FLOAT ANIMATIONS - NON-SYNCHRONIZED
+   ============================================ */
+
+/* Vertical Float Animation - for 1D Optimizer */
+.icon-animate-v {
+  animation: float-vertical 6s ease-in-out infinite;
+}
+
+/* Horizontal Float Animation - for 2D Optimizer */
+.icon-animate-h {
+  animation: float-horizontal 7s ease-in-out infinite;
+  animation-direction: alternate-reverse;
+}
+
+/* Diagonal Float Animation - for Project Optimizer */
+.icon-animate-d {
+  animation: float-diagonal 8s ease-in-out infinite;
+}
+
+/* Keyframes for Vertical Movement (Up-Down) */
+@keyframes float-vertical {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+  }
+  25% {
+    transform: translateY(-6px) translateX(2px);
+  }
+  50% {
+    transform: translateY(-12px) translateX(0);
+  }
+  75% {
+    transform: translateY(-6px) translateX(-2px);
+  }
+}
+
+/* Keyframes for Horizontal Movement (Left-Right) */
+@keyframes float-horizontal {
+  0%, 100% {
+    transform: translateX(0) translateY(0);
+  }
+  25% {
+    transform: translateX(8px) translateY(-3px);
+  }
+  50% {
+    transform: translateX(12px) translateY(0);
+  }
+  75% {
+    transform: translateX(8px) translateY(3px);
+  }
+}
+
+/* Keyframes for Diagonal Movement (Complex Path) */
+@keyframes float-diagonal {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(6px, -6px);
+  }
+  40% {
+    transform: translate(10px, 0);
+  }
+  60% {
+    transform: translate(4px, 8px);
+  }
+  80% {
+    transform: translate(-4px, 4px);
+  }
+}
+
+/* Ensure animations respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .icon-animate-v,
+  .icon-animate-h,
+  .icon-animate-d {
+    animation: none;
   }
 }

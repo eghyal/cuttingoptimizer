@@ -180,7 +180,7 @@
   };
 
   // ============================================================================
-  // 1D OPTIMIZER UI MANAGER
+  // 1D OPTIMIZER UI MANAGER - NO ANIMATIONS
   // ============================================================================
 
   function Optimizer1DManager() {
@@ -270,22 +270,6 @@
       });
     }
     
-    // Back to form button
-    var backBtn = document.getElementById('back-to-form-1d');
-    if (backBtn) {
-      backBtn.addEventListener('click', function() {
-        self.backToForm();
-      });
-    }
-    
-    // Export PDF button
-    var exportBtn = document.getElementById('export-pdf-1d');
-    if (exportBtn) {
-      exportBtn.addEventListener('click', function() {
-        self.exportToPDF();
-      });
-    }
-    
     // FIXED: Use closest() to handle clicks on child elements (SVGs)
     document.addEventListener('click', function(e) {
       var prevBtn = e.target.closest('#prev-bar-1d');
@@ -353,7 +337,7 @@
     if (!item) return;
 
     if (field === 'id') {
-      item[field] = value;
+      item[field] = value; // Allow string values for ID
     } else {
       // Allow empty values for placeholders
       if (value === '') {
@@ -460,35 +444,33 @@
     }.bind(this));
     
     var self = this;
-    setTimeout(function() {
-      try {
-        var optimizer = new CuttingOptimizer1D(self.algorithm);
-        self.result = optimizer.optimize(processedItems, self.materialLength);
-        self.formData = {
-          items: self.items,
-          materialLength: self.materialLength,
-          kerfWidth: self.kerfWidth,
-          algorithm: self.algorithm
-        };
-        
-        self.renderResults();
-        
-        // Announce success to screen readers
-        if (window.AccessibilityManager) {
-          window.AccessibilityManager.announce('Optimization completed. ' + self.result.totalBars + ' bars required.');
-        }
-        
-      } catch (error) {
-        console.error('❌ Optimization error:', error);
-        self.showError('An error occurred during optimization: ' + error.message);
-        
-        if (window.AccessibilityManager) {
-          window.AccessibilityManager.announce('Optimization failed: ' + error.message);
-        }
-      } finally {
-        self.setLoading(false);
+    // NO ANIMATION - Process immediately
+    try {
+      var optimizer = new CuttingOptimizer1D(self.algorithm);
+      self.result = optimizer.optimize(processedItems, self.materialLength);
+      self.formData = {
+        items: self.items,
+        materialLength: self.materialLength,
+        kerfWidth: self.kerfWidth,
+        algorithm: self.algorithm
+      };
+      
+      self.renderResults();
+      
+      if (window.AccessibilityManager) {
+        window.AccessibilityManager.announce('Optimization completed. ' + self.result.totalBars + ' bars required.');
       }
-    }, 300);
+      
+    } catch (error) {
+      console.error('❌ Optimization error:', error);
+      self.showError('An error occurred during optimization: ' + error.message);
+      
+      if (window.AccessibilityManager) {
+        window.AccessibilityManager.announce('Optimization failed: ' + error.message);
+      }
+    } finally {
+      self.setLoading(false);
+    }
   };
 
   Optimizer1DManager.prototype.renderResults = function() {
@@ -583,7 +565,7 @@
     var exportBtn = document.getElementById('export-pdf-1d');
     if (exportBtn) exportBtn.addEventListener('click', this.exportToPDF.bind(this));
     
-    resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    resultsContainer.scrollIntoView({ behavior: 'auto', block: 'start' });
   };
 
   Optimizer1DManager.prototype.renderBarVisualization = function() {
@@ -661,7 +643,7 @@
     this.currentBarIndex = 0;
     this.itemColors.clear();
     
-    formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    formContainer.scrollIntoView({ behavior: 'auto', block: 'start' });
   };
 
   Optimizer1DManager.prototype.exportToPDF = function() {
@@ -674,7 +656,6 @@
       if (typeof window.export1DToPDF === 'function') {
         window.export1DToPDF(this.result, this.formData);
         
-        // Announce to screen readers
         if (window.AccessibilityManager) {
           window.AccessibilityManager.announce('PDF export started. Download will begin shortly.');
         }
@@ -697,10 +678,8 @@
     var optimizeBtn = document.getElementById('optimize-1d');
     if (optimizeBtn) {
       if (loading) {
-        optimizeBtn.classList.add('btn-loading');
         optimizeBtn.disabled = true;
       } else {
-        optimizeBtn.classList.remove('btn-loading');
         optimizeBtn.disabled = false;
       }
     }
@@ -745,15 +724,15 @@
     document.addEventListener('DOMContentLoaded', function() {
       if (document.getElementById('optimizer-1d-form')) {
         window.optimizer1D = new Optimizer1DManager();
-        console.log('✅ 1D Optimizer initialized - Undo/Redo not implemented');
+        console.log('✅ 1D Optimizer initialized - No animations');
       }
     });
   } else {
     if (document.getElementById('optimizer-1d-form')) {
       window.optimizer1D = new Optimizer1DManager();
-      console.log('✅ 1D Optimizer initialized - Undo/Redo not implemented');
+      console.log('✅ 1D Optimizer initialized - No animations');
     }
   }
 
-  console.log('✅ 1D Optimizer script loaded - No undo/redo');
+  console.log('✅ 1D Optimizer script loaded - No animations');
 })(window, document);

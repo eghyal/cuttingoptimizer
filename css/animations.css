@@ -231,3 +231,83 @@ html {
     transform: none !important;
   }
 }
+
+/* ============================================
+   ICON FLOAT ANIMATIONS - NON-SYNCHRONIZED
+   ============================================ */
+
+/* Vertical Float Animation - for 1D Optimizer */
+.icon-animate-v {
+  animation: float-vertical 6s ease-in-out infinite;
+}
+
+/* Horizontal Float Animation - for 2D Optimizer */
+.icon-animate-h {
+  animation: float-horizontal 7s ease-in-out infinite;
+  animation-direction: alternate-reverse;
+}
+
+/* Diagonal Float Animation - for Project Optimizer */
+.icon-animate-d {
+  animation: float-diagonal 8s ease-in-out infinite;
+}
+
+/* Keyframes for Vertical Movement (Up-Down) */
+@keyframes float-vertical {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+  }
+  25% {
+    transform: translateY(-6px) translateX(2px);
+  }
+  50% {
+    transform: translateY(-12px) translateX(0);
+  }
+  75% {
+    transform: translateY(-6px) translateX(-2px);
+  }
+}
+
+/* Keyframes for Horizontal Movement (Left-Right) */
+@keyframes float-horizontal {
+  0%, 100% {
+    transform: translateX(0) translateY(0);
+  }
+  25% {
+    transform: translateX(8px) translateY(-3px);
+  }
+  50% {
+    transform: translateX(12px) translateY(0);
+  }
+  75% {
+    transform: translateX(8px) translateY(3px);
+  }
+}
+
+/* Keyframes for Diagonal Movement (Complex Path) */
+@keyframes float-diagonal {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(6px, -6px);
+  }
+  40% {
+    transform: translate(10px, 0);
+  }
+  60% {
+    transform: translate(4px, 8px);
+  }
+  80% {
+    transform: translate(-4px, 4px);
+  }
+}
+
+/* Ensure animations respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .icon-animate-v,
+  .icon-animate-h,
+  .icon-animate-d {
+    animation: none;
+  }
+}

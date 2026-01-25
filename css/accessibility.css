@@ -13,23 +13,22 @@
   flex-direction: column;
 }
 
-/* CRITICAL FIX: Ensure steps are properly hidden but visible when active */
+/* CRITICAL FIX: Tour steps initial state - hidden but animatable */
 .tour-step {
-  display: none;
+  display: none; /* Hidden by default using display:none */
   opacity: 0;
   transform: translateY(20px);
   visibility: hidden;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  flex: 1;
-  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  flex: 1;
+  /* Removed conflicting flex:1 and display:flex that were here before */
 }
 
-/* CRITICAL FIX: Active step must be visible immediately with animation enhancement */
+/* CRITICAL FIX: Active step visibility with animation support */
 .tour-step.active {
-  display: flex !important;
+  display: flex !important; /* Must use !important to override inline styles if any */
   visibility: visible !important;
   opacity: 1 !important;
   transform: translateY(0) !important;

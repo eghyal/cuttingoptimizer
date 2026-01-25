@@ -48,13 +48,13 @@
         </div>
         <div class="modal-body tour-body">
           <!-- Step 1: Choose Optimizer -->
-          <div class="tour-step" data-step="1" style="display: none;">
+          <div class="tour-step" data-step="1">
             <div class="tour-ascii-art">
               <div class="ascii-container">
                 <div class="ascii-row">
                   <span class="ascii-box large">1</span>
                   <span class="ascii-box large">2</span>
-                  <span class="ascii-box large">P</span>
+                  <span class="ascii-box large">3</span>
                 </div>
                 <div class="ascii-label">SELECT MODE</div>
               </div>
@@ -64,7 +64,7 @@
           </div>
           
           <!-- Step 2: Set Parameters -->
-          <div class="tour-step" data-step="2" style="display: none;">
+          <div class="tour-step" data-step="2">
             <div class="tour-ascii-art">
               <div class="ascii-container">
                 <div class="ascii-params">
@@ -87,7 +87,7 @@
           </div>
           
           <!-- Step 3: Add Items -->
-          <div class="tour-step" data-step="3" style="display: none;">
+          <div class="tour-step" data-step="3">
             <div class="tour-ascii-art">
               <div class="ascii-container">
                 <div class="ascii-list">
@@ -103,7 +103,7 @@
           </div>
           
           <!-- Step 4: Optimize & Export -->
-          <div class="tour-step" data-step="4" style="display: none;">
+          <div class="tour-step" data-step="4">
             <div class="tour-ascii-art">
               <div class="ascii-container">
                 <div class="ascii-process">
@@ -151,12 +151,15 @@
               <kbd>2</kbd> <span>2D Optimizer</span>
             </div>
             <div class="shortcut-item" style="animation-delay: 0.4s">
-              <kbd>P</kbd> <span>Project Optimizer</span>
+              <kbd>3</kbd> <span>Project Optimizer</span>
             </div>
             <div class="shortcut-item" style="animation-delay: 0.5s">
-              <kbd>O</kbd> <span>Optimize</span>
+              <kbd>Space</kbd> <span>Optimize</span>
             </div>
             <div class="shortcut-item" style="animation-delay: 0.6s">
+              <kbd>Ctrl+I</kbd> <span>Import Excel (Project)</span>
+            </div>
+            <div class="shortcut-item" style="animation-delay: 0.7s">
               <kbd>?</kbd> <span>Show this help</span>
             </div>
           </div>
@@ -207,9 +210,9 @@
                     <span class="ascii-key">?</span> Help
                     <span class="ascii-key">1</span> 1D
                     <span class="ascii-key">2</span> 2D
-                    <span class="ascii-key">P</span> Project
+                    <span class="ascii-key">3</span> Project
                     <span class="ascii-key">H</span> Home
-                    <span class="ascii-key">O</span> Optimize
+                    <span class="ascii-key">Space</span> Optimize
                   </div>
                 </div>
               </div>
@@ -217,41 +220,41 @@
             
             <div class="cards-grid">
               <a href="pages/1d.html" class="info-card animate-on-load" data-shortcut="1" tabindex="0" aria-label="Open 1D Optimizer" style="animation-delay: 0.3s">
-                <div class="card-icon">
+                <div class="card-icon icon-animate-v">
                   <svg class="card-icon-svg minus-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
                   </svg>
                 </div>
                 <div class="card-content">
-                  <h3 class="card-title">1D Optimizer</h3>
+                  <h3 class="card-title">1D Optimizer <span class="badge-stable">Stable</span></h3>
                   <p class="card-description">Optimize linear cuts for bars, pipes, and beams.</p>
                   <span class="shortcut-hover-hint">1</span>
                 </div>
               </a>
               
               <a href="pages/2d.html" class="info-card animate-on-load" data-shortcut="2" tabindex="0" aria-label="Open 2D Optimizer" style="animation-delay: 0.4s">
-                <div class="card-icon">
+                <div class="card-icon icon-animate-h">
                   <svg class="card-icon-svg square-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h16v16H4z" />
                   </svg>
                 </div>
                 <div class="card-content">
-                  <h3 class="card-title">2D Optimizer</h3>
+                  <h3 class="card-title">2D Optimizer <span class="badge-stable">Stable</span></h3>
                   <p class="card-description">Efficiently arrange rectangular parts on sheets and plates.</p>
                   <span class="shortcut-hover-hint">2</span>
                 </div>
               </a>
               
-              <a href="pages/prj.html" class="info-card animate-on-load" data-shortcut="P" tabindex="0" aria-label="Open Project Optimizer" style="animation-delay: 0.5s">
-                <div class="card-icon">
+              <a href="pages/prj.html" class="info-card animate-on-load" data-shortcut="3" tabindex="0" aria-label="Open Project Optimizer" style="animation-delay: 0.5s">
+                <div class="card-icon icon-animate-d">
                   <svg class="card-icon-svg project-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                   </svg>
                 </div>
                 <div class="card-content">
-                  <h3 class="card-title">Project Optimizer <span class="badge-beta">Beta</span></h3>
+                  <h3 class="card-title">Project Optimizer <span class="badge-stable">Stable</span></h3>
                   <p class="card-description">Optimize multiple materials with mixed 1D & 2D cutting.</p>
-                  <span class="shortcut-hover-hint">P</span>
+                  <span class="shortcut-hover-hint">3</span>
                 </div>
               </a>
             </div>

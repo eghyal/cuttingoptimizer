@@ -1,8 +1,3 @@
-/**
- * Project Manager - Fixed Version with Enhanced Excel Import
- * NO UNDO/REDO - Clean implementation
- */
-
 (function(window, document) {
   'use strict';
 
@@ -17,6 +12,34 @@
     
     renderGroups(groups);
     setupEventListeners(groups);
+    
+    // Add keyboard shortcut hint for Ctrl+I
+    setupImportShortcutHint();
+  }
+
+  function setupImportShortcutHint() {
+    var importBtn = document.getElementById('import-excel');
+    if (importBtn) {
+      // Add title attribute to show shortcut on hover
+      importBtn.setAttribute('title', 'Import Excel (Ctrl+I)');
+      
+      // Add visual hint if not present
+      if (!importBtn.querySelector('.shortcut-hint')) {
+        var hint = document.createElement('span');
+        hint.className = 'shortcut-hint';
+        hint.style.cssText = `
+          margin-left: 0.5rem;
+          font-size: 0.75rem;
+          opacity: 0.6;
+          font-family: monospace;
+          background: rgba(255,255,255,0.2);
+          padding: 0.125rem 0.375rem;
+          border-radius: 0.25rem;
+        `;
+        hint.textContent = 'Ctrl+I';
+        importBtn.appendChild(hint);
+      }
+    }
   }
 
   function createGroup(name, type) {
@@ -191,10 +214,11 @@
   function renderCutItem(group, item, groupIndex, itemIndex) {
     const is1D = group.type === '1d';
     
+    // FIXED: Removed 'cut-item-input' class from ID field to allow string values
     return `
       <div class="cut-item-row ${is1D ? 'one-d' : 'two-d'}" data-item-id="${item.id}">
         <input type="text" 
-               class="cut-item-input cut-item-id" 
+               class="cut-item-id" 
                value="${item.itemId}" 
                data-field="itemId"
                placeholder="ID">
@@ -387,12 +411,25 @@
       }
     }
     
-    if (target.classList.contains('cut-item-id') || 
-        target.classList.contains('cut-item-length') ||
-        target.classList.contains('cut-item-width') ||
-        target.classList.contains('cut-item-height') ||
-        target.classList.contains('cut-item-qty')) {
+    // Handle item ID inputs (now without 'cut-item-input' class)
+    if (target.classList.contains('cut-item-id')) {
+      const field = target.dataset.field;
+      const itemRow = target.closest('.cut-item-row');
+      const itemId = itemRow.dataset.itemId;
+      const groupCard = target.closest('.group-card');
+      const groupId = groupCard.dataset.groupId;
       
+      const group = groups.find(g => g.id === groupId);
+      const item = group ? group.items.find(i => i.id === itemId) : null;
+      
+      if (item) {
+        item[field] = target.value; // Allow string values
+      }
+      return;
+    }
+    
+    // Handle numeric inputs only
+    if (target.classList.contains('cut-item-input')) {
       const field = target.dataset.field;
       const itemRow = target.closest('.cut-item-row');
       const itemId = itemRow.dataset.itemId;
@@ -519,6 +556,7 @@
       
       const result = await processGroup(groups[i]);
       results.push(result);
+      // NO ANIMATION DELAY
       await new Promise(resolve => setTimeout(resolve, 10));
     }
     
@@ -660,7 +698,6 @@
         resultsContainer.classList.add('hidden');
         document.getElementById('optimizer-prj-form').classList.remove('hidden');
         
-        // Announce to screen readers
         if (window.AccessibilityManager) {
           window.AccessibilityManager.announce('Returned to project form.');
         }
@@ -674,7 +711,6 @@
           if (typeof window.exportProjectToPDF === 'function') {
             window.exportProjectToPDF(optimizationResults);
             
-            // Announce to screen readers
             if (window.AccessibilityManager) {
               window.AccessibilityManager.announce('PDF export started. Download will begin shortly.');
             }
@@ -700,9 +736,8 @@
       }
     });
     
-    resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    resultsContainer.scrollIntoView({ behavior: 'auto', block: 'start' });
     
-    // Announce completion
     if (window.AccessibilityManager) {
       window.AccessibilityManager.announce(`Optimization completed. Processed ${totalGroups} groups with ${totalItems} total items.`);
     }
@@ -808,6 +843,32 @@
     const hasMultiple = result.plates.length > 1;
     const aspectRatio = parameters.plateHeight / parameters.plateWidth;
     
+    // NEW: Detailed items table for 2D
+    const itemsTable = plate.items.length > 0 ? `
+      <div style="margin-bottom: 1rem; overflow-x: auto;">
+        <table style="width: 100%; font-size: 0.75rem; border-collapse: collapse;">
+          <thead>
+            <tr style="background-color: var(--color-slate-100);">
+              <th style="padding: 0.25rem 0.5rem; text-align: left; border-bottom: 1px solid var(--color-slate-200);">Item ID</th>
+              <th style="padding: 0.25rem 0.5rem; text-align: left; border-bottom: 1px solid var(--color-slate-200);">Dimensions</th>
+              <th style="padding: 0.25rem 0.5rem; text-align: left; border-bottom: 1px solid var(--color-slate-200);">Position</th>
+              <th style="padding: 0.25rem 0.5rem; text-align: left; border-bottom: 1px solid var(--color-slate-200);">Rotated</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${plate.items.map(item => `
+              <tr>
+                <td style="padding: 0.25rem 0.5rem; border-bottom: 1px solid var(--color-slate-100);">${item.originalId}</td>
+                <td style="padding: 0.25rem 0.5rem; border-bottom: 1px solid var(--color-slate-100);">${item.originalWidth}×${item.originalHeight} mm</td>
+                <td style="padding: 0.25rem 0.5rem; border-bottom: 1px solid var(--color-slate-100);">${item.x}, ${item.y}</td>
+                <td style="padding: 0.25rem 0.5rem; border-bottom: 1px solid var(--color-slate-100);">${item.rotated ? 'Yes' : 'No'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    ` : '';
+    
     const items = plate.items.map(item => {
       const left = (item.x / parameters.plateWidth) * 100;
       const top = (item.y / parameters.plateHeight) * 100;
@@ -843,6 +904,7 @@
           </div>
         ` : ''}
       </div>
+      ${itemsTable}
       <div class="plate-viz-container">
         <div class="plate-visualization" style="padding-bottom: ${aspectRatio * 100}%;">
           ${items}
@@ -1041,5 +1103,5 @@
     renderGroups: renderGroups
   };
 
-  console.log('✅ Project Manager script loaded - Enhanced Excel import, no undo/redo');
+  console.log('✅ Project Manager script loaded - Updated shortcuts: 3 for Project, Space for Optimize, Ctrl+I for Import');
 })(window, document);

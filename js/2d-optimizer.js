@@ -1,9 +1,3 @@
-/**
- * 2D Optimizer - Fixed Version with Global Export
- * Changed from module to IIFE pattern for reliability
- * NO UNDO/REDO FEATURE - Clean implementation
- */
-
 (function(window, document) {
   'use strict';
 
@@ -249,13 +243,12 @@
   };
 
   // ============================================================================
-  // 2D OPTIMIZER UI MANAGER
+  // 2D OPTIMIZER UI MANAGER - NO ANIMATIONS
   // ============================================================================
 
   function Optimizer2DManager() {
     console.log('🔧 2D Optimizer Manager: Creating...');
     
-    // Initialize with only 1 default item (ID: A)
     this.items = [
       { id: 'A', width: '', height: '', quantity: '', rotation: true, key: this.generateId() }
     ];
@@ -269,7 +262,6 @@
     this.currentPlateIndex = 0;
     this.itemColors = new Map();
     
-    // Initialize when DOM is ready
     this.initialize();
   }
 
@@ -280,13 +272,8 @@
   Optimizer2DManager.prototype.initialize = function() {
     console.log('🔧 2D Optimizer Manager: Initializing...');
     
-    // Render items table immediately
     this.renderItems();
-    
-    // Setup event listeners
     this.setupEventListeners();
-    
-    // Set default values
     this.setDefaultValues();
   };
 
@@ -301,7 +288,6 @@
     if (kerfInput) kerfInput.value = this.kerfWidth;
     if (algorithmSelect) algorithmSelect.value = this.algorithm;
     
-    // Add change listeners for parameters
     var self = this;
     if (widthInput) {
       widthInput.addEventListener('change', function(e) {
@@ -333,7 +319,6 @@
     
     var self = this;
     
-    // Add Item Button
     var addBtn = document.getElementById('add-item-2d');
     if (addBtn) {
       addBtn.addEventListener('click', function() {
@@ -341,7 +326,6 @@
       });
     }
     
-    // Optimize Button
     var optimizeBtn = document.getElementById('optimize-2d');
     if (optimizeBtn) {
       optimizeBtn.addEventListener('click', function() {
@@ -349,23 +333,6 @@
       });
     }
     
-    // Back to form button
-    var backBtn = document.getElementById('back-to-form-2d');
-    if (backBtn) {
-      backBtn.addEventListener('click', function() {
-        self.backToForm();
-      });
-    }
-    
-    // Export PDF button
-    var exportBtn = document.getElementById('export-pdf-2d');
-    if (exportBtn) {
-      exportBtn.addEventListener('click', function() {
-        self.exportToPDF();
-      });
-    }
-    
-    // FIXED: Use closest() to handle clicks on child elements (SVGs)
     document.addEventListener('click', function(e) {
       var prevBtn = e.target.closest('#prev-plate-2d');
       var nextBtn = e.target.closest('#next-plate-2d');
@@ -379,14 +346,12 @@
       }
     });
 
-    // Input changes for items
     document.addEventListener('input', function(e) {
-      if (e.target.classList.contains('item-input')) {
+      if (e.target.classList.contains('item-input') || e.target.classList.contains('item-input-2d-id')) {
         self.updateItem(e.target);
       }
     });
 
-    // Remove item buttons and checkbox changes
     document.addEventListener('click', function(e) {
       if (e.target.closest('.btn-remove')) {
         e.preventDefault();
@@ -440,20 +405,12 @@
     if (field === 'id') {
       item[field] = value;
     } else {
-      // Allow empty values for placeholders
       if (value === '') {
         item[field] = '';
       } else {
         var numValue = parseInt(value, 10);
         var sanitizedValue = isNaN(numValue) ? 0 : Math.max(0, numValue);
         item[field] = sanitizedValue;
-      }
-      // Auto-adjust quantity placeholder
-      if (field === 'width' || field === 'height') {
-        var qtyInput = row.querySelector('.item-input-2d-qty');
-        if (qtyInput && !qtyInput.value) {
-          qtyInput.placeholder = 'Qty';
-        }
       }
     }
   };
@@ -476,6 +433,7 @@
       return;
     }
     
+    // FIXED: Removed 'item-input' class from ID field to allow string values
     container.innerHTML = this.items.map(function(item) {
       return `
         <div class="item-card-2d" data-id="${item.key}">
@@ -483,7 +441,7 @@
             <input type="text" 
                    placeholder="ID" 
                    value="${item.id}" 
-                   class="form-input item-input item-input-2d-id" 
+                   class="form-input item-input-2d-id" 
                    data-field="id" 
                    data-id="${item.key}">
             <input type="number" 
@@ -531,7 +489,6 @@
   };
 
   Optimizer2DManager.prototype.validateInputs = function() {
-    // Filter valid items
     var validItems = this.items.filter(function(i) {
       var width = parseInt(i.width, 10);
       var height = parseInt(i.height, 10);
@@ -549,7 +506,6 @@
       return null;
     }
 
-    // Check if any item is too large
     for (var i = 0; i < validItems.length; i++) {
       var item = validItems[i];
       var itemWidth = parseInt(item.width, 10);
@@ -568,14 +524,11 @@
   Optimizer2DManager.prototype.optimize = function() {
     console.log('⚡ 2D Optimizer: Starting optimization...');
     
-    // Validate inputs
     var validItems = this.validateInputs();
     if (!validItems) return;
     
-    // Show loading
     this.setLoading(true);
     
-    // Process items (add kerf width)
     var processedItems = validItems.map(function(item) {
       return {
         id: item.id,
@@ -588,38 +541,35 @@
       };
     }.bind(this));
     
-    // Run optimization (with small delay to show loading)
     var self = this;
-    setTimeout(function() {
-      try {
-        var optimizer = new PlateOptimizer2D(self.algorithm);
-        self.result = optimizer.optimize(processedItems, self.plateWidth, self.plateHeight);
-        self.formData = {
-          items: self.items,
-          plateWidth: self.plateWidth,
-          plateHeight: self.plateHeight,
-          kerfWidth: self.kerfWidth,
-          algorithm: self.algorithm
-        };
-        
-        self.renderResults();
-        
-        // Announce success to screen readers
-        if (window.AccessibilityManager) {
-          window.AccessibilityManager.announce('Optimization completed. ' + self.result.totalPlates + ' plates required.');
-        }
-        
-      } catch (error) {
-        console.error('❌ Optimization error:', error);
-        self.showError('An error occurred during optimization: ' + error.message);
-        
-        if (window.AccessibilityManager) {
-          window.AccessibilityManager.announce('Optimization failed: ' + error.message);
-        }
-      } finally {
-        self.setLoading(false);
+    // NO ANIMATION - Process immediately
+    try {
+      var optimizer = new PlateOptimizer2D(self.algorithm);
+      self.result = optimizer.optimize(processedItems, self.plateWidth, self.plateHeight);
+      self.formData = {
+        items: self.items,
+        plateWidth: self.plateWidth,
+        plateHeight: self.plateHeight,
+        kerfWidth: self.kerfWidth,
+        algorithm: self.algorithm
+      };
+      
+      self.renderResults();
+      
+      if (window.AccessibilityManager) {
+        window.AccessibilityManager.announce('Optimization completed. ' + self.result.totalPlates + ' plates required.');
       }
-    }, 300);
+      
+    } catch (error) {
+      console.error('❌ Optimization error:', error);
+      self.showError('An error occurred during optimization: ' + error.message);
+      
+      if (window.AccessibilityManager) {
+        window.AccessibilityManager.announce('Optimization failed: ' + error.message);
+      }
+    } finally {
+      self.setLoading(false);
+    }
   };
 
   Optimizer2DManager.prototype.renderResults = function() {
@@ -631,22 +581,18 @@
       return;
     }
     
-    // Hide form, show results
     formContainer.classList.add('hidden');
     resultsContainer.classList.remove('hidden');
     resultsContainer.innerHTML = '';
     
-    // Generate colors for items
     var uniqueItemIds = [...new Set(this.result.plates.flatMap(function(p) { return p.items.map(function(i) { return i.originalId; }); }))];
     var colors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#ef4444', '#0ea5e9'];
     uniqueItemIds.forEach(function(id, i) {
       this.itemColors.set(id, colors[i % colors.length]);
     }.bind(this));
     
-    // Reset current plate index
     this.currentPlateIndex = 0;
     
-    // Create results HTML
     var resultsHTML = `
       <div class="panel results-view">
         <div class="panel-header">
@@ -712,15 +658,47 @@
     
     resultsContainer.innerHTML = resultsHTML;
     
-    // Re-attach event listeners for new buttons
     var backBtn = document.getElementById('back-to-form-2d');
     if (backBtn) backBtn.addEventListener('click', this.backToForm.bind(this));
     
     var exportBtn = document.getElementById('export-pdf-2d');
     if (exportBtn) exportBtn.addEventListener('click', this.exportToPDF.bind(this));
     
-    // Scroll to results
-    resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    resultsContainer.scrollIntoView({ behavior: 'auto', block: 'start' });
+  };
+
+  // NEW: Render detailed cut list table for specific plate (mengikuti pattern Project)
+  Optimizer2DManager.prototype.renderDetailedCutList = function(plate) {
+    if (!plate || !plate.items || plate.items.length === 0) {
+      return '';
+    }
+    
+    return `
+      <div class="detailed-cut-list-container">
+        <table class="detailed-cut-list-table">
+          <thead>
+            <tr>
+              <th>Item ID</th>
+              <th>Dimensions</th>
+              <th>Position (X,Y)</th>
+              <th>Rotated</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${plate.items.map(function(item) {
+              return `
+                <tr>
+                  <td>${item.originalId}</td>
+                  <td>${item.originalWidth} × ${item.originalHeight} mm</td>
+                  <td class="mono">${item.x}, ${item.y}</td>
+                  <td>${item.rotated ? 'Yes' : 'No'}</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    `;
   };
 
   Optimizer2DManager.prototype.renderPlateVisualization = function() {
@@ -731,7 +709,11 @@
     var plate = this.result.plates[this.currentPlateIndex];
     var aspectRatio = this.plateHeight / this.plateWidth;
     var self = this;
-    var items = plate.items.map(function(item, index) {
+    
+    // Render detailed cut list untuk plate yang sedang active
+    var detailedTableHTML = this.renderDetailedCutList(plate);
+    
+    var items = plate.items.map(function(item) {
       var left = (item.x / self.plateWidth) * 100;
       var top = (item.y / self.plateHeight) * 100;
       var width = (item.width / self.plateWidth) * 100;
@@ -749,13 +731,13 @@
     }).join('');
 
     return `
+      ${detailedTableHTML}
       <div class="plate-viz-container">
         <div class="plate-visualization" style="padding-bottom: ${aspectRatio * 100}%;">
           ${items}
         </div>
         <div class="plate-info">
-          <p><b>Efficiency:</b> ${plate.getEfficiency()}%</p>
-          <p><b>Items on Plate:</b> ${plate.items.length}</p>
+          <p><b>Plate ${plate.id}:</b> Efficiency: ${plate.getEfficiency()}% | Items: ${plate.items.length} | Waste: ${plate.getWasteArea().toLocaleString()} mm²</p>
         </div>
       </div>
     `;
@@ -804,8 +786,7 @@
     this.currentPlateIndex = 0;
     this.itemColors.clear();
     
-    // Scroll to form
-    formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    formContainer.scrollIntoView({ behavior: 'auto', block: 'start' });
   };
 
   Optimizer2DManager.prototype.exportToPDF = function() {
@@ -818,7 +799,6 @@
       if (typeof window.export2DToPDF === 'function') {
         window.export2DToPDF(this.result, this.formData, this.itemColors);
         
-        // Announce to screen readers
         if (window.AccessibilityManager) {
           window.AccessibilityManager.announce('PDF export started. Download will begin shortly.');
         }
@@ -831,48 +811,35 @@
     }
   };
 
-  // Helper methods
   Optimizer2DManager.prototype.setLoading = function(loading) {
     var overlay = document.getElementById('loading-overlay');
     if (overlay) {
       overlay.classList.toggle('hidden', !loading);
     }
     
-    // Also set button loading state
     var optimizeBtn = document.getElementById('optimize-2d');
     if (optimizeBtn) {
-      if (loading) {
-        optimizeBtn.classList.add('btn-loading');
-        optimizeBtn.disabled = true;
-      } else {
-        optimizeBtn.classList.remove('btn-loading');
-        optimizeBtn.disabled = false;
-      }
+      optimizeBtn.disabled = loading;
     }
   };
 
   Optimizer2DManager.prototype.showError = function(message) {
-    // Use App's showError method if available
     if (window.App && typeof window.App.showError === 'function') {
       window.App.showError(message, 'optimizer-2d-form');
       return;
     }
     
-    // Fallback error display
     var container = document.getElementById('optimizer-2d-form');
     if (!container) return;
 
-    // Remove existing errors
     var existingErrors = container.querySelectorAll('.error-message');
     existingErrors.forEach(function(error) { error.remove(); });
 
-    // Create error element
     var errorEl = document.createElement('div');
     errorEl.className = 'error-message';
     errorEl.textContent = message;
     errorEl.setAttribute('role', 'alert');
     
-    // Add to container
     var firstChild = container.firstChild;
     if (firstChild) {
       container.insertBefore(errorEl, firstChild);
@@ -880,13 +847,8 @@
       container.appendChild(errorEl);
     }
 
-    // Auto-remove after 5 seconds
     setTimeout(function() { errorEl.remove(); }, 5000);
   };
-
-  // ============================================================================
-  // INITIALIZATION & GLOBAL EXPORT
-  // ============================================================================
 
   // Export classes to global scope
   window.PlateOptimizer2D = PlateOptimizer2D;
@@ -895,18 +857,17 @@
   // Initialize when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
-      // Check if we're on the 2D page
       if (document.getElementById('optimizer-2d-form')) {
         window.optimizer2D = new Optimizer2DManager();
-        console.log('✅ 2D Optimizer initialized - Undo/Redo not implemented');
+        console.log('✅ 2D Optimizer initialized - Detailed Cut List per Plate');
       }
     });
   } else {
     if (document.getElementById('optimizer-2d-form')) {
       window.optimizer2D = new Optimizer2DManager();
-      console.log('✅ 2D Optimizer initialized - Undo/Redo not implemented');
+      console.log('✅ 2D Optimizer initialized - Detailed Cut List per Plate');
     }
   }
 
-  console.log('✅ 2D Optimizer script loaded - With global exports, no undo/redo');
+  console.log('✅ 2D Optimizer script loaded - Detailed Cut List follows active plate');
 })(window, document);
