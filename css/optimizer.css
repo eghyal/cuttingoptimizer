@@ -333,6 +333,24 @@
   grid-template-columns: 80px 1fr 1fr 100px auto 50px;
 }
 
+/* ID Item Input - No Border */
+.cut-item-id {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  background-color: transparent;
+  font-size: var(--text-base);
+  color: var(--color-slate-800);
+  font-weight: var(--font-medium);
+  border-radius: var(--radius-md);
+}
+
+.cut-item-id:focus {
+  outline: none;
+  background-color: var(--color-white);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
 .cut-item-input {
   width: 100%;
   padding: var(--space-2) var(--space-3);

@@ -216,20 +216,21 @@
   line-height: var(--leading-normal);
 }
 
-/* Beta Badge */
+/* Beta Badge - Light Red-Gray Background */
 .badge-beta {
   display: inline-flex;
   align-items: center;
   padding: 0.125rem 0.5rem;
-  background: var(--color-purple-100);
-  color: var(--color-purple-700);
+  background: #e8d8d8; /* Merah abu-abu lebih cerah */
+  color: #5c3d3d; /* Merah gelap untuk kontras yang baik */
   font-size: var(--text-xs);
   font-weight: var(--font-semibold);
   border-radius: var(--radius-full);
   margin-left: var(--space-2);
+  border: 1px solid #d1c5c5;
 }
 
-/* Stable Badge - UPDATED with Lighter Greenish-Gray Background */
+/* Stable Badge - Keep for other cards */
 .badge-stable {
   display: inline-flex;
   align-items: center;

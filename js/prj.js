@@ -214,7 +214,6 @@
   function renderCutItem(group, item, groupIndex, itemIndex) {
     const is1D = group.type === '1d';
     
-    // FIXED: Removed 'cut-item-input' class from ID field to allow string values
     return `
       <div class="cut-item-row ${is1D ? 'one-d' : 'two-d'}" data-item-id="${item.id}">
         <input type="text" 
@@ -935,7 +934,7 @@
     }
   }
 
-  // Enhanced Excel Import Handler
+  // Enhanced Excel Import Handler - FIXED: Removed index === 0 skip
   function handleExcelImport(event, groups) {
     const file = event.target.files[0];
     if (!file) return;
@@ -987,11 +986,12 @@
     reader.readAsArrayBuffer(file);
   }
 
+  // FIXED: Removed index === 0 check that was skipping first data row
   function processSheetData(data, type) {
     const groupsMap = {};
     
     data.forEach((row, index) => {
-      if (index === 0) return;
+      // REMOVED: if (index === 0) return; // This was causing the first data row to be skipped!
       
       const groupName = row['Group Name'];
       if (!groupName) return;
@@ -1103,5 +1103,5 @@
     renderGroups: renderGroups
   };
 
-  console.log('✅ Project Manager script loaded - Updated shortcuts: 3 for Project, Space for Optimize, Ctrl+I for Import');
+  console.log('✅ Project Manager script loaded - Fixed Excel import (removed first row skip)');
 })(window, document);
