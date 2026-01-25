@@ -1,8 +1,3 @@
-/**
- * 1D Optimizer - Fixed Version with Global Export
- * Changed from module to IIFE pattern for reliability
- */
-
 (function(window, document) {
   'use strict';
 
@@ -39,6 +34,10 @@
     return false;
   };
 
+  // ============================================================================
+  // CUTTING OPTIMIZER 1D
+  // ============================================================================
+
   function CuttingOptimizer1D(algorithm) {
     this.algorithm = algorithm;
   }
@@ -47,7 +46,7 @@
     var startTime = Date.now();
     var allItems = [];
 
-    // Expand items based on quantity
+    // Prepare items array
     items.forEach(function(item) {
       for (var i = 0; i < item.quantity; i++) {
         allItems.push({
@@ -63,6 +62,7 @@
       }
     });
 
+    // Run selected algorithm
     var bars;
     switch (this.algorithm) {
       case 'best-fit':
@@ -75,6 +75,7 @@
         bars = this.firstFitAlgorithm(allItems, materialLength);
     }
 
+    // Calculate statistics
     var totalBars = bars.length;
     var totalItemsPlaced = bars.reduce(function(sum, bar) { return sum + bar.items.length; }, 0);
     var totalUsedLength = bars.reduce(function(sum, bar) { return sum + bar.usedLength; }, 0);
@@ -95,6 +96,7 @@
     };
   };
 
+  // First-Fit Algorithm (default)
   CuttingOptimizer1D.prototype.firstFitAlgorithm = function(items, materialLength) {
     var sortedItems = items.slice().sort(function(a, b) { return b.length - a.length; });
     var bars = [];
@@ -118,6 +120,7 @@
     return bars;
   };
 
+  // Best-Fit Algorithm
   CuttingOptimizer1D.prototype.bestFitAlgorithm = function(items, materialLength) {
     var sortedItems = items.slice().sort(function(a, b) { return b.length - a.length; });
     var bars = [];
@@ -147,6 +150,7 @@
     return bars;
   };
 
+  // Worst-Fit Algorithm (experimental)
   CuttingOptimizer1D.prototype.worstFitAlgorithm = function(items, materialLength) {
     var sortedItems = items.slice().sort(function(a, b) { return b.length - a.length; });
     var bars = [];
@@ -182,13 +186,12 @@
   function Optimizer1DManager() {
     console.log('🔧 1D Optimizer Manager: Creating...');
     
-    // Initialize with only 1 default item (ID: A)
     this.items = [
       { id: 'A', length: '', quantity: '', key: this.generateId() }
     ];
     
     this.materialLength = 6000;
-    this.kerfWidth = 5;
+    this.kerfWidth = 3;
     this.algorithm = 'first-fit';
     this.result = null;
     this.formData = null;
@@ -226,50 +229,61 @@
     if (algorithmSelect) algorithmSelect.value = this.algorithm;
     
     // Add change listeners for parameters
+    var self = this;
     if (materialInput) {
       materialInput.addEventListener('change', function(e) {
-        this.materialLength = Math.max(1, parseInt(e.target.value) || 6000);
-      }.bind(this));
+        self.materialLength = Math.max(1, parseInt(e.target.value) || 6000);
+      });
     }
     
     if (kerfInput) {
       kerfInput.addEventListener('change', function(e) {
-        this.kerfWidth = Math.max(0, parseInt(e.target.value) || 0);
-      }.bind(this));
+        self.kerfWidth = Math.max(0, parseInt(e.target.value) || 0);
+      });
     }
     
     if (algorithmSelect) {
       algorithmSelect.addEventListener('change', function(e) {
-        this.algorithm = e.target.value;
-      }.bind(this));
+        self.algorithm = e.target.value;
+      });
     }
   };
 
   Optimizer1DManager.prototype.setupEventListeners = function() {
     console.log('🔧 1D Optimizer Manager: Setting up event listeners...');
     
+    var self = this;
+    
     // Add Item Button
     var addBtn = document.getElementById('add-item-1d');
     if (addBtn) {
-      addBtn.addEventListener('click', this.addItem.bind(this));
+      addBtn.addEventListener('click', function() {
+        self.addItem();
+      });
     }
     
     // Optimize Button
     var optimizeBtn = document.getElementById('optimize-1d');
     if (optimizeBtn) {
-      optimizeBtn.addEventListener('click', this.optimize.bind(this));
+      optimizeBtn.addEventListener('click', function() {
+        self.optimize();
+      });
     }
     
     // Back to form button
     var backBtn = document.getElementById('back-to-form-1d');
     if (backBtn) {
-      backBtn.addEventListener('click', this.backToForm.bind(this));
+      backBtn.addEventListener('click', function() {
+        self.backToForm();
+      });
     }
     
     // Export PDF button
     var exportBtn = document.getElementById('export-pdf-1d');
     if (exportBtn) {
-      exportBtn.addEventListener('click', this.exportToPDF.bind(this));
+      exportBtn.addEventListener('click', function() {
+        self.exportToPDF();
+      });
     }
     
     // FIXED: Use closest() to handle clicks on child elements (SVGs)
@@ -279,23 +293,21 @@
       
       if (prevBtn) {
         e.preventDefault();
-        console.log('⬅️ Prev button clicked');
-        this.prevBar();
+        self.prevBar();
       } else if (nextBtn) {
         e.preventDefault();
-        console.log('➡️ Next button clicked');
-        this.nextBar();
+        self.nextBar();
       }
-    }.bind(this));
+    });
 
     // Input changes for items
     document.addEventListener('input', function(e) {
       if (e.target.classList.contains('item-input') || 
           e.target.classList.contains('item-input-id') || 
           e.target.classList.contains('item-input-qty')) {
-        this.updateItem(e.target);
+        self.updateItem(e.target);
       }
-    }.bind(this));
+    });
 
     // Remove item buttons
     document.addEventListener('click', function(e) {
@@ -303,9 +315,9 @@
         e.preventDefault();
         var btn = e.target.closest('.btn-remove');
         var itemId = btn.dataset.remove;
-        if (itemId) this.removeItem(itemId);
+        if (itemId) self.removeItem(itemId);
       }
-    }.bind(this));
+    });
   };
 
   Optimizer1DManager.prototype.addItem = function() {
@@ -363,31 +375,35 @@
     
     container.innerHTML = this.items.map(function(item) {
       return `
-        <div class="item-row" data-id="${item.key}">
+        <div class="item-row" data-id="${item.key}" role="listitem">
           <input type="text" 
                  placeholder="ID" 
                  value="${item.id}" 
                  class="form-input item-input-id" 
                  data-field="id" 
-                 data-id="${item.key}">
+                 data-id="${item.key}"
+                 aria-label="Item identifier">
           <input type="number" 
                  placeholder="mm" 
                  value="${item.length}" 
                  class="form-input item-input placeholder-opacity" 
                  data-field="length" 
                  data-id="${item.key}" 
-                 min="1">
+                 min="1"
+                 aria-label="Item length in millimeters">
           <input type="number" 
                  placeholder="Qty" 
                  value="${item.quantity}" 
                  class="form-input item-input-qty placeholder-opacity" 
                  data-field="quantity" 
                  data-id="${item.key}" 
-                 min="1">
+                 min="1"
+                 aria-label="Item quantity">
           <button type="button" 
                   class="btn-remove" 
                   data-remove="${item.key}" 
-                  ${this.items.length <= 1 ? 'disabled' : ''}>
+                  ${this.items.length <= 1 ? 'disabled' : ''}
+                  aria-label="Remove item ${item.id}">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
@@ -398,7 +414,6 @@
   };
 
   Optimizer1DManager.prototype.validateInputs = function() {
-    // Filter valid items
     var validItems = this.items.filter(function(i) {
       var length = parseInt(i.length, 10);
       var quantity = parseInt(i.quantity, 10);
@@ -415,7 +430,7 @@
       return null;
     }
 
-    // Check if any item is too long
+    // Check if any item is too large
     for (var i = 0; i < validItems.length; i++) {
       var itemLength = parseInt(validItems[i].length, 10);
       if (itemLength + this.kerfWidth > this.materialLength) {
@@ -430,14 +445,11 @@
   Optimizer1DManager.prototype.optimize = function() {
     console.log('⚡ 1D Optimizer: Starting optimization...');
     
-    // Validate inputs
     var validItems = this.validateInputs();
     if (!validItems) return;
     
-    // Show loading
     this.setLoading(true);
     
-    // Process items (add kerf width)
     var processedItems = validItems.map(function(item) {
       return {
         id: item.id,
@@ -447,7 +459,6 @@
       };
     }.bind(this));
     
-    // Run optimization (with small delay to show loading)
     var self = this;
     setTimeout(function() {
       try {
@@ -462,9 +473,18 @@
         
         self.renderResults();
         
+        // Announce success to screen readers
+        if (window.AccessibilityManager) {
+          window.AccessibilityManager.announce('Optimization completed. ' + self.result.totalBars + ' bars required.');
+        }
+        
       } catch (error) {
         console.error('❌ Optimization error:', error);
         self.showError('An error occurred during optimization: ' + error.message);
+        
+        if (window.AccessibilityManager) {
+          window.AccessibilityManager.announce('Optimization failed: ' + error.message);
+        }
       } finally {
         self.setLoading(false);
       }
@@ -480,22 +500,18 @@
       return;
     }
     
-    // Hide form, show results
     formContainer.classList.add('hidden');
     resultsContainer.classList.remove('hidden');
     resultsContainer.innerHTML = '';
     
-    // Generate colors for items
     var uniqueItemIds = [...new Set(this.result.bars.flatMap(function(b) { return b.items.map(function(i) { return i.originalId; }); }))];
     var colors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#ef4444', '#0ea5e9'];
     uniqueItemIds.forEach(function(id, i) {
       this.itemColors.set(id, colors[i % colors.length]);
     }.bind(this));
     
-    // Reset current bar index
     this.currentBarIndex = 0;
     
-    // Create results HTML
     var resultsHTML = `
       <div class="panel results-view">
         <div class="panel-header">
@@ -539,12 +555,12 @@
             <h3 class="nav-title">Bar Layouts</h3>
             <div class="nav-buttons">
               <span class="nav-counter">Bar ${this.currentBarIndex + 1} of ${this.result.bars.length}</span>
-              <button class="nav-btn" id="prev-bar-1d" ${this.currentBarIndex === 0 ? 'disabled' : ''}>
+              <button class="nav-btn" id="prev-bar-1d" ${this.currentBarIndex === 0 ? 'disabled' : ''} aria-label="Previous bar visualization">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              <button class="nav-btn" id="next-bar-1d" ${this.currentBarIndex === this.result.bars.length - 1 ? 'disabled' : ''}>
+              <button class="nav-btn" id="next-bar-1d" ${this.currentBarIndex === this.result.bars.length - 1 ? 'disabled' : ''} aria-label="Next bar visualization">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
@@ -552,7 +568,7 @@
             </div>
           </div>
 
-          <div id="bar-visualization-container">
+          <div id="bar-visualization-container" role="region" aria-label="Bar cutting visualization">
             ${this.renderBarVisualization()}
           </div>
         </div>
@@ -561,20 +577,18 @@
     
     resultsContainer.innerHTML = resultsHTML;
     
-    // Re-attach event listeners for new buttons
     var backBtn = document.getElementById('back-to-form-1d');
     if (backBtn) backBtn.addEventListener('click', this.backToForm.bind(this));
     
     var exportBtn = document.getElementById('export-pdf-1d');
     if (exportBtn) exportBtn.addEventListener('click', this.exportToPDF.bind(this));
     
-    // Scroll to results
     resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   Optimizer1DManager.prototype.renderBarVisualization = function() {
     if (!this.result || !this.result.bars[this.currentBarIndex]) {
-      return '<div class="empty-state">No bar data available</div>';
+      return '<div class="empty-state" role="alert">No bar data available</div>';
     }
     
     var bar = this.result.bars[this.currentBarIndex];
@@ -585,7 +599,8 @@
       return `
         <div class="bar-segment" 
              style="width: ${widthPercentage}%; background-color: ${color};"
-             title="${item.originalId}: ${item.originalLength}mm">
+             title="${item.originalId}: ${item.originalLength}mm"
+             role="img" aria-label="Item ${item.originalId}, length ${item.originalLength}mm">
           ${widthPercentage > 5 ? '<span class="truncate">' + item.originalId + '</span>' : ''}
         </div>
       `;
@@ -593,12 +608,11 @@
 
     return `
       <div class="bar-viz-container">
-        <div class="bar-visualization" title="Total Length: ${this.materialLength}mm">
+        <div class="bar-visualization" title="Total Length: ${this.materialLength}mm" role="img" aria-label="Bar ${bar.id}, efficiency ${bar.efficiency}%">
           ${segments}
         </div>
         <div class="bar-info">
-          <p><b>Efficiency:</b> ${bar.efficiency}%</p>
-          <p><b>Waste:</b> ${bar.remainingLength} mm</p>
+          <p><b>Bar ${bar.id}:</b> Efficiency: ${bar.efficiency}% | Waste: ${bar.remainingLength}mm | Items: ${bar.items.length}</p>
         </div>
       </div>
     `;
@@ -647,7 +661,6 @@
     this.currentBarIndex = 0;
     this.itemColors.clear();
     
-    // Scroll to form
     formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
@@ -660,6 +673,11 @@
     try {
       if (typeof window.export1DToPDF === 'function') {
         window.export1DToPDF(this.result, this.formData);
+        
+        // Announce to screen readers
+        if (window.AccessibilityManager) {
+          window.AccessibilityManager.announce('PDF export started. Download will begin shortly.');
+        }
       } else {
         this.showError('PDF export is not available. Please check your connection.');
       }
@@ -676,7 +694,6 @@
       overlay.classList.toggle('hidden', !loading);
     }
     
-    // Also set button loading state
     var optimizeBtn = document.getElementById('optimize-1d');
     if (optimizeBtn) {
       if (loading) {
@@ -690,13 +707,11 @@
   };
 
   Optimizer1DManager.prototype.showError = function(message) {
-    // Use App's showError method if available
     if (window.App && typeof window.App.showError === 'function') {
       window.App.showError(message, 'optimizer-1d-form');
       return;
     }
     
-    // Fallback error display
     var container = document.getElementById('optimizer-1d-form');
     if (!container) return;
 
@@ -708,6 +723,7 @@
     var errorEl = document.createElement('div');
     errorEl.className = 'error-message';
     errorEl.textContent = message;
+    errorEl.setAttribute('role', 'alert');
     
     // Add to container
     var firstChild = container.firstChild;
@@ -717,13 +733,8 @@
       container.appendChild(errorEl);
     }
 
-    // Auto-remove after 5 seconds
     setTimeout(function() { errorEl.remove(); }, 5000);
   };
-
-  // ============================================================================
-  // INITIALIZATION & GLOBAL EXPORT
-  // ============================================================================
 
   // Export classes to global scope
   window.CuttingOptimizer1D = CuttingOptimizer1D;
@@ -732,18 +743,17 @@
   // Initialize when DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
-      // Check if we're on the 1D page
       if (document.getElementById('optimizer-1d-form')) {
         window.optimizer1D = new Optimizer1DManager();
-        console.log('✅ 1D Optimizer initialized');
+        console.log('✅ 1D Optimizer initialized - Undo/Redo not implemented');
       }
     });
   } else {
     if (document.getElementById('optimizer-1d-form')) {
       window.optimizer1D = new Optimizer1DManager();
-      console.log('✅ 1D Optimizer initialized');
+      console.log('✅ 1D Optimizer initialized - Undo/Redo not implemented');
     }
   }
 
-  console.log('✅ 1D Optimizer script loaded - With global exports');
+  console.log('✅ 1D Optimizer script loaded - No undo/redo');
 })(window, document);

@@ -1,8 +1,6 @@
 /**
  * Excel Template Generator & Parser - Ultra Simplified Version
- * Removed: Parameter columns from template
- * Updated: Parse logic to use website defaults only
- * CHANGED: Removed Rotate column from 2D sheet - always default to true
+ * NO UNDO/REDO - Clean implementation
  */
 
 (function(window) {
@@ -11,59 +9,45 @@
   var ExcelTemplate = {
     
     /**
-     * Generate and download Excel template - Minimal version
+     * Generate and download Excel template - with comprehensive Example sheet
      */
     generateTemplate: function() {
       var wb = XLSX.utils.book_new();
       
-      // 1D Sheet - Hanya Item data
+      // 1D Sheet - Hanya Header
       var headers1D = ['Group Name', 'Item ID', 'Length (mm)', 'Quantity'];
       var ws1D = XLSX.utils.aoa_to_sheet([headers1D]);
-      
-      // Example data
-      var example1D = [
-        ['Group 1', 'A1', '300', '10'],
-        ['Group 1', 'A2', '2100', '5'],
-        ['Group 2', 'B1', '320', '10']
-      ];
-      XLSX.utils.sheet_add_aoa(ws1D, example1D, { origin: 1 });
-      
       XLSX.utils.book_append_sheet(wb, ws1D, '1D');
       
-      // 2D Sheet - Hanya Item data (TANPA ROTATE)
+      // 2D Sheet - Hanya Header (TANPA ROTATE)
       var headers2D = ['Group Name', 'Item ID', 'Width (mm)', 'Height (mm)', 'Quantity'];
       var ws2D = XLSX.utils.aoa_to_sheet([headers2D]);
-      
-      // Example data - TANPA ROTATE
-      var example2D = [
-        ['Plate Group 1', 'P1', '320', '1200', '10'],
-        ['Plate Group 1', 'P2', '1100', '320', '4']
-      ];
-      XLSX.utils.sheet_add_aoa(ws2D, example2D, { origin: 1 });
-      
       XLSX.utils.book_append_sheet(wb, ws2D, '2D');
       
-      // Example Sheet
+      // Example Sheet - dengan contoh terpisah untuk 1D dan 2D
+      var exampleHeaders = ['Group Name', 'Item ID', 'Length (mm)', 'Width (mm)', 'Height (mm)', 'Quantity'];
       var exampleData = [
-        ['CONTOH PENGISIAN - 1D'],
-        [''],
-        headers1D,
-        ['UNP 200x80', 'A1', '300', '10'],
-        ['UNP 200x80', 'A2', '2100', '10'],
-        ['SIKU 50', 'B1', '320', '10'],
-        [''],
-        ['CONTOH PENGISIAN - 2D'],
-        [''],
-        headers2D,
-        ['Steel Plate 3mm', 'P1', '320', '1200', '10'],
-        ['Steel Plate 3mm', 'P2', '1100', '320', '4']
+        exampleHeaders,
+        // Label untuk contoh 1D
+        ['CONTOH: Data 1D (Masukkan di sheet "1D")', '', '', '', '', ''],
+        // Data contoh 1D - Beam/Profile
+        ['Beams', 'Beam-A', 3000, '', '', 5],
+        ['Beams', 'Beam-B', 2500, '', '', 3],
+        // Spasi kosong
+        ['', '', '', '', '', ''],
+        // Label untuk contoh 2D
+        ['CONTOH: Data 2D (Masukkan di sheet "2D")', '', '', '', '', ''],
+        // Data contoh 2D - Panel/Lembaran
+        ['Panels', 'Panel-X', '', 800, 600, 10],
+        ['Panels', 'Panel-Y', '', 1200, 400, 7]
       ];
       var wsExample = XLSX.utils.aoa_to_sheet(exampleData);
-      XLSX.utils.book_append_sheet(wb, wsExample, 'Contoh Pengisian');
+      XLSX.utils.book_append_sheet(wb, wsExample, 'Example');
       
       // Set column widths
       ws1D['!cols'] = [{ wch: 15 }, { wch: 10 }, { wch: 12 }, { wch: 10 }];
       ws2D['!cols'] = [{ wch: 15 }, { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 10 }];
+      wsExample['!cols'] = [{ wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 10 }];
       
       XLSX.writeFile(wb, 'EAV_Project_Template.xlsx');
     },
@@ -126,14 +110,14 @@
           return;
         }
         
-        // ADDED: Set rotation to true by default for 2D items
+        // Set rotation to true by default for 2D items
         groups[groupName].items.push({
           itemId: row['Item ID'],
           length: row['Length (mm)'] || '',
           width: row['Width (mm)'] || '',
           height: row['Height (mm)'] || '',
           quantity: parseInt(row['Quantity']) || 0,
-          rotation: type === '2d' ? true : true // Always true for both types
+          rotation: true // Always true for both types
         });
       });
       
@@ -158,7 +142,7 @@
             'Width (mm)': group.type === '2d' ? item.width : '',
             'Height (mm)': group.type === '2d' ? item.height : '',
             'Quantity': item.quantity
-            // REMOVED: No rotation column in export
+            // REMOVED: No rotation column
           });
         });
       });
@@ -193,6 +177,6 @@
   // Export to global scope
   window.ExcelTemplate = ExcelTemplate;
   
-  console.log('✅ Excel Template module loaded - Simplified format (No Rotate column)');
+  console.log('✅ Excel Template module loaded - No undo/redo features');
 
 })(window);

@@ -1,6 +1,7 @@
 /**
  * 2D Optimizer - Fixed Version with Global Export
  * Changed from module to IIFE pattern for reliability
+ * NO UNDO/REDO FEATURE - Clean implementation
  */
 
 (function(window, document) {
@@ -122,6 +123,10 @@
            inner.y + inner.height <= outer.y + outer.height;
   };
 
+  // ============================================================================
+  // PLATE OPTIMIZER 2D
+  // ============================================================================
+
   function PlateOptimizer2D(algorithm) {
     this.algorithm = algorithm;
   }
@@ -130,6 +135,7 @@
     var startTime = Date.now();
     var allItems = [];
     
+    // Prepare items array
     items.forEach(function(item) {
       for (var i = 0; i < item.quantity; i++) {
         allItems.push({
@@ -150,8 +156,10 @@
       }
     });
 
+    // Pack items using selected algorithm
     var plates = this.packItems(allItems, plateWidth, plateHeight);
     
+    // Calculate statistics
     var totalPlates = plates.length;
     var totalItemsPlaced = plates.reduce(function(sum, p) { return sum + p.items.length; }, 0);
     var totalUsedArea = plates.reduce(function(sum, p) { return sum + p.usedArea; }, 0);
@@ -180,6 +188,7 @@
       var item = sortedItems[i];
       var bestFit = null;
       
+      // Try to place in existing plates
       for (var j = 0; j < plates.length; j++) {
         var fit = this.findBestFitForPlate(item, plates[j]);
         if (fit && (!bestFit || fit.score < bestFit.score)) {
@@ -187,6 +196,7 @@
         }
       }
 
+      // Place in best fit or create new plate
       if (bestFit) {
         bestFit.plate.placeItem(item, bestFit.x, bestFit.y, bestFit.rotated);
       } else {
@@ -205,10 +215,12 @@
     var bestFit = null;
     var bestScore = Infinity;
 
+    // Try both orientations if rotation is allowed
     for (var rotated = 0; rotated < (item.rotation ? 2 : 1); rotated++) {
       var w = rotated ? item.height : item.width;
       var h = rotated ? item.width : item.height;
 
+      // Try each free rectangle
       for (var i = 0; i < plate.freeRects.length; i++) {
         var rect = plate.freeRects[i];
         if (w <= rect.width && h <= rect.height) {
@@ -290,56 +302,67 @@
     if (algorithmSelect) algorithmSelect.value = this.algorithm;
     
     // Add change listeners for parameters
+    var self = this;
     if (widthInput) {
       widthInput.addEventListener('change', function(e) {
-        this.plateWidth = Math.max(1, parseInt(e.target.value) || 2440);
-      }.bind(this));
+        self.plateWidth = Math.max(1, parseInt(e.target.value) || 2440);
+      });
     }
     
     if (heightInput) {
       heightInput.addEventListener('change', function(e) {
-        this.plateHeight = Math.max(1, parseInt(e.target.value) || 1220);
-      }.bind(this));
+        self.plateHeight = Math.max(1, parseInt(e.target.value) || 1220);
+      });
     }
     
     if (kerfInput) {
       kerfInput.addEventListener('change', function(e) {
-        this.kerfWidth = Math.max(0, parseInt(e.target.value) || 0);
-      }.bind(this));
+        self.kerfWidth = Math.max(0, parseInt(e.target.value) || 0);
+      });
     }
     
     if (algorithmSelect) {
       algorithmSelect.addEventListener('change', function(e) {
-        this.algorithm = e.target.value;
-      }.bind(this));
+        self.algorithm = e.target.value;
+      });
     }
   };
 
   Optimizer2DManager.prototype.setupEventListeners = function() {
     console.log('🔧 2D Optimizer Manager: Setting up event listeners...');
     
+    var self = this;
+    
     // Add Item Button
     var addBtn = document.getElementById('add-item-2d');
     if (addBtn) {
-      addBtn.addEventListener('click', this.addItem.bind(this));
+      addBtn.addEventListener('click', function() {
+        self.addItem();
+      });
     }
     
     // Optimize Button
     var optimizeBtn = document.getElementById('optimize-2d');
     if (optimizeBtn) {
-      optimizeBtn.addEventListener('click', this.optimize.bind(this));
+      optimizeBtn.addEventListener('click', function() {
+        self.optimize();
+      });
     }
     
     // Back to form button
     var backBtn = document.getElementById('back-to-form-2d');
     if (backBtn) {
-      backBtn.addEventListener('click', this.backToForm.bind(this));
+      backBtn.addEventListener('click', function() {
+        self.backToForm();
+      });
     }
     
     // Export PDF button
     var exportBtn = document.getElementById('export-pdf-2d');
     if (exportBtn) {
-      exportBtn.addEventListener('click', this.exportToPDF.bind(this));
+      exportBtn.addEventListener('click', function() {
+        self.exportToPDF();
+      });
     }
     
     // FIXED: Use closest() to handle clicks on child elements (SVGs)
@@ -349,21 +372,19 @@
       
       if (prevBtn) {
         e.preventDefault();
-        console.log('⬅️ Prev button clicked');
-        this.prevPlate();
+        self.prevPlate();
       } else if (nextBtn) {
         e.preventDefault();
-        console.log('➡️ Next button clicked');
-        this.nextPlate();
+        self.nextPlate();
       }
-    }.bind(this));
+    });
 
     // Input changes for items
     document.addEventListener('input', function(e) {
       if (e.target.classList.contains('item-input')) {
-        this.updateItem(e.target);
+        self.updateItem(e.target);
       }
-    }.bind(this));
+    });
 
     // Remove item buttons and checkbox changes
     document.addEventListener('click', function(e) {
@@ -371,15 +392,15 @@
         e.preventDefault();
         var btn = e.target.closest('.btn-remove');
         var itemId = btn.dataset.remove;
-        if (itemId) this.removeItem(itemId);
+        if (itemId) self.removeItem(itemId);
       }
-    }.bind(this));
+    });
 
     document.addEventListener('change', function(e) {
       if (e.target.classList.contains('item-checkbox')) {
-        this.updateCheckbox(e.target);
+        self.updateCheckbox(e.target);
       }
-    }.bind(this));
+    });
   };
 
   Optimizer2DManager.prototype.addItem = function() {
@@ -426,6 +447,13 @@
         var numValue = parseInt(value, 10);
         var sanitizedValue = isNaN(numValue) ? 0 : Math.max(0, numValue);
         item[field] = sanitizedValue;
+      }
+      // Auto-adjust quantity placeholder
+      if (field === 'width' || field === 'height') {
+        var qtyInput = row.querySelector('.item-input-2d-qty');
+        if (qtyInput && !qtyInput.value) {
+          qtyInput.placeholder = 'Qty';
+        }
       }
     }
   };
@@ -576,9 +604,18 @@
         
         self.renderResults();
         
+        // Announce success to screen readers
+        if (window.AccessibilityManager) {
+          window.AccessibilityManager.announce('Optimization completed. ' + self.result.totalPlates + ' plates required.');
+        }
+        
       } catch (error) {
         console.error('❌ Optimization error:', error);
         self.showError('An error occurred during optimization: ' + error.message);
+        
+        if (window.AccessibilityManager) {
+          window.AccessibilityManager.announce('Optimization failed: ' + error.message);
+        }
       } finally {
         self.setLoading(false);
       }
@@ -653,12 +690,12 @@
             <h3 class="nav-title">Plate Layouts</h3>
             <div class="nav-buttons">
               <span class="nav-counter">Plate ${this.currentPlateIndex + 1} of ${this.result.plates.length}</span>
-              <button class="nav-btn" id="prev-plate-2d" ${this.currentPlateIndex === 0 ? 'disabled' : ''}>
+              <button class="nav-btn" id="prev-plate-2d" ${this.currentPlateIndex === 0 ? 'disabled' : ''} aria-label="Previous plate visualization">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              <button class="nav-btn" id="next-plate-2d" ${this.currentPlateIndex === this.result.plates.length - 1 ? 'disabled' : ''}>
+              <button class="nav-btn" id="next-plate-2d" ${this.currentPlateIndex === this.result.plates.length - 1 ? 'disabled' : ''} aria-label="Next plate visualization">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
@@ -666,7 +703,7 @@
             </div>
           </div>
 
-          <div id="plate-visualization-container">
+          <div id="plate-visualization-container" role="region" aria-label="Plate cutting visualization">
             ${this.renderPlateVisualization()}
           </div>
         </div>
@@ -688,7 +725,7 @@
 
   Optimizer2DManager.prototype.renderPlateVisualization = function() {
     if (!this.result || !this.result.plates[this.currentPlateIndex]) {
-      return '<div class="empty-state">No plate data available</div>';
+      return '<div class="empty-state" role="alert">No plate data available</div>';
     }
     
     var plate = this.result.plates[this.currentPlateIndex];
@@ -704,7 +741,8 @@
       return `
         <div class="plate-item"
              style="left: ${left}%; top: ${top}%; width: ${width}%; height: ${height}%; background-color: ${color};"
-             title="${item.originalId}: ${item.originalWidth}x${item.originalHeight}mm ${item.rotated ? '(rotated)' : ''}">
+             title="${item.originalId}: ${item.originalWidth}x${item.originalHeight}mm ${item.rotated ? '(rotated)' : ''}"
+             role="img" aria-label="Item ${item.originalId}, ${item.originalWidth}x${item.originalHeight}mm">
           ${width > 5 && height > 5 ? '<span class="truncate">' + item.originalId + '</span>' : ''}
         </div>
       `;
@@ -779,6 +817,11 @@
     try {
       if (typeof window.export2DToPDF === 'function') {
         window.export2DToPDF(this.result, this.formData, this.itemColors);
+        
+        // Announce to screen readers
+        if (window.AccessibilityManager) {
+          window.AccessibilityManager.announce('PDF export started. Download will begin shortly.');
+        }
       } else {
         this.showError('PDF export is not available. Please check your connection.');
       }
@@ -827,6 +870,7 @@
     var errorEl = document.createElement('div');
     errorEl.className = 'error-message';
     errorEl.textContent = message;
+    errorEl.setAttribute('role', 'alert');
     
     // Add to container
     var firstChild = container.firstChild;
@@ -854,15 +898,15 @@
       // Check if we're on the 2D page
       if (document.getElementById('optimizer-2d-form')) {
         window.optimizer2D = new Optimizer2DManager();
-        console.log('✅ 2D Optimizer initialized');
+        console.log('✅ 2D Optimizer initialized - Undo/Redo not implemented');
       }
     });
   } else {
     if (document.getElementById('optimizer-2d-form')) {
       window.optimizer2D = new Optimizer2DManager();
-      console.log('✅ 2D Optimizer initialized');
+      console.log('✅ 2D Optimizer initialized - Undo/Redo not implemented');
     }
   }
 
-  console.log('✅ 2D Optimizer script loaded - With global exports');
+  console.log('✅ 2D Optimizer script loaded - With global exports, no undo/redo');
 })(window, document);

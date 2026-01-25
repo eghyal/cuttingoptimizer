@@ -1,4 +1,4 @@
-/* Modal Styles dengan QR Image Support */
+/* Modal Styles with QR Image Support & Accessibility */
 
 .modal-backdrop {
   position: fixed;
@@ -38,9 +38,9 @@
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-/* QR Container - Proporsional Aspect Ratio */
+/* QR Container */
 .qr-container {
-  padding: var(--space-2);
+  padding: var(--space-4);
   border: 1px solid var(--color-slate-200);
   border-radius: var(--radius-lg);
   text-align: center;
@@ -49,19 +49,19 @@
   justify-content: center;
   align-items: center;
   min-height: 200px;
+  margin: var(--space-4) 0;
 }
 
-/* QR Image - 100% Proporsional */
 .qr-image {
   width: 100%;
-  max-width: 16rem; /* Maksimal 256px */
+  max-width: 16rem;
   height: auto;
   border-radius: var(--radius-md);
   object-fit: contain;
-  aspect-ratio: 1 / 1; /* Pastikan kotak sempurna */
+  aspect-ratio: 1 / 1;
 }
 
-/* Placeholder jika gambar tidak ada */
+/* Placeholder if image doesn't load */
 .qr-image[src=""],
 .qr-image:not([src]) {
   background-color: var(--color-slate-100);
@@ -70,6 +70,7 @@
   align-items: center;
   justify-content: center;
   position: relative;
+  min-height: 12rem;
 }
 
 .qr-image[src=""]::after,
@@ -121,6 +122,11 @@
   background-color: var(--color-slate-100);
 }
 
+.modal-close:focus-visible {
+  outline: 2px solid var(--color-blue-500);
+  outline-offset: 2px;
+}
+
 .modal-body {
   padding: var(--space-6);
 }
@@ -147,6 +153,44 @@
 .nmid {
   font-size: var(--text-xs);
   color: var(--color-slate-500);
+}
+
+/* Shortcut Modal Specific */
+.shortcut-modal {
+  max-width: 32rem !important;
+}
+
+.shortcut-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-4);
+  margin: var(--space-4) 0;
+}
+
+.shortcut-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-slate-50);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-slate-200);
+}
+
+.shortcut-item kbd {
+  background: var(--color-slate-800);
+  color: var(--color-white);
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-family: 'SF Mono', monospace;
+  min-width: 3rem;
+  text-align: center;
+}
+
+.shortcut-item span {
+  font-size: var(--text-sm);
+  color: var(--color-slate-600);
 }
 
 /* Exit animation */

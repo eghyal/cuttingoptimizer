@@ -1,10 +1,3 @@
-/**
- * PDF Export Module - Enhanced Visualizations for Project Export
- * Fixed: 1D table layout and 2D plate visualization
- * CHANGED: Restructured PDF with input data first, then output per group, then donation
- * FIXED: Consistent colors using itemColors from global state
- */
-
 (function(window) {
   'use strict';
 
@@ -285,7 +278,9 @@
               detailsMap.set(item.originalLength, count + 1);
           });
           var details = Array.from(detailsMap.entries())
-              .map(function(entry) { return entry[0] + 'mm (' + entry[1] + ')'; })
+              .map(function(entry) { 
+                  return entry[0] + 'mm (' + entry[1] + 'x' + bar.items.find(i => i.originalId === entry[0]).originalLength + 'mm)'; 
+              })
               .join(', ');
           
           return [
@@ -297,7 +292,7 @@
           ];
       });
 
-      drawTable(pdf, y, barHeaders, barData, [30, 35, 30, 25, 60]);
+      drawTable(pdf, y, barHeaders, barData, [25, 35, 30, 25, 65]);
 
       // Donation Page
       addDonationSection(pdf);
@@ -588,7 +583,7 @@
               pdf.setFont('helvetica', 'normal'); pdf.setTextColor(FONT_COLOR_MEDIUM);
               pdf.text(stat[0] + ':', currentX, currentY);
               pdf.setFont('helvetica', 'bold'); pdf.setTextColor(FONT_COLOR_DARK);
-              pdf.text(stat[1], currentX + 35, currentY);
+              pdf.text(stat[1], (idx % 2 === 0) ? currentX + 35 : currentX + 40, currentY);
           });
           y += Math.ceil(summaryStats.length / 2) * 7 + 8;
           
@@ -634,7 +629,7 @@
                   ];
               });
 
-              y = drawTable(pdf, y, barHeaders, barData, [25, 35, 30, 25, 65]);
+              drawTable(pdf, y, barHeaders, barData, [25, 35, 30, 25, 65]);
           } else {
               // 2D Plate visualization - multiple plates per page
               res.result.plates.forEach(function(plate, plateIndex) {
@@ -713,5 +708,5 @@
   window.export2DToPDF = export2DToPDF;
   window.exportProjectToPDF = exportProjectToPDF;
 
-  console.log('✅ PDF Export module loaded - Fixed visualizations & restructured');
+  console.log('✅ PDF Export module loaded - Fixed visualizations, no undo/redo');
 })(window);

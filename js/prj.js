@@ -1,6 +1,6 @@
 /**
- * Project Manager - Complete Fixed Version
- * Enhanced: Excel import handler for simplified template
+ * Project Manager - Fixed Version with Enhanced Excel Import
+ * NO UNDO/REDO - Clean implementation
  */
 
 (function(window, document) {
@@ -25,13 +25,13 @@
       name: name,
       type: type,
       parameters: type === '1d' ? {
-        materialLength: 6000, // Default 6000
-        kerfWidth: 3, // Default 3
+        materialLength: 6000,
+        kerfWidth: 3,
         algorithm: 'first-fit'
       } : {
-        plateWidth: 2440, // Default 2440
-        plateHeight: 1220, // Default 1220
-        kerfWidth: 3, // Default 3
+        plateWidth: 2440,
+        plateHeight: 1220,
+        kerfWidth: 3,
         algorithm: 'GUILLOTINE'
       },
       items: []
@@ -39,10 +39,10 @@
   }
 
   function createDefaultItem(groupIndex, itemIndex) {
-    const groupLetter = String.fromCharCode(65 + groupIndex); // A, B, C...
+    const groupLetter = String.fromCharCode(65 + groupIndex);
     return {
       id: Date.now().toString() + Math.random(),
-      itemId: groupLetter + (itemIndex + 1), // A1, A2, B1...
+      itemId: groupLetter + (itemIndex + 1),
       length: '',
       width: '',
       height: '',
@@ -94,11 +94,13 @@
                    placeholder="Group Name">
           </div>
           <div class="group-actions">
-            <button class="btn btn-secondary btn-sm" data-action="change-type" title="Change Type">
+            <button class="btn btn-secondary btn-sm btn-icon" data-action="change-type" title="Change Type">
               ${is1D ? 'Switch to 2D' : 'Switch to 1D'}
             </button>
-            <button class="btn btn-danger btn-sm" data-action="remove-group" title="Remove Group">
-              Remove
+            <button class="btn btn-danger btn-sm btn-icon" data-action="remove-group" title="Remove Group">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
             </button>
           </div>
         </div>
@@ -236,7 +238,7 @@
         ` : ''}
         
         <div class="cut-item-actions">
-          <button class="btn-remove" data-action="remove-item" title="Remove Item">
+          <button class="btn-remove" data-action="remove-item" title="Remove Item" aria-label="Remove item ${item.itemId}">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -657,6 +659,11 @@
       backBtn.addEventListener('click', () => {
         resultsContainer.classList.add('hidden');
         document.getElementById('optimizer-prj-form').classList.remove('hidden');
+        
+        // Announce to screen readers
+        if (window.AccessibilityManager) {
+          window.AccessibilityManager.announce('Returned to project form.');
+        }
       });
     }
     
@@ -666,6 +673,11 @@
         try {
           if (typeof window.exportProjectToPDF === 'function') {
             window.exportProjectToPDF(optimizationResults);
+            
+            // Announce to screen readers
+            if (window.AccessibilityManager) {
+              window.AccessibilityManager.announce('PDF export started. Download will begin shortly.');
+            }
           } else {
             showError('PDF export is not available. Please check your connection.');
           }
@@ -689,6 +701,11 @@
     });
     
     resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    // Announce completion
+    if (window.AccessibilityManager) {
+      window.AccessibilityManager.announce(`Optimization completed. Processed ${totalGroups} groups with ${totalItems} total items.`);
+    }
   }
 
   function renderGroupResult(res, groupIndex, itemColors) {
@@ -912,7 +929,7 @@
     const groupsMap = {};
     
     data.forEach((row, index) => {
-      if (index === 0) return; // Skip header row
+      if (index === 0) return;
       
       const groupName = row['Group Name'];
       if (!groupName) return;
@@ -1024,5 +1041,5 @@
     renderGroups: renderGroups
   };
 
-  console.log('✅ Project Manager script loaded - Enhanced Excel import');
+  console.log('✅ Project Manager script loaded - Enhanced Excel import, no undo/redo');
 })(window, document);

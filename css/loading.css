@@ -1,4 +1,4 @@
-/* Loading Overlay Styles - Pixel-Perfect from React */
+/* Loading Overlay Styles - Pixel-Perfect from React with Accessibility */
 
 .loading-overlay {
   position: fixed;
@@ -105,3 +105,11 @@
 .btn-loading .icon-plus {
   display: none;
 }
+
+/* Ensure loading overlay is accessible */
+.loading-overlay:not(.hidden) {
+  display: flex !important;
+}
+
+/* .loading-overlay[role="status"] { 
+} */

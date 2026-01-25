@@ -1,0 +1,163 @@
+/* Accessibility Improvements & Mobile Responsiveness */
+
+/* Startup Tour Styles */
+.tour-modal {
+  max-width: 28rem !important;
+  text-align: center;
+}
+
+.tour-body {
+  padding: var(--space-6) var(--space-6) var(--space-4);
+}
+
+.tour-step {
+  display: none;
+  animation: fadeInUpModal 0.4s ease-out forwards;
+}
+
+.tour-step.active {
+  display: block;
+}
+
+.tour-icon {
+  font-size: 3rem;
+  margin-bottom: var(--space-4);
+  display: block;
+}
+
+.tour-step h3 {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--color-slate-800);
+  margin-bottom: var(--space-2);
+}
+
+.tour-step p {
+  font-size: var(--text-base);
+  color: var(--color-slate-600);
+  line-height: var(--leading-normal);
+  margin-bottom: var(--space-4);
+}
+
+.tour-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-slate-200);
+}
+
+.tour-dots {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  background-color: var(--color-slate-300);
+  transition: background-color var(--transition-fast);
+}
+
+.dot.active {
+  background-color: var(--color-blue-600);
+}
+
+@media (max-width: 480px) {
+  .tour-nav {
+    flex-direction: row;
+    gap: var(--space-2);
+  }
+  
+  .tour-dots {
+    order: 0;
+  }
+}
+
+/* Mobile Responsiveness - Hide keyboard shortcuts on mobile */
+@media (max-width: 767px) {
+  /* Hide shortcut info on home page */
+  .keyboard-shortcut-info,
+  .ascii-keyboard,
+  .shortcut-hover-hint,
+  .shortcut-grid,
+  .nav-link::after {
+    display: none !important;
+  }
+  
+  /* Adjust home page spacing */
+  .hero-section {
+    margin-bottom: 2rem;
+  }
+  
+  /* Adjust cards for mobile - already handled in home.css */
+  
+  /* Optimize button spacing on mobile */
+  .cut-list-section + button.btn-full {
+    margin-top: var(--space-6) !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.8);
+  }
+  
+  .panel {
+    border-width: 2px;
+  }
+  
+  .btn:focus-visible,
+  .form-input:focus,
+  .form-select:focus {
+    outline-width: 3px;
+    outline-offset: 3px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .loading-overlay,
+  .modal-backdrop {
+    animation: none !important;
+  }
+}
+
+/* Focus visible for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--color-blue-500);
+  outline-offset: 2px;
+}
+
+/* Ensure sufficient color contrast */
+.error-message {
+  color: var(--color-red-700);
+  background-color: var(--color-red-100);
+  border-color: var(--color-red-200);
+}
+
+.success-message {
+  background-color: var(--color-green-600);
+}
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

@@ -1,4 +1,4 @@
-/* Main Layout - Translated from Tailwind Utilities */
+/* Main Layout - Translated from Tailwind Utilities with Improvements */
 
 /* App Container */
 body {
@@ -17,9 +17,9 @@ body.bg-slate-50 {
   background-color: var(--color-slate-50);
 }
 
-/* Header */
+/* Header - Improved spacing */
 .header {
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--color-slate-200);
@@ -57,6 +57,12 @@ body.bg-slate-50 {
   gap: var(--space-4);
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .logo {
   flex-shrink: 0;
   width: 2.5rem;
@@ -72,6 +78,11 @@ body.bg-slate-50 {
 
 .logo:hover {
   background-color: var(--color-blue-600);
+}
+
+.logo:focus-visible {
+  outline: 2px solid var(--color-blue-500);
+  outline-offset: 2px;
 }
 
 .logo-icon {
@@ -92,6 +103,38 @@ body.bg-slate-50 {
   line-height: 1.25;
 }
 
+/* Home Button - Professional Style */
+.btn-home {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-slate-600);
+  background: var(--color-white);
+  border: 1px solid var(--color-slate-300);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.btn-home:hover {
+  color: var(--color-blue-600);
+  border-color: var(--color-blue-300);
+  background: var(--color-blue-50);
+}
+
+.btn-home:focus-visible {
+  outline: 2px solid var(--color-blue-500);
+  outline-offset: 2px;
+}
+
+.icon-home {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* Main Navigation */
 .main-nav {
   display: none;
   align-items: center;
@@ -111,6 +154,8 @@ body.bg-slate-50 {
   border-radius: var(--radius-md);
   color: var(--color-slate-600);
   transition: all var(--transition-fast);
+  text-decoration: none;
+  position: relative;
 }
 
 .nav-link:hover {
@@ -123,28 +168,31 @@ body.bg-slate-50 {
   color: var(--color-slate-900);
 }
 
-.mobile-home-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  color: var(--color-slate-600);
-  border-radius: var(--radius-full);
-  transition: background-color var(--transition-fast);
+.nav-link:focus-visible {
+  outline: 2px solid var(--color-blue-500);
+  outline-offset: 2px;
 }
 
-.mobile-home-btn:hover {
-  background-color: var(--color-slate-100);
+/* Shortcut hint on nav links */
+.nav-link::after {
+  content: attr(accesskey);
+  position: absolute;
+  top: -0.5rem;
+  right: -0.5rem;
+  font-size: var(--text-xs);
+  background: var(--color-blue-500);
+  color: var(--color-white);
+  padding: 0.125rem 0.25rem;
+  border-radius: var(--radius-sm);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
 }
 
-@media (min-width: 768px) {
-  .mobile-home-btn {
-    display: none;
-  }
+.nav-link:hover::after {
+  opacity: 1;
 }
 
-/* Main Content */
+/* Main Content - Improved spacing */
 .main-content {
   flex: 1;
   width: 100%;
@@ -172,51 +220,6 @@ body.bg-slate-50 {
   flex: 1;
 }
 
-/* Footer - FIXED HEIGHT */
-.footer {
-  background-color: var(--color-white);
-  border-top: 1px solid var(--color-slate-200);
-  margin-top: auto;
-  flex-shrink: 0;
-  height: 4rem; /* EXPLICIT HEIGHT */
-  display: flex;
-  align-items: center; /* Center vertically in footer */
-}
-
-.footer-container {
-  max-width: var(--max-width-7xl);
-  margin: 0 auto;
-  padding: 0 var(--space-4); /* REVISED: Remove top padding, use flex centering */
-  display: flex;
-  flex-direction: column;
-  justify-content: center; /* Center vertically */
-  align-items: center;
-  gap: var(--space-4);
-  font-size: var(--text-sm);
-  color: var(--color-slate-500);
-  height: 100%; /* Fill footer height */
-  box-sizing: border-box;
-}
-
-@media (min-width: 640px) {
-  .footer-container {
-    flex-direction: row;
-    justify-content: space-between; /* Kiri-kanan */
-    align-items: center;
-    padding: 0 var(--space-6);
-  }
-}
-
-@media (min-width: 1024px) {
-  .footer-container {
-    padding: 0 2rem;
-  }
-}
-
-.footer-text {
-  margin: 0;
-}
-
 /* Page Optimizer Background */
 .page-optimizer {
   background-color: var(--color-slate-50);
@@ -238,11 +241,11 @@ body.bg-slate-50 {
   }
   
   .main-content {
-    padding: 1rem;
+    padding: var(--space-4);
   }
 }
 
-/* Animation keyframes yang hilang */
+/* Animation keyframes */
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -261,144 +264,86 @@ body.bg-slate-50 {
   animation: fadeInUp 0.4s ease-out 0.1s forwards;
 }
 
-/* Mobile footer fix - Horizontal layout like desktop */
-@media (max-width: 639px) {
-  .footer {
-    height: auto; /* REVISED: Auto height for mobile */
-    padding: 0.75rem 0; /* REVISED: Add vertical padding */
-  }
-  
+/* Footer - FIXED HEIGHT with proper alignment */
+.footer {
+  background-color: var(--color-white);
+  border-top: 1px solid var(--color-slate-200);
+  margin-top: auto;
+  flex-shrink: 0;
+  height: 4rem; /* EXPLICIT HEIGHT */
+  display: flex;
+  align-items: center; /* Center vertically */
+}
+
+.footer-container {
+  max-width: var(--max-width-7xl);
+  margin: 0 auto;
+  padding: 0 var(--space-4); /* Balanced padding */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Center vertically */
+  align-items: center;
+  gap: var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-slate-500);
+  height: 100%; /* Fill footer height */
+  box-sizing: border-box;
+}
+
+@media (min-width: 640px) {
   .footer-container {
-    flex-direction: row !important; /* Force horizontal layout */
-    justify-content: space-between !important; /* Kiri-kanan */
-    align-items: center !important; /* Center vertically */
-    /* REVISED: Balanced padding top & bottom */
-    padding: var(--space-3) var(--space-3) !important; /* 12px top & bottom */
-    gap: var(--space-2) !important;
-  }
-  
-  .footer-text {
-    font-size: var(--text-xs) !important;
-    margin: 0 !important;
-    flex-shrink: 1 !important;
-  }
-  
-  .btn-donate {
-    padding: var(--space-1) var(--space-2) !important; /* Smaller button */
-    font-size: var(--text-xs);
-    white-space: nowrap; /* Prevent text wrapping */
-    flex-shrink: 0; /* Prevent button from shrinking */
-  }
-  
-  .icon-heart {
-    width: 0.875rem !important; /* Slightly smaller icon */
-    height: 0.875rem !important;
-    margin-right: var(--space-1) !important;
+    flex-direction: row;
+    justify-content: space-between; /* Left-right layout */
+    align-items: center;
+    padding: 0 var(--space-6);
   }
 }
 
-/* ============================================================================
-   MOBILE FOOTER - Simplified fixed donate button at bottom right
-   ============================================================================ */
-@media (max-width: 767px) {
-  /* Add padding to body so content doesn't hide behind fixed button */
-  body {
-    padding-bottom: 5rem;
-  }
-  
-  /* Make footer fixed and transparent */
-  body > .footer {
-    position: fixed !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    height: auto !important;
-    background: transparent !important;
-    border-top: none !important;
-    pointer-events: none !important;
-    z-index: 40 !important;
-  }
-  
-  /* Position button container at bottom right */
-  body > .footer .footer-container {
-    position: absolute !important;
-    bottom: 1rem !important;
-    right: 1rem !important;
-    left: auto !important;
-    padding: 0 !important;
-    pointer-events: auto !important;
-    background: none !important;
-    border: none !important;
-    justify-content: flex-end !important;
-    height: auto !important;
-    width: auto !important;
-    max-width: none !important;
-    margin: 0 !important;
-  }
-  
-  /* Hide footer text on mobile */
-  body > .footer .footer-text {
-    display: none !important;
-  }
-  
-  /* Style donate button for visibility */
-  body > .footer .btn-donate {
-    background: var(--color-white) !important;
-    border: 1px solid var(--color-slate-200) !important;
-    box-shadow: var(--shadow-lg) !important;
-    padding: var(--space-2) var(--space-3) !important;
-    font-size: var(--text-sm) !important;
+@media (min-width: 1024px) {
+  .footer-container {
+    padding: 0 2rem;
   }
 }
 
-/* Tambahkan di akhir file css/main.css */
+.footer-text {
+  margin: 0;
+  font-size: var(--text-sm);
+}
 
-/* ============================================================================
-   FIXED FOOTER - Tidak ikut scroll
-   ============================================================================ */
-
+/* Fixed footer that doesn't scroll */
 body {
-    padding-bottom: 5rem; /* Beri space untuk footer fixed */
+  padding-bottom: 5rem; /* Space for fixed footer */
 }
 
 .footer-fixed {
-    position: fixed !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    z-index: 40 !important;
-    background-color: var(--color-white) !important;
-    border-top: 1px solid var(--color-slate-200) !important;
-    height: 4rem !important; /* Pastikan tinggi konsisten */
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 40 !important;
+  background-color: var(--color-white) !important;
+  border-top: 1px solid var(--color-slate-200) !important;
+  height: 4rem !important;
 }
 
 .footer-fixed .footer-container {
-    height: 100% !important;
-    display: flex !important;
-    align-items: center !important; /* Vertically center */
-    justify-content: space-between !important;
-    max-width: var(--max-width-7xl) !important;
-    margin: 0 auto !important;
-    padding: 0 var(--space-4) !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  max-width: var(--max-width-7xl) !important;
+  margin: 0 auto !important;
+  padding: 0 var(--space-4) !important;
 }
 
 /* Mobile footer adjustments */
 @media (max-width: 767px) {
-    .footer-fixed {
-        height: auto !important;
-        padding: var(--space-2) 0 !important;
-    }
-    
-    .footer-fixed .footer-container {
-        padding: 0 var(--space-3) !important;
-    }
-    
-    .footer-fixed .footer-text {
-        font-size: var(--text-xs) !important;
-    }
-    
-    .footer-fixed .btn-donate {
-        padding: var(--space-1) var(--space-2) !important;
-        font-size: var(--text-xs) !important;
-    }
+  .footer-fixed {
+    height: auto !important;
+    padding: var(--space-2) 0 !important;
+  }
+  
+  .footer-fixed .footer-container {
+    padding: 0 var(--space-3) !important;
+  }
 }
