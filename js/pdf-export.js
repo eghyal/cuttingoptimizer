@@ -172,7 +172,7 @@
   }
 
   // ============================================================================
-  // 1D PDF EXPORT - FIXED
+  // 1D PDF EXPORT - REVISED TABLE FORMAT
   // ============================================================================
   function export1DToPDF(result, formData) {
       // Check if jsPDF is available
@@ -269,29 +269,33 @@
 
       y = drawTable(pdf, y, cutListHeaders, cutListData, [30, 50, 30, 70]);
 
-      // Bar Results - FIXED
+      // Bar Results - REVISED FORMAT
       pdf.addPage();
       y = 25;
       y = drawSectionTitle(pdf, 'BAR CUTTING RESULTS', y);
 
-      var barHeaders = ['Bar', 'Used Length', 'Waste', 'Efficiency', 'Cut Details'];
+      // New format: Bar, Cuts, Used Length, Waste, Efficiency, Cut Details
+      var barHeaders = ['Bar', 'Cuts', 'Used Length', 'Waste', 'Efficiency', 'Cut Details'];
       
       var barData = result.bars.map(function(bar) {
-          // FIXED: Use originalId as key, not originalLength
+          // Count cuts by length only (no ID)
           var detailsMap = new Map();
           bar.items.forEach(function(item) {
-              var key = item.originalId + ' (' + item.originalLength + 'mm)';
-              var count = detailsMap.get(key) || 0;
-              detailsMap.set(key, count + 1);
+              var length = item.originalLength;
+              var count = detailsMap.get(length) || 0;
+              detailsMap.set(length, count + 1);
           });
+          
+          // Format: lengthmm (count), e.g., "430mm (2), 531mm (6)"
           var details = Array.from(detailsMap.entries())
               .map(function(entry) { 
-                  return entry[1] + 'x ' + entry[0]; 
+                  return entry[0] + 'mm (' + entry[1] + ')'; 
               })
               .join(', ');
           
           return [
               bar.id,
+              bar.items.length.toString(), // Cuts count
               bar.usedLength + ' mm',
               bar.remainingLength + ' mm',
               bar.efficiency + '%',
@@ -299,7 +303,8 @@
           ];
       });
 
-      drawTable(pdf, y, barHeaders, barData, [25, 35, 30, 25, 65]);
+      // Adjusted column widths for new format
+      drawTable(pdf, y, barHeaders, barData, [25, 15, 35, 30, 25, 60]);
 
       // Donation Page
       addDonationSection(pdf);
@@ -526,7 +531,7 @@
   }
 
   // ============================================================================
-  // PROJECT PDF EXPORT - Enhanced with Proper Visualizations and 2D Details
+  // PROJECT PDF EXPORT - Revised 1D Table Format to match standalone 1D export
   // ============================================================================
   function exportProjectToPDF(results) {
       // Check if jsPDF is available
@@ -665,22 +670,28 @@
           });
           
           if (is1D) {
-              // 1D Bar visualization
-              var barHeaders = ['Bar', 'Used Length', 'Waste', 'Efficiency', 'Cut Sequence'];
+              // 1D Bar visualization - REVISED FORMAT (same as standalone 1D export)
+              // Format: Bar, Cuts, Used Length, Waste, Efficiency, Cut Details
+              var barHeaders = ['Bar', 'Cuts', 'Used Length', 'Waste', 'Efficiency', 'Cut Details'];
               var barData = res.result.bars.map(function(bar) {
+                  // Count cuts by length only (no ID)
                   var detailsMap = new Map();
                   bar.items.forEach(function(item) {
-                      var count = detailsMap.get(item.originalId) || 0;
-                      detailsMap.set(item.originalId, count + 1);
+                      var length = item.originalLength;
+                      var count = detailsMap.get(length) || 0;
+                      detailsMap.set(length, count + 1);
                   });
+                  
+                  // Format: lengthmm (count), e.g., "430mm (2), 531mm (6)"
                   var details = Array.from(detailsMap.entries())
                       .map(function(entry) { 
-                          return entry[0] + ' (' + entry[1] + 'x' + bar.items.find(i => i.originalId === entry[0]).originalLength + 'mm)'; 
+                          return entry[0] + 'mm (' + entry[1] + ')'; 
                       })
                       .join(', ');
                   
                   return [
                       bar.id,
+                      bar.items.length.toString(), // Cuts count
                       bar.usedLength + ' mm',
                       bar.remainingLength + ' mm',
                       bar.efficiency + '%',
@@ -688,7 +699,8 @@
                   ];
               });
 
-              drawTable(pdf, y, barHeaders, barData, [25, 35, 30, 25, 65]);
+              // Use same column widths as standalone 1D export
+              y = drawTable(pdf, y, barHeaders, barData, [25, 15, 35, 30, 25, 60]);
           } else {
               // NEW: 2D Detailed item table before visualization
               var detailHeaders = ['Plate', 'Item ID', 'Dimensions', 'Position', 'Rotated'];
@@ -799,5 +811,5 @@
   window.export2DToPDF = export2DToPDF;
   window.exportProjectToPDF = exportProjectToPDF;
 
-  console.log('✅ PDF Export module loaded - Fixed bugs, no animations, enhanced 2D details');
+  console.log('✅ PDF Export module loaded - Fixed table format for 1D results');
 })(window);
