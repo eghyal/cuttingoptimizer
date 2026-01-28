@@ -14,6 +14,9 @@
   var ROW_HIGHLIGHT_COLOR = '#f8fafc';
   var EFFICIENCY_GREEN = '#10b981';
   var EFFICIENCY_RED = '#ef4444';
+  var MIN_ROW_HEIGHT = 8; // Tinggi minimum row
+  var LINE_HEIGHT = 4.5;  // Tinggi per baris teks
+  var CELL_PADDING = 3;   // Padding atas bawah dalam cell
 
   // ============================================================================
   // QR CODE CONFIGURATION
@@ -62,10 +65,37 @@
       return y + 10;
   }
 
-  function drawTable(pdf, y, headers, data, colWidths) {
-      var rowHeight = 10;
+  // Fungsi baru: Hitung jumlah baris teks yang diperlukan
+  function getTextLines(pdf, text, maxWidth) {
+      if (!text) return 1;
+      var lines = pdf.splitTextToSize(String(text), maxWidth - 8); // 8 = padding kiri kanan
+      return lines.length;
+  }
+
+  // Fungsi baru: Hitung tinggi row berdasarkan konten
+  function calculateRowHeight(pdf, rowData, colWidths, headers) {
+      var maxLines = 1;
+      
+      for (var i = 0; i < rowData.length; i++) {
+          var text = String(rowData[i]);
+          var width = colWidths[i] || 30;
+          
+          // Jika ini kolom Cut Details (biasanya kolom terakhir dan terpanjang)
+          // atau jika text panjang, hitung lines
+          var lines = getTextLines(pdf, text, width);
+          maxLines = Math.max(maxLines, lines);
+      }
+      
+      // Hitung tinggi: (jumlah baris * tinggi per baris) + padding atas bawah
+      var calculatedHeight = (maxLines * LINE_HEIGHT) + (CELL_PADDING * 2);
+      return Math.max(MIN_ROW_HEIGHT, calculatedHeight);
+  }
+
+  // Fungsi modifikasi: Draw table dengan auto-fit height
+  function drawTableAutoHeight(pdf, startY, headers, data, colWidths) {
       var headerHeight = 10;
       var tableWidth = colWidths.reduce(function(a, b) { return a + b; }, 0);
+      var y = startY;
 
       // Header
       pdf.setFontSize(9);
@@ -73,22 +103,28 @@
       pdf.setTextColor(FONT_COLOR_MEDIUM);
       pdf.setFillColor(ROW_HIGHLIGHT_COLOR);
       pdf.rect(PAGE_MARGIN, y, tableWidth, headerHeight, 'F');
+      
       var currentX = PAGE_MARGIN;
       for (var i = 0; i < headers.length; i++) {
-          pdf.text(headers[i], currentX + 4, y + 7);
+          pdf.text(headers[i], currentX + 4, y + 6.5);
           currentX += colWidths[i];
       }
       y += headerHeight;
 
-      // Rows
-      pdf.setFontSize(10);
+      // Rows dengan auto-height
+      pdf.setFontSize(9); // Ukuran font sedikit lebih kecil agar muat lebih banyak
       pdf.setFont('helvetica', 'normal');
-      pdf.setTextColor(FONT_COLOR_DARK);
+      
       for (var rowIndex = 0; rowIndex < data.length; rowIndex++) {
           var row = data[rowIndex];
-          y = checkAndAddPage(pdf, y, 30);
           
-          // If new page, redraw header
+          // Hitung tinggi row untuk data ini
+          var rowHeight = calculateRowHeight(pdf, row, colWidths, headers);
+          
+          // Cek apakah perlu page break
+          y = checkAndAddPage(pdf, y, rowHeight + 10);
+          
+          // Jika new page, redraw header
           if (y === 25 && rowIndex > 0) {
                var newX = PAGE_MARGIN;
                pdf.setFontSize(9);
@@ -97,32 +133,60 @@
                pdf.setFillColor(ROW_HIGHLIGHT_COLOR);
                pdf.rect(PAGE_MARGIN, y - headerHeight, tableWidth, headerHeight, 'F');
                for (var j = 0; j < headers.length; j++) {
-                  pdf.text(headers[j], newX + 4, y - 3);
+                  pdf.text(headers[j], newX + 4, y - 3.5);
                   newX += colWidths[j];
                }
-               pdf.setFontSize(10);
+               pdf.setFontSize(9);
                pdf.setFont('helvetica', 'normal');
           }
 
+          // Alternating row colors
           if (rowIndex % 2 !== 0) {
               pdf.setFillColor(ROW_HIGHLIGHT_COLOR);
               pdf.rect(PAGE_MARGIN, y, tableWidth, rowHeight, 'F');
           }
+
+          // Draw cell borders dan text
           currentX = PAGE_MARGIN;
           for (var k = 0; k < row.length; k++) {
               var text = String(row[k]);
+              var cellWidth = colWidths[k] || 30;
+              
+              // Set warna text
               if (headers[k] === 'Efficiency') {
                   var eff = parseInt(text.replace('%', ''), 10);
                   pdf.setTextColor(eff >= 90 ? EFFICIENCY_GREEN : EFFICIENCY_RED);
               } else {
                    pdf.setTextColor(FONT_COLOR_DARK);
               }
-               pdf.text(text, currentX + 4, y + 6.5, { maxWidth: colWidths[k] - 8 });
-              currentX += colWidths[k];
+
+              // Text dengan wrapping
+              var textLines = pdf.splitTextToSize(text, cellWidth - 8);
+              var textY = y + CELL_PADDING + 2.5; // +2.5 untuk center vertikal
+            
+              // Jika text lebih dari 1 baris, align top; jika 1 baris, align center
+              if (textLines.length === 1) {
+                  textY = y + (rowHeight / 2) + 1.5; // Center vertikal
+              }
+              
+              pdf.text(textLines, currentX + 4, textY);
+              
+              // Draw border per cell
+              pdf.setDrawColor(BORDER_COLOR);
+              pdf.setLineWidth(0.1);
+              pdf.rect(currentX, y, cellWidth, rowHeight, 'S');
+              
+              currentX += cellWidth;
           }
+          
           y += rowHeight;
       }
-      return y;
+      return y + 5; // Tambah padding bottom
+  }
+
+  // Keep old function for backward compatibility (untuk tabel yang tidak perlu auto-height)
+  function drawTable(pdf, y, headers, data, colWidths) {
+      return drawTableAutoHeight(pdf, y, headers, data, colWidths);
   }
 
   function addDonationSection(pdf) {
@@ -172,7 +236,7 @@
   }
 
   // ============================================================================
-  // 1D PDF EXPORT - REVISED TABLE FORMAT
+  // 1D PDF EXPORT - REVISED TABLE FORMAT WITH AUTO-FIT HEIGHT
   // ============================================================================
   function export1DToPDF(result, formData) {
       // Check if jsPDF is available
@@ -267,9 +331,9 @@
           ];
       });
 
-      y = drawTable(pdf, y, cutListHeaders, cutListData, [30, 50, 30, 70]);
+      y = drawTableAutoHeight(pdf, y, cutListHeaders, cutListData, [30, 50, 30, 70]);
 
-      // Bar Results - REVISED FORMAT
+      // Bar Results - REVISED FORMAT WITH AUTO-FIT
       pdf.addPage();
       y = 25;
       y = drawSectionTitle(pdf, 'BAR CUTTING RESULTS', y);
@@ -303,8 +367,8 @@
           ];
       });
 
-      // Adjusted column widths for new format
-      drawTable(pdf, y, barHeaders, barData, [25, 15, 35, 30, 25, 60]);
+      // Adjusted column widths - Cut Details diperlebar menjadi 68
+      y = drawTableAutoHeight(pdf, y, barHeaders, barData, [25, 15, 30, 25, 22, 68]);
 
       // Donation Page
       addDonationSection(pdf);
@@ -410,7 +474,7 @@
           ];
       });
 
-      y = drawTable(pdf, y, cutListHeaders, cutListData, [20, 30, 30, 30, 70]);
+      y = drawTableAutoHeight(pdf, y, cutListHeaders, cutListData, [20, 30, 30, 30, 70]);
 
       // NEW: Detailed Items List (Plate by Plate)
       pdf.addPage();
@@ -432,7 +496,7 @@
           });
       });
       
-      y = drawTable(pdf, y, detailHeaders, detailData, [25, 30, 40, 35, 25]);
+      y = drawTableAutoHeight(pdf, y, detailHeaders, detailData, [25, 30, 40, 35, 25]);
 
       // Visualization Pages - Fixed
       if (result.plates && result.plates.length > 0) {
@@ -531,7 +595,7 @@
   }
 
   // ============================================================================
-  // PROJECT PDF EXPORT - Revised 1D Table Format to match standalone 1D export
+  // PROJECT PDF EXPORT - Revised 1D Table Format with Auto-Fit Height
   // ============================================================================
   function exportProjectToPDF(results) {
       // Check if jsPDF is available
@@ -603,7 +667,7 @@
           });
           var colWidths = is1D ? [30, 40, 30] : [30, 35, 35, 30];
           
-          y = drawTable(pdf, y, itemHeaders, itemData, colWidths);
+          y = drawTableAutoHeight(pdf, y, itemHeaders, itemData, colWidths);
           y += 5;
       });
       
@@ -670,7 +734,7 @@
           });
           
           if (is1D) {
-              // 1D Bar visualization - REVISED FORMAT (same as standalone 1D export)
+              // 1D Bar visualization - REVISED FORMAT (same as standalone 1D export) with AUTO-FIT
               // Format: Bar, Cuts, Used Length, Waste, Efficiency, Cut Details
               var barHeaders = ['Bar', 'Cuts', 'Used Length', 'Waste', 'Efficiency', 'Cut Details'];
               var barData = res.result.bars.map(function(bar) {
@@ -699,8 +763,8 @@
                   ];
               });
 
-              // Use same column widths as standalone 1D export
-              y = drawTable(pdf, y, barHeaders, barData, [25, 15, 35, 30, 25, 60]);
+              // Use same column widths as standalone 1D export - Cut Details diperlebar
+              y = drawTableAutoHeight(pdf, y, barHeaders, barData, [25, 15, 30, 25, 22, 68]);
           } else {
               // NEW: 2D Detailed item table before visualization
               var detailHeaders = ['Plate', 'Item ID', 'Dimensions', 'Position', 'Rotated'];
@@ -719,7 +783,7 @@
               });
               
               if (detailData.length > 0) {
-                  y = drawTable(pdf, y, detailHeaders, detailData, [25, 30, 40, 35, 25]);
+                  y = drawTableAutoHeight(pdf, y, detailHeaders, detailData, [25, 30, 40, 35, 25]);
                   y += 5;
               }
               
@@ -811,5 +875,5 @@
   window.export2DToPDF = export2DToPDF;
   window.exportProjectToPDF = exportProjectToPDF;
 
-  console.log('✅ PDF Export module loaded - Fixed table format for 1D results');
+  console.log('✅ PDF Export module loaded - Fixed table format with auto-fit height for 1D results');
 })(window);
